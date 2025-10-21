@@ -36,7 +36,7 @@ component SortIcon inherits Window {
             y: 7;
         }
 
-        stroke: gray;
+        stroke: Palette.foreground.darker(0.5);
         stroke-width: 1px;
     }
     if ascending && display:
@@ -56,7 +56,7 @@ component SortIcon inherits Window {
             y: 3;
         }
 
-        stroke: gray;
+        stroke: Palette.foreground.darker(0.5);
         stroke-width: 1px;
     }
 }
@@ -70,7 +70,7 @@ component TitleBarItem inherits Window {
         height: 100%;
         text := Text {
             text: name;
-            color: dimgray;
+            color: Palette.foreground.darker(0.5);
             x: parent.width * 0.4;
             y: parent.height / 2 - self.height / 2;
         }
@@ -140,20 +140,19 @@ export component TitleBar inherits Window {
         }
 
         Path {
-            width: 100%;
-            height: 5px;
+            height: 0.5px;
             MoveTo {
                 x: 0;
                 y: 0;
             }
 
             LineTo {
-                x: 100%;
+                x: 10;
                 y: 0;
             }
 
             stroke: Palette.foreground;
-            stroke-width: 0.3px;
+            stroke-width: 0.1px;
         }
     }
 }
@@ -162,7 +161,7 @@ export component SongItem inherits Window {
     height: 30px;
     in property <SongInfo> info:{ id:0, song_name:"xxx", singer:"xxx", duration:"xxx", song_path:"xxx" };
     callback double_clicked();
-    background: area.has-hover ? Palette.control-background : transparent;
+    background: area.has-hover ? Palette.control-background : Palette.background;
     VerticalLayout {
         area := TouchArea {
             double-clicked => {
@@ -198,23 +197,6 @@ export component SongItem inherits Window {
                     }
                 }
             }
-        }
-
-        Path {
-            width: 100%;
-            height: 1px;
-            MoveTo {
-                x: 0;
-                y: 0;
-            }
-
-            LineTo {
-                x: 100%;
-                y: 0;
-            }
-
-            stroke: Palette.foreground;
-            stroke-width: 0.15px;
         }
     }
 }
