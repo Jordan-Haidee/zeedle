@@ -6,6 +6,7 @@ use lofty::{
     picture::PictureType,
     tag::{Accessor, ItemKey},
 };
+use pinyin::ToPinyin;
 use rayon::{
     iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator},
     slice::ParallelSliceMut,
@@ -64,17 +65,21 @@ pub fn read_song_list(
         .flatten()
         .collect::<Vec<_>>();
     if ascending {
-        songs.par_sort_by_key(|x| match sort_key {
-            SortKey::BySongName => x.song_name.clone(),
-            SortKey::BySinger => x.singer.clone(),
-            SortKey::ByDuration => x.duration.clone(),
-        });
+        match sort_key {
+            SortKey::BySongName => songs.par_sort_by_key(|x| get_chars(x.song_name.as_str())),
+            SortKey::BySinger => songs.par_sort_by_key(|x| get_chars(x.singer.as_str())),
+            SortKey::ByDuration => songs.par_sort_by_key(|x| x.duration.clone()),
+        }
     } else {
-        songs.par_sort_by_key(|x| match sort_key {
-            SortKey::BySongName => std::cmp::Reverse(x.song_name.clone()),
-            SortKey::BySinger => std::cmp::Reverse(x.singer.clone()),
-            SortKey::ByDuration => std::cmp::Reverse(x.duration.clone()),
-        });
+        match sort_key {
+            SortKey::BySongName => {
+                songs.par_sort_by_key(|x| std::cmp::Reverse(get_chars(x.song_name.as_str())))
+            }
+            SortKey::BySinger => {
+                songs.par_sort_by_key(|x| std::cmp::Reverse(get_chars(x.singer.as_str())))
+            }
+            SortKey::ByDuration => songs.par_sort_by_key(|x| std::cmp::Reverse(x.duration.clone())),
+        }
     }
     songs
         .into_par_iter()
@@ -165,4 +170,38 @@ pub fn get_about_info() -> SharedString {
         env!("CARGO_PKG_VERSION")
     )
     .into()
+}
+
+/// obtain sort key
+/// 1. english -> fist char
+/// 2. chinese -> first pinyin char
+/// 3. other -> ~
+pub fn get_chars(s: &str) -> (u8, String) {
+    // obtain first char
+    let first_char = s.chars().next();
+    match first_char {
+        Some(c) if c.is_ascii_alphabetic() => {
+            // en: first group
+            (0, s.to_string())
+        }
+        Some(c) if is_chinese(c) => {
+            // cn: second group
+            let pinyin = s
+                .to_pinyin()
+                .flatten()
+                .map(|p| p.plain().to_string())
+                .collect::<Vec<String>>()
+                .join("");
+            (1, pinyin)
+        }
+        _ => {
+            // other: third group
+            (2, "&".to_string())
+        }
+    }
+}
+
+/// judge whether a char is chinese
+fn is_chinese(c: char) -> bool {
+    ('\u{4e00}'..='\u{9fff}').contains(&c)
 }

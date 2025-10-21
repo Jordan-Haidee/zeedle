@@ -3454,6 +3454,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b330c9d1b92dfe68442ca20b009c717d5f0b1e3cf4965e62f704c3c6e95a1305"
 
 [[package]]
+name = "pinyin"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16f2611cd06a1ac239a0cea4521de9eb068a6ca110324ee00631aa68daa74fc0"
+
+[[package]]
 name = "piper"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6189,6 +6195,7 @@ dependencies = [
  "image",
  "lofty",
  "log",
+ "pinyin",
  "rand 0.9.2",
  "rayon",
  "rodio",

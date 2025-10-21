@@ -409,16 +409,24 @@ fn main() {
                             match key {
                                 SortKey::BySongName => {
                                     if ascending {
-                                        song_list.par_sort_by_key(|a| a.song_name.clone());
+                                        song_list.par_sort_by_key(|a| {
+                                            utils::get_chars(a.song_name.as_str())
+                                        })
                                     } else {
-                                        song_list.par_sort_by_key(|a| Reverse(a.song_name.clone()));
+                                        song_list.par_sort_by_key(|a| {
+                                            Reverse(utils::get_chars(a.song_name.as_str()))
+                                        })
                                     }
                                 }
                                 SortKey::BySinger => {
                                     if ascending {
-                                        song_list.par_sort_by_key(|a| a.singer.clone());
+                                        song_list.par_sort_by_key(|a| {
+                                            utils::get_chars(a.singer.as_str())
+                                        })
                                     } else {
-                                        song_list.par_sort_by_key(|a| Reverse(a.singer.clone()));
+                                        song_list.par_sort_by_key(|a| {
+                                            Reverse(utils::get_chars(a.singer.as_str()))
+                                        })
                                     }
                                 }
                                 SortKey::ByDuration => {
