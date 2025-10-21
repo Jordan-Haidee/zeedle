@@ -357,8 +357,8 @@ export component SettingsPanel inherits Window {
             }
 
             LineEdit {
-                text <=> song_dir;
                 width: 200px;
+                text <=> song_dir;
                 accepted(p) => {
                     refresh_song_list(p);
                 }
@@ -455,6 +455,7 @@ export component MainWindow inherits Window {
                         root.play(info, src);
                     }
                 }
+
                 ControlPanel {
                     max-height: 80px;
                     min-height: 50px;
@@ -556,6 +557,7 @@ export component MainWindow inherits Window {
     }
 
     key-input-handler := FocusScope {
+        focus-on-click: false;
         key-released(event) => {
             if event.text == Key.Space {
                 root.toggle_play();
