@@ -6186,7 +6186,7 @@ dependencies = [
 
 [[package]]
 name = "zeedle"
-version = "0.1.14-alpha.3"
+version = "0.1.14"
 dependencies = [
  "chrono",
  "env_logger",
