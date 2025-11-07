@@ -88,10 +88,15 @@ fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink) {
     ui_state.set_song_list(song_list.as_slice().into());
     ui_state.set_song_dir(cfg.song_dir.to_str().expect("failed to convert Path to String").into());
     ui_state.set_about_info(utils::get_about_info());
-    let cur_song_info = utils::read_meta_info(
+    let mut cur_song_info = utils::read_meta_info(
         cfg.current_song_path.unwrap_or(song_list[0].song_path.as_str().into()),
     )
     .expect("failed to read meta info of current song");
+    cur_song_info.id = song_list
+        .iter()
+        .find(|x| x.song_path == cur_song_info.song_path)
+        .map(|x| x.id)
+        .unwrap_or(0);
     let dura = cur_song_info
         .clone()
         .duration
