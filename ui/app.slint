@@ -1,5 +1,22 @@
-import { ListView, ComboBox, Slider, TabWidget, StandardListView, LineEdit, Switch, Palette } from "std-widgets.slint";
-import { NextSongButton, PrevSongButton, PlayPauseButton, OverlapButton, RandomButton, PlayMode } from "button.slint";
+import {
+    ListView,
+    ComboBox,
+    Slider,
+    TabWidget,
+    StandardListView,
+    LineEdit,
+    Switch,
+    Palette,
+} from "std-widgets.slint";
+import {
+    NextSongButton,
+    PrevSongButton,
+    PlayPauseButton,
+    OverlapButton,
+    RandomButton,
+    PlayMode,
+    MusicVolumeButton,
+} from "button.slint";
 import { SongInfo, TitleBar, SongItem, SortKey } from "song.slint";
 import { LyricLine } from "lyric.slint";
 
@@ -61,9 +78,11 @@ export global UIState {
     in-out property <string> lang;
     // 主题颜色
     in-out property <bool> light_ui;
+    // 音量大小
+    in property <float> volume;
 }
 
-export component SongListView inherits Window {
+component SongListView inherits Rectangle {
     in-out property <bool> ascending;
     in-out property <SortKey> sort-key;
     in-out property <SortKey> last-sort-key;
@@ -96,7 +115,7 @@ export component SongListView inherits Window {
     }
 }
 
-export component ControlPanel inherits Window {
+component ControlPanel inherits Rectangle {
     in-out property <float> progress;
     in property <float> duration;
     in property <bool> paused;
@@ -109,6 +128,7 @@ export component ControlPanel inherits Window {
     callback play-next();
     callback play-prev();
     callback switch-mode(PlayMode);
+    callback change-volume(float);
     callback double-clicked();
     pure callback format-duration(float) -> string;
     VerticalLayout {
@@ -249,7 +269,7 @@ export component ControlPanel inherits Window {
             }
 
             Rectangle {
-                width: 35%;
+                width: 25%;
                 TouchArea {
                     double-clicked => {
                         root.double-clicked()
@@ -263,11 +283,23 @@ export component ControlPanel inherits Window {
                     horizontal-alignment: center;
                 }
             }
+
+            Rectangle {
+                width: 10%;
+                MusicVolumeButton {
+                    icon-height: 20px;
+                    slider-height: 50px;
+                    volume <=> UIState.volume;
+                    change-volume(v) => {
+                        root.change-volume(v)
+                    }
+                }
+            }
         }
     }
 }
 
-export component LyricsPanel inherits Window {
+component LyricsPanel inherits Rectangle {
     in property <image> album_image;
     in property <SongInfo> current_song;
     in property <[LyricItem]> lyrics;
@@ -331,7 +363,7 @@ export component LyricsPanel inherits Window {
     }
 }
 
-export component SettingsPanel inherits Window {
+component SettingsPanel inherits Rectangle {
     in-out property <string> song_dir;
     in-out property <string> lang;
     in-out property <bool> light_ui;
@@ -430,6 +462,7 @@ export component MainWindow inherits Window {
     callback refresh_song_list(string);
     callback sort_song_list(SortKey, bool);
     callback set_lang(string);
+    callback change_volume(float);
     pure callback format_duration(float) -> string;
     public function set_light_theme(yes: bool) {
         UIState.light_ui = yes;
@@ -482,6 +515,9 @@ export component MainWindow inherits Window {
                     }
                     switch-mode(m) => {
                         root.switch_mode(m);
+                    }
+                    change-volume(v) => {
+                        root.change_volume(v);
                     }
                     double-clicked() => {
                         tabs.current-index = 1; // 切换到歌词页

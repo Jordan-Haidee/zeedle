@@ -18,6 +18,7 @@ pub struct Config {
     pub sort_ascending: bool,
     pub lang: String,
     pub light_ui: bool,
+    pub volume: f32,
 }
 impl Default for Config {
     fn default() -> Self {
@@ -30,6 +31,7 @@ impl Default for Config {
             sort_ascending: true,
             lang: "".into(),
             light_ui: false,
+            volume: 1f32,
         }
     }
 }

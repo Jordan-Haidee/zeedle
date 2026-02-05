@@ -30,6 +30,7 @@ enum PlayerCommand {
     RefreshSongList(PathBuf),      // 刷新歌曲列表
     SortSongList(SortKey, bool),   // 刷新歌曲列表
     SetLang(String),               // 设置语言
+    ChangeVolume(f32),             // 改变音量
 }
 
 /// Set UI state to default (no song)
@@ -83,6 +84,7 @@ fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink) {
     ui_state.set_paused(true);
     ui_state.set_play_mode(cfg.play_mode);
     ui_state.set_lang(cfg.lang.clone().into());
+    ui_state.set_volume(cfg.volume);
     slint::select_bundled_translation(&cfg.lang)
         .unwrap_or_else(|_| panic!("failed to set language: {}", cfg.lang));
     ui_state.set_song_list(song_list.as_slice().into());
@@ -469,6 +471,19 @@ fn main() {
                     })
                     .unwrap()
                 }
+                PlayerCommand::ChangeVolume(v) => {
+                    let sink_guard = sink_clone.lock().unwrap();
+                    sink_guard.set_volume(v);
+                    log::info!("volume changed to: {}", v);
+                    let ui_weak = ui_weak.clone();
+                    slint::invoke_from_event_loop(move || {
+                        if let Some(ui) = ui_weak.upgrade() {
+                            let ui_state = ui.global::<UIState>();
+                            ui_state.set_volume(v);
+                        }
+                    })
+                    .unwrap()
+                }
             }
         }
     });
@@ -542,6 +557,13 @@ fn main() {
                 .expect("failed to send set language command");
         });
     }
+    {
+        let tx = tx.clone();
+        ui.on_change_volume(move |v| {
+            log::info!("request to change volume to: {}", v);
+            tx.send(PlayerCommand::ChangeVolume(v)).expect("failed to send change volume command");
+        });
+    }
     // pure callback to format duration string
     ui.on_format_duration(|dura| {
         format!("{:02}:{:02}", (dura as u32) / 60, (dura as u32) % 60).to_shared_string()
@@ -599,6 +621,7 @@ fn main() {
             sort_ascending: ui_state.get_sort_ascending(),
             lang: ui_state.get_lang().into(),
             light_ui: ui_state.get_light_ui(),
+            volume: ui_state.get_volume(),
         }
     });
     log::info!("app exited");

@@ -1,4 +1,4 @@
-import { Palette } from "std-widgets.slint";
+import { Palette, Slider } from "std-widgets.slint";
 export component NextSongButton inherits Rectangle {
     callback clicked();
     TouchArea {
@@ -374,6 +374,104 @@ export component RandomButton inherits Rectangle {
 
             stroke: selected ? Palette.accent-background : Palette.foreground;
             stroke-width: 1px;
+        }
+    }
+}
+
+export component MusicVolumeButton inherits Rectangle {
+    in property <length> slider-height;
+    in property <length> icon-height;
+    in-out property <float> volume;
+    property <bool> selected: icon.has-hover;
+    callback change-volume(float);
+    icon := TouchArea {
+        if selected:
+            Rectangle {
+            z: 10;
+            Slider {
+                x: parent.width * 0.7;
+                height: root.slider-height;
+                minimum: 0;
+                maximum: 1;
+                value <=> root.volume;
+                orientation: vertical;
+                released(value) => {
+                    root.change-volume(value);
+                }
+            }
+        }
+        Rectangle {
+            height: root.icon-height;
+            Path {
+                MoveTo {
+                    x: 0;
+                    y: 50;
+                }
+
+                LineTo {
+                    x: 0;
+                    y: 25;
+                }
+
+                LineTo {
+                    x: 25;
+                    y: 25;
+                }
+
+                LineTo {
+                    x: 50;
+                    y: 0;
+                }
+
+                LineTo {
+                    x: 50;
+                    y: 100;
+                }
+
+                LineTo {
+                    x: 25;
+                    y: 75;
+                }
+
+                LineTo {
+                    x: 0;
+                    y: 75;
+                }
+
+                LineTo {
+                    x: 0;
+                    y: 25;
+                }
+
+                MoveTo {
+                    x: 65;
+                    y: 25;
+                }
+
+                ArcTo {
+                    radius-x: 35;
+                    radius-y: 35;
+                    x: 65;
+                    y: 75;
+                    sweep: true;
+                }
+
+                MoveTo {
+                    x: 80;
+                    y: 0;
+                }
+
+                ArcTo {
+                    radius-x: 70;
+                    radius-y: 70;
+                    x: 80;
+                    y: 100;
+                    sweep: true;
+                }
+
+                stroke: selected ? Palette.accent-background : Palette.foreground;
+                stroke-width: 1px;
+            }
         }
     }
 }

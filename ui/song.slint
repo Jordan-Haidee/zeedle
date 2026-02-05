@@ -85,7 +85,7 @@ component TitleBarItem inherits Rectangle {
     }
 }
 
-export component TitleBar inherits Window {
+export component TitleBar inherits Rectangle {
     height: 30px;
     in-out property <SortKey> key;
     in-out property <bool> ascending;
@@ -157,7 +157,7 @@ export component TitleBar inherits Window {
     }
 }
 
-export component SongItem inherits Window {
+export component SongItem inherits Rectangle {
     height: 30px;
     in property <SongInfo> info:{ id:0, song_name:"xxx", singer:"xxx", duration:"xxx", song_path:"xxx" };
     callback double_clicked();
