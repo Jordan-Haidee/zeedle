@@ -14,7 +14,7 @@ export enum SortKey {
     ByDuration,
 }
 
-component SortIcon inherits Window {
+component SortIcon inherits Rectangle {
     in-out property <bool> ascending:true;
     in-out property <bool> display:true;
     height: 15px;
@@ -61,7 +61,7 @@ component SortIcon inherits Window {
     }
 }
 
-component TitleBarItem inherits Window {
+component TitleBarItem inherits Rectangle {
     in property <string> name:"name";
     in-out property <bool> display-sort-icon <=> arrow.display;
     in-out property <bool> ascending-sort <=> arrow.ascending;

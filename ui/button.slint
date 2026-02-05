@@ -1,5 +1,5 @@
 import { Palette } from "std-widgets.slint";
-export component NextSongButton inherits Window {
+export component NextSongButton inherits Rectangle {
     callback clicked();
     TouchArea {
         clicked => {
@@ -41,7 +41,7 @@ export component NextSongButton inherits Window {
     }
 }
 
-export component PrevSongButton inherits Window {
+export component PrevSongButton inherits Rectangle {
     callback clicked();
     TouchArea {
         clicked => {
@@ -83,7 +83,7 @@ export component PrevSongButton inherits Window {
     }
 }
 
-export component PlayPauseButton inherits Window {
+export component PlayPauseButton inherits Rectangle {
     in-out property <bool> paused:true;
     callback toggled();
     TouchArea {
@@ -168,7 +168,7 @@ export component PlayPauseButton inherits Window {
     }
 }
 
-export component InOrderButton inherits Window {
+export component InOrderButton inherits Rectangle {
     in-out property <bool> selected;
     Path {
         MoveTo {
@@ -206,7 +206,7 @@ export component InOrderButton inherits Window {
     }
 }
 
-export component RecursiveButton inherits Window {
+export component RecursiveButton inherits Rectangle {
     in-out property <bool> selected;
     Path {
         MoveTo {
@@ -271,7 +271,7 @@ export enum PlayMode {
     Random
  }
 
-export component OverlapButton inherits Window {
+export component OverlapButton inherits Rectangle {
     in-out property <PlayMode> mode;
     callback clicked();
     TouchArea {
@@ -293,7 +293,7 @@ export component OverlapButton inherits Window {
     }
 }
 
-export component RandomButton inherits Window {
+export component RandomButton inherits Rectangle {
     callback clicked();
     in-out property <bool> selected;
     TouchArea {
