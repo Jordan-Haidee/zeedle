@@ -288,7 +288,7 @@ component ControlPanel inherits Rectangle {
                 width: 10%;
                 MusicVolumeButton {
                     icon-height: 20px;
-                    slider-height: 50px;
+                    slider-height: 55px;
                     volume <=> UIState.volume;
                     change-volume(v) => {
                         root.change-volume(v)
@@ -518,6 +518,7 @@ export component MainWindow inherits Window {
                     }
                     change-volume(v) => {
                         root.change_volume(v);
+                        root.focus();
                     }
                     double-clicked() => {
                         tabs.current-index = 1; // 切换到歌词页
