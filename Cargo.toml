@@ -19,7 +19,7 @@ rayon = "1.11.0"
 rodio = "0.21.1"
 serde = { version = "1.0.223", features = ["derive"] }
 single-instance = "0.3.3"
-slint = { version = "1.15.0", default-features = false, features = [
+slint = { version = "=1.13.1", default-features = false, features = [
     "backend-winit",
     "renderer-skia",
     "accessibility",
@@ -30,7 +30,7 @@ toml = "0.9.5"
 walkdir = "2.5.0"
 
 [build-dependencies]
-slint-build = { version = "1.15.0" }
+slint-build = { version = "=1.13.1" }
 winresource = "0.1.17"
 
 [dev-dependencies]
