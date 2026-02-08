@@ -1,6 +1,6 @@
 [package]
 name = "zeedle"
-version = "0.1.15"
+version = "0.1.16"
 edition = "2024"
 authors = ["Jordan Haidee"]
 description = "Music at the speed of a blink, designed for pure simplicity\nBuilt by Rodio and Slint UI"
