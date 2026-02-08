@@ -60,6 +60,7 @@ fn set_raw_ui_state(ui: &MainWindow) {
     ui_state.set_dragging(false);
     ui_state.set_user_listening(false);
     ui_state.set_lyric_viewport_y(0.);
+    ui_state.set_volume(1.);
 }
 
 /// Set UI state according to saved config
@@ -121,6 +122,7 @@ fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink) {
     let source = Decoder::try_from(file).expect("failed to decode audio file");
     sink.append(source);
     sink.pause();
+    sink.set_volume(cfg.volume);
     sink.try_seek(Duration::from_secs_f32(cfg.progress)).expect("failed to seek to given position");
     let mut history = ui_state.get_play_history().iter().collect::<Vec<_>>();
     history.push(cur_song_info.clone());
@@ -611,18 +613,16 @@ fn main() {
     // 退出前保存状态
     log::info!("saving config...");
     let ui_state = ui.global::<UIState>();
-    Config::save({
-        Config {
-            song_dir: ui_state.get_song_dir().as_str().into(),
-            current_song_path: Some(ui_state.get_current_song().song_path.as_str().into()),
-            progress: ui_state.get_progress(),
-            play_mode: ui_state.get_play_mode(),
-            sort_key: ui_state.get_sort_key(),
-            sort_ascending: ui_state.get_sort_ascending(),
-            lang: ui_state.get_lang().into(),
-            light_ui: ui_state.get_light_ui(),
-            volume: ui_state.get_volume(),
-        }
+    Config::save(Config {
+        song_dir: ui_state.get_song_dir().as_str().into(),
+        current_song_path: Some(ui_state.get_current_song().song_path.as_str().into()),
+        progress: ui_state.get_progress(),
+        play_mode: ui_state.get_play_mode(),
+        sort_key: ui_state.get_sort_key(),
+        sort_ascending: ui_state.get_sort_ascending(),
+        lang: ui_state.get_lang().into(),
+        light_ui: ui_state.get_light_ui(),
+        volume: ui_state.get_volume(),
     });
     log::info!("app exited");
 }
