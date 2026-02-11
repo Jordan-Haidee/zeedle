@@ -80,6 +80,29 @@ export global UIState {
     in-out property <bool> light_ui;
     // 音量大小
     in property <float> volume;
+    // 频谱数据 (0..1)
+    in-out property <[float]> spectrum;
+}
+
+component SpectrumView inherits Rectangle {
+    in property <[float]> bins;
+    in property <color> bar-color: Palette.foreground;
+    height: 60px;
+    width: 200px;
+    clip: true;
+    HorizontalLayout {
+        width: 100%;
+        height: 100%;
+        alignment: center;
+        spacing: 1px;
+        for v in bins: Rectangle {
+            width: 3px;
+            height: parent.height * v;
+            y: parent.height - self.height;
+            border-radius: 1px;
+            background: root.bar-color;
+        }
+    }
 }
 
 component SongListView inherits Rectangle {
@@ -305,6 +328,7 @@ component LyricsPanel inherits Rectangle {
     in property <[LyricItem]> lyrics;
     in property <float> progress;
     in-out property <length> lyric_viewport_y;
+    in property <[float]> spectrum;
     HorizontalLayout {
         width: 100%;
         height: 100%;
@@ -343,6 +367,10 @@ component LyricsPanel inherits Rectangle {
                 vertical-alignment: bottom;
                 text: @tr("Title: {}", current_song.song_name);
                 overflow: elide;
+            }
+
+            SpectrumView {
+                bins: spectrum;
             }
         }
 
@@ -551,6 +579,7 @@ export component MainWindow inherits Window {
                 lyrics <=> UIState.lyrics;
                 progress <=> UIState.progress;
                 lyric_viewport_y <=> UIState.lyric_viewport_y;
+                spectrum <=> UIState.spectrum;
             }
         }
 

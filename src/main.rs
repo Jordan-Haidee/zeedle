@@ -1,15 +1,18 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use std::{
     cmp::Reverse,
+    f32::consts::PI,
     path::PathBuf,
     sync::{Arc, Mutex, mpsc},
     thread,
     time::{Duration, Instant},
 };
 
+use crossbeam_channel::{Sender, bounded};
 use rand::Rng;
 use rayon::slice::ParallelSliceMut;
 use rodio::{Decoder, Source, cpal};
+use rustfft::{FftPlanner, num_complex::Complex};
 use slint::{Model, ToSharedString};
 mod slint_types;
 use slint_types::*;
@@ -33,12 +36,179 @@ enum PlayerCommand {
     ChangeVolume(f32),             // 改变音量
 }
 
+const FFT_SIZE: usize = 1024;
+const SPECTRUM_BINS: usize = 48;
+const SPECTRUM_UPDATE_MS: u64 = 33;
+
+fn default_spectrum() -> Vec<f32> {
+    vec![0.0; SPECTRUM_BINS]
+}
+
+struct TapSource<S> {
+    inner: S,
+    channels: u16,
+    frame_acc: f32,
+    frame_index: u16,
+    buf: Vec<f32>,
+    tx: Sender<Vec<f32>>,
+}
+
+impl<S> TapSource<S> {
+    fn new(inner: S, tx: Sender<Vec<f32>>) -> Self
+    where
+        S: Source<Item = f32>,
+    {
+        let channels = inner.channels();
+        Self {
+            inner,
+            channels,
+            frame_acc: 0.0,
+            frame_index: 0,
+            buf: Vec::with_capacity(FFT_SIZE),
+            tx,
+        }
+    }
+}
+
+impl<S> Iterator for TapSource<S>
+where
+    S: Source<Item = f32>,
+{
+    type Item = f32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let sample = self.inner.next()?;
+        self.frame_acc += sample;
+        self.frame_index += 1;
+
+        if self.frame_index >= self.channels {
+            let mono = self.frame_acc / self.channels as f32;
+            self.frame_acc = 0.0;
+            self.frame_index = 0;
+            self.buf.push(mono);
+            if self.buf.len() >= FFT_SIZE {
+                let mut chunk = Vec::with_capacity(FFT_SIZE);
+                std::mem::swap(&mut chunk, &mut self.buf);
+                let _ = self.tx.try_send(chunk);
+            }
+        }
+
+        Some(sample)
+    }
+}
+
+impl<S> Source for TapSource<S>
+where
+    S: Source<Item = f32>,
+{
+    fn current_span_len(&self) -> Option<usize> {
+        self.inner.current_span_len()
+    }
+
+    fn channels(&self) -> u16 {
+        self.inner.channels()
+    }
+
+    fn sample_rate(&self) -> u32 {
+        self.inner.sample_rate()
+    }
+
+    fn total_duration(&self) -> Option<Duration> {
+        self.inner.total_duration()
+    }
+
+    fn try_seek(&mut self, pos: Duration) -> Result<(), rodio::source::SeekError> {
+        self.frame_acc = 0.0;
+        self.frame_index = 0;
+        self.buf.clear();
+        self.inner.try_seek(pos)
+    }
+}
+
+fn start_spectrum_worker(
+    rx: crossbeam_channel::Receiver<Vec<f32>>,
+    spectrum: Arc<Mutex<Vec<f32>>>,
+) {
+    thread::spawn(move || {
+        let mut planner = FftPlanner::<f32>::new();
+        let fft = planner.plan_fft_forward(FFT_SIZE);
+        let mut buffer = vec![
+            Complex {
+                re: 0.0,
+                im: 0.0
+            };
+            FFT_SIZE
+        ];
+        let mut window = vec![0.0; FFT_SIZE];
+        for i in 0..FFT_SIZE {
+            window[i] = 0.5 - 0.5 * (2.0 * PI * i as f32 / (FFT_SIZE as f32)).cos();
+        }
+        let mut peak = 1e-6f32;
+
+        while let Ok(chunk) = rx.recv() {
+            if chunk.len() != FFT_SIZE {
+                continue;
+            }
+
+            for i in 0..FFT_SIZE {
+                buffer[i].re = chunk[i] * window[i];
+                buffer[i].im = 0.0;
+            }
+
+            fft.process(&mut buffer);
+
+            let mut mags = vec![0.0; FFT_SIZE / 2];
+            for (i, c) in buffer.iter().take(FFT_SIZE / 2).enumerate() {
+                mags[i] = (c.re * c.re + c.im * c.im).sqrt();
+            }
+
+            let mut max_mag = 0.0;
+            for m in &mags {
+                if *m > max_mag {
+                    max_mag = *m;
+                }
+            }
+            if max_mag > peak {
+                peak = max_mag;
+            }
+            if peak < 1e-6 {
+                peak = 1e-6;
+            }
+
+            let bin_size = (mags.len() / SPECTRUM_BINS).max(1);
+            let mut bars = vec![0.0; SPECTRUM_BINS];
+            for b in 0..SPECTRUM_BINS {
+                let start = b * bin_size;
+                let end = if b == SPECTRUM_BINS - 1 {
+                    mags.len()
+                } else {
+                    (b + 1) * bin_size
+                };
+                let mut sum = 0.0;
+                for i in start..end {
+                    sum += mags[i];
+                }
+                let avg = sum / (end - start) as f32;
+                let norm = (avg / peak).sqrt();
+                bars[b] = norm.clamp(0.0, 1.0);
+            }
+
+            peak *= 0.98;
+
+            if let Ok(mut guard) = spectrum.lock() {
+                *guard = bars;
+            }
+        }
+    });
+}
+
 /// Set UI state to default (no song)
 fn set_raw_ui_state(ui: &MainWindow) {
     let ui_state = ui.global::<UIState>();
     ui_state.set_progress(0.0);
     ui_state.set_duration(0.0);
     ui_state.set_about_info(utils::get_about_info());
+    ui_state.set_spectrum(default_spectrum().as_slice().into());
     ui_state.set_album_image(
         slint::Image::load_from_svg_data(include_bytes!("../ui/cover.svg"))
             .expect("failed to load default image"),
@@ -64,7 +234,7 @@ fn set_raw_ui_state(ui: &MainWindow) {
 }
 
 /// Set UI state according to saved config
-fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink) {
+fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink, fft_tx: &Sender<Vec<f32>>) {
     let ui_state = ui.global::<UIState>();
     let cfg = Config::load();
     let song_list = utils::read_song_list(&cfg.song_dir, cfg.sort_key, cfg.sort_ascending);
@@ -111,6 +281,7 @@ fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink) {
     ui_state.set_duration(dura);
     ui_state.set_current_song(cur_song_info.clone());
     ui_state.set_lyrics(utils::read_lyrics(&cur_song_info.song_path).as_slice().into());
+    ui_state.set_spectrum(default_spectrum().as_slice().into());
     let cover = utils::read_album_cover(&cur_song_info.song_path);
     let cover = match cover {
         Some((buffer, width, height)) => utils::from_image_to_slint(buffer, width, height),
@@ -120,7 +291,8 @@ fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink) {
     let file = std::fs::File::open(&cur_song_info.song_path)
         .unwrap_or_else(|_| panic!("failed to open audio file: {}", cur_song_info.song_path));
     let source = Decoder::try_from(file).expect("failed to decode audio file");
-    sink.append(source);
+    let tap = TapSource::new(source, fft_tx.clone());
+    sink.append(tap);
     sink.pause();
     sink.set_volume(cfg.volume);
     sink.try_seek(Duration::from_secs_f32(cfg.progress)).expect("failed to seek to given position");
@@ -150,15 +322,19 @@ fn main() {
     stream_handle.log_on_drop(false);
     let _sink = rodio::Sink::connect_new(stream_handle.mixer());
     let sink = Arc::new(Mutex::new(_sink));
+    let spectrum_data = Arc::new(Mutex::new(default_spectrum()));
+    let (fft_tx, fft_rx) = bounded::<Vec<f32>>(4);
+    start_spectrum_worker(fft_rx, spectrum_data.clone());
     // 创建消息通道 ui --> backend
     let (tx, rx) = mpsc::channel::<PlayerCommand>();
     // 初始化 UI 状态
     let ui = MainWindow::new().expect("failed to create UI");
-    set_start_ui_state(&ui, &sink.lock().unwrap());
+    set_start_ui_state(&ui, &sink.lock().unwrap(), &fft_tx);
 
     // 播放线程
     let ui_weak = ui.as_weak();
     let sink_clone = sink.clone();
+    let fft_tx = fft_tx.clone();
     thread::spawn(move || {
         log::info!("player thread running...");
         while let Ok(cmd) = rx.recv() {
@@ -167,11 +343,12 @@ fn main() {
                     let file = std::fs::File::open(&song_info.song_path)
                         .expect("failed to open audio file");
                     let source = Decoder::try_from(file).expect("failed to decode audio file");
-                    let lyrics = utils::read_lyrics(&song_info.song_path);
                     let dura = source.total_duration().map(|d| d.as_secs_f32()).unwrap_or(0.0);
+                    let lyrics = utils::read_lyrics(&song_info.song_path);
                     let sink_guard = sink_clone.lock().unwrap();
                     sink_guard.clear();
-                    sink_guard.append(source);
+                    let tap = TapSource::new(source, fft_tx.clone());
+                    sink_guard.append(tap);
                     sink_guard.play();
                     log::info!("start playing: <{}>", song_info.song_name);
                     let cover = utils::read_album_cover(&song_info.song_path);
@@ -605,6 +782,23 @@ fn main() {
             }
         }
     });
+
+    // UI 定时刷新频谱
+    let ui_weak = ui.as_weak();
+    let spectrum_data = spectrum_data.clone();
+    let spectrum_timer = slint::Timer::default();
+    spectrum_timer.start(
+        slint::TimerMode::Repeated,
+        Duration::from_millis(SPECTRUM_UPDATE_MS),
+        move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                if let Ok(guard) = spectrum_data.lock() {
+                    let ui_state = ui.global::<UIState>();
+                    ui_state.set_spectrum(guard.as_slice().into());
+                }
+            }
+        },
+    );
 
     // 显示 UI
     log::info!("ui state initialized, take: {:?}", app_start.elapsed());
