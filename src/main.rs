@@ -140,8 +140,8 @@ fn start_spectrum_worker(
             FFT_SIZE
         ];
         let mut window = vec![0.0; FFT_SIZE];
-        for i in 0..FFT_SIZE {
-            window[i] = 0.5 - 0.5 * (2.0 * PI * i as f32 / (FFT_SIZE as f32)).cos();
+        for (i, val) in window.iter_mut().enumerate() {
+            *val = 0.5 - 0.5 * (2.0 * PI * i as f32 / (FFT_SIZE as f32)).cos();
         }
         let mut peak = 1e-6f32;
 
@@ -177,7 +177,7 @@ fn start_spectrum_worker(
 
             let bin_size = (mags.len() / SPECTRUM_BINS).max(1);
             let mut bars = vec![0.0; SPECTRUM_BINS];
-            for b in 0..SPECTRUM_BINS {
+            for (b, bar) in bars.iter_mut().enumerate() {
                 let start = b * bin_size;
                 let end = if b == SPECTRUM_BINS - 1 {
                     mags.len()
@@ -185,12 +185,12 @@ fn start_spectrum_worker(
                     (b + 1) * bin_size
                 };
                 let mut sum = 0.0;
-                for i in start..end {
-                    sum += mags[i];
+                for mag in mags.iter().take(end).skip(start) {
+                    sum += mag;
                 }
                 let avg = sum / (end - start) as f32;
                 let norm = (avg / peak).sqrt();
-                bars[b] = norm.clamp(0.0, 1.0);
+                *bar = norm.clamp(0.0, 1.0);
             }
 
             peak *= 0.98;
@@ -791,11 +791,11 @@ fn main() {
         slint::TimerMode::Repeated,
         Duration::from_millis(SPECTRUM_UPDATE_MS),
         move || {
-            if let Some(ui) = ui_weak.upgrade() {
-                if let Ok(guard) = spectrum_data.lock() {
-                    let ui_state = ui.global::<UIState>();
-                    ui_state.set_spectrum(guard.as_slice().into());
-                }
+            if let Some(ui) = ui_weak.upgrade()
+                && let Ok(guard) = spectrum_data.lock()
+            {
+                let ui_state = ui.global::<UIState>();
+                ui_state.set_spectrum(guard.as_slice().into());
             }
         },
     );
