@@ -37,24 +37,30 @@ enum PlayerCommand {
 }
 
 const FFT_SIZE: usize = 1024;
-const SPECTRUM_BINS: usize = 48;
+const SPECTRUM_BINS_PER_CH: usize = 48;
+const SPECTRUM_BINS: usize = SPECTRUM_BINS_PER_CH * 2;
 const SPECTRUM_UPDATE_MS: u64 = 33;
 
 fn default_spectrum() -> Vec<f32> {
     vec![0.0; SPECTRUM_BINS]
 }
 
+struct SpectrumChunk {
+    left: Vec<f32>,
+    right: Vec<f32>,
+}
+
 struct TapSource<S> {
     inner: S,
     channels: u16,
-    frame_acc: f32,
     frame_index: u16,
-    buf: Vec<f32>,
-    tx: Sender<Vec<f32>>,
+    left_buf: Vec<f32>,
+    right_buf: Vec<f32>,
+    tx: Sender<SpectrumChunk>,
 }
 
 impl<S> TapSource<S> {
-    fn new(inner: S, tx: Sender<Vec<f32>>) -> Self
+    fn new(inner: S, tx: Sender<SpectrumChunk>) -> Self
     where
         S: Source<Item = f32>,
     {
@@ -62,9 +68,9 @@ impl<S> TapSource<S> {
         Self {
             inner,
             channels,
-            frame_acc: 0.0,
             frame_index: 0,
-            buf: Vec::with_capacity(FFT_SIZE),
+            left_buf: Vec::with_capacity(FFT_SIZE),
+            right_buf: Vec::with_capacity(FFT_SIZE),
             tx,
         }
     }
@@ -78,19 +84,28 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         let sample = self.inner.next()?;
-        self.frame_acc += sample;
+        let channel = self.frame_index;
         self.frame_index += 1;
 
+        if self.channels <= 1 {
+            self.left_buf.push(sample);
+            self.right_buf.push(sample);
+        } else if channel == 0 {
+            self.left_buf.push(sample);
+        } else if channel == 1 {
+            self.right_buf.push(sample);
+        }
+
         if self.frame_index >= self.channels {
-            let mono = self.frame_acc / self.channels as f32;
-            self.frame_acc = 0.0;
             self.frame_index = 0;
-            self.buf.push(mono);
-            if self.buf.len() >= FFT_SIZE {
-                let mut chunk = Vec::with_capacity(FFT_SIZE);
-                std::mem::swap(&mut chunk, &mut self.buf);
-                let _ = self.tx.try_send(chunk);
-            }
+        }
+
+        if self.left_buf.len() >= FFT_SIZE && self.right_buf.len() >= FFT_SIZE {
+            let mut left = Vec::with_capacity(FFT_SIZE);
+            let mut right = Vec::with_capacity(FFT_SIZE);
+            std::mem::swap(&mut left, &mut self.left_buf);
+            std::mem::swap(&mut right, &mut self.right_buf);
+            let _ = self.tx.try_send(SpectrumChunk { left, right });
         }
 
         Some(sample)
@@ -118,15 +133,15 @@ where
     }
 
     fn try_seek(&mut self, pos: Duration) -> Result<(), rodio::source::SeekError> {
-        self.frame_acc = 0.0;
         self.frame_index = 0;
-        self.buf.clear();
+        self.left_buf.clear();
+        self.right_buf.clear();
         self.inner.try_seek(pos)
     }
 }
 
 fn start_spectrum_worker(
-    rx: crossbeam_channel::Receiver<Vec<f32>>,
+    rx: crossbeam_channel::Receiver<SpectrumChunk>,
     spectrum: Arc<Mutex<Vec<f32>>>,
 ) {
     thread::spawn(move || {
@@ -144,26 +159,34 @@ fn start_spectrum_worker(
             *val = 0.5 - 0.5 * (2.0 * PI * i as f32 / (FFT_SIZE as f32)).cos();
         }
         let mut peak = 1e-6f32;
+        let mut mags_left = vec![0.0; FFT_SIZE / 2];
+        let mut mags_right = vec![0.0; FFT_SIZE / 2];
 
         while let Ok(chunk) = rx.recv() {
-            if chunk.len() != FFT_SIZE {
+            if chunk.left.len() != FFT_SIZE || chunk.right.len() != FFT_SIZE {
                 continue;
             }
 
             for i in 0..FFT_SIZE {
-                buffer[i].re = chunk[i] * window[i];
+                buffer[i].re = chunk.left[i] * window[i];
                 buffer[i].im = 0.0;
             }
-
             fft.process(&mut buffer);
-
-            let mut mags = vec![0.0; FFT_SIZE / 2];
             for (i, c) in buffer.iter().take(FFT_SIZE / 2).enumerate() {
-                mags[i] = (c.re * c.re + c.im * c.im).sqrt();
+                mags_left[i] = (c.re * c.re + c.im * c.im).sqrt();
+            }
+
+            for i in 0..FFT_SIZE {
+                buffer[i].re = chunk.right[i] * window[i];
+                buffer[i].im = 0.0;
+            }
+            fft.process(&mut buffer);
+            for (i, c) in buffer.iter().take(FFT_SIZE / 2).enumerate() {
+                mags_right[i] = (c.re * c.re + c.im * c.im).sqrt();
             }
 
             let mut max_mag = 0.0;
-            for m in &mags {
+            for m in mags_left.iter().chain(mags_right.iter()) {
                 if *m > max_mag {
                     max_mag = *m;
                 }
@@ -175,17 +198,34 @@ fn start_spectrum_worker(
                 peak = 1e-6;
             }
 
-            let bin_size = (mags.len() / SPECTRUM_BINS).max(1);
-            let mut bars = vec![0.0; SPECTRUM_BINS];
-            for (b, bar) in bars.iter_mut().enumerate() {
+            let bin_size = (mags_left.len() / SPECTRUM_BINS_PER_CH).max(1);
+            let mut bars_left = vec![0.0; SPECTRUM_BINS_PER_CH];
+            let mut bars_right = vec![0.0; SPECTRUM_BINS_PER_CH];
+            for (b, bar) in bars_left.iter_mut().enumerate() {
                 let start = b * bin_size;
-                let end = if b == SPECTRUM_BINS - 1 {
-                    mags.len()
+                let end = if b == SPECTRUM_BINS_PER_CH - 1 {
+                    mags_left.len()
                 } else {
                     (b + 1) * bin_size
                 };
                 let mut sum = 0.0;
-                for mag in mags.iter().take(end).skip(start) {
+                for mag in mags_left.iter().take(end).skip(start) {
+                    sum += mag;
+                }
+                let avg = sum / (end - start) as f32;
+                let norm = (avg / peak).sqrt();
+                *bar = norm.clamp(0.0, 1.0);
+            }
+
+            for (b, bar) in bars_right.iter_mut().enumerate() {
+                let start = b * bin_size;
+                let end = if b == SPECTRUM_BINS_PER_CH - 1 {
+                    mags_right.len()
+                } else {
+                    (b + 1) * bin_size
+                };
+                let mut sum = 0.0;
+                for mag in mags_right.iter().take(end).skip(start) {
                     sum += mag;
                 }
                 let avg = sum / (end - start) as f32;
@@ -195,6 +235,9 @@ fn start_spectrum_worker(
 
             peak *= 0.98;
 
+            let mut bars = Vec::with_capacity(SPECTRUM_BINS);
+            bars.extend(bars_left.into_iter().rev());
+            bars.extend(bars_right);
             if let Ok(mut guard) = spectrum.lock() {
                 *guard = bars;
             }
@@ -234,7 +277,7 @@ fn set_raw_ui_state(ui: &MainWindow) {
 }
 
 /// Set UI state according to saved config
-fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink, fft_tx: &Sender<Vec<f32>>) {
+fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink, fft_tx: &Sender<SpectrumChunk>) {
     let ui_state = ui.global::<UIState>();
     let cfg = Config::load();
     let song_list = utils::read_song_list(&cfg.song_dir, cfg.sort_key, cfg.sort_ascending);
@@ -323,7 +366,7 @@ fn main() {
     let _sink = rodio::Sink::connect_new(stream_handle.mixer());
     let sink = Arc::new(Mutex::new(_sink));
     let spectrum_data = Arc::new(Mutex::new(default_spectrum()));
-    let (fft_tx, fft_rx) = bounded::<Vec<f32>>(4);
+    let (fft_tx, fft_rx) = bounded::<SpectrumChunk>(4);
     start_spectrum_worker(fft_rx, spectrum_data.clone());
     // 创建消息通道 ui --> backend
     let (tx, rx) = mpsc::channel::<PlayerCommand>();

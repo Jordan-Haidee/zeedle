@@ -94,9 +94,9 @@ component SpectrumView inherits Rectangle {
         width: 100%;
         height: 100%;
         alignment: center;
-        spacing: 1px;
+        spacing: 0px;
         for v in bins: Rectangle {
-            width: 3px;
+            width: parent.width / root.bins.length;
             height: parent.height * v;
             y: parent.height - self.height;
             border-radius: 1px;
