@@ -96,10 +96,11 @@ component SpectrumView inherits Rectangle {
         alignment: center;
         spacing: 0px;
         for v in bins: Rectangle {
-            width: parent.width / root.bins.length;
+            width: parent.width / (root.bins.length * 2);
             height: parent.height * v;
             y: parent.height - self.height;
             border-radius: 1px;
+            opacity: 0.3;
             background: root.bar-color;
         }
     }
@@ -328,7 +329,6 @@ component LyricsPanel inherits Rectangle {
     in property <[LyricItem]> lyrics;
     in property <float> progress;
     in-out property <length> lyric_viewport_y;
-    in property <[float]> spectrum;
     HorizontalLayout {
         width: 100%;
         height: 100%;
@@ -367,10 +367,6 @@ component LyricsPanel inherits Rectangle {
                 vertical-alignment: bottom;
                 text: @tr("Title: {}", current_song.song_name);
                 overflow: elide;
-            }
-
-            SpectrumView {
-                bins: spectrum;
             }
         }
 
@@ -579,7 +575,6 @@ export component MainWindow inherits Window {
                 lyrics <=> UIState.lyrics;
                 progress <=> UIState.progress;
                 lyric_viewport_y <=> UIState.lyric_viewport_y;
-                spectrum <=> UIState.spectrum;
             }
         }
 
@@ -619,6 +614,18 @@ export component MainWindow inherits Window {
                 horizontal-alignment: center;
                 vertical-alignment: center;
             }
+        }
+    }
+
+    spectrum-bg := Rectangle {
+        width: 100%;
+        height: 100%;
+        z: -5;
+        SpectrumView {
+            width: parent.width;
+            height: 60px;
+            y: parent.height - self.height;
+            bins: UIState.spectrum;
         }
     }
 

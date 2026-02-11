@@ -36,10 +36,10 @@ enum PlayerCommand {
     ChangeVolume(f32),             // 改变音量
 }
 
-const FFT_SIZE: usize = 1024;
-const SPECTRUM_BINS_PER_CH: usize = 48;
+const FFT_SIZE: usize = 256;
+const SPECTRUM_BINS_PER_CH: usize = 24;
 const SPECTRUM_BINS: usize = SPECTRUM_BINS_PER_CH * 2;
-const SPECTRUM_UPDATE_MS: u64 = 33;
+const SPECTRUM_UPDATE_MS: u64 = 100;
 
 fn default_spectrum() -> Vec<f32> {
     vec![0.0; SPECTRUM_BINS]
