@@ -857,8 +857,9 @@ export component MainWindow inherits Window {
     }
 
     spectrum-bg := Rectangle {
-        width: 100%;
-        height: 100%;
+        x: root.sidebar_expanded ? 210px : 60px;
+        width: root.width - self.x;
+        height: root.height;
         z: -5;
         visible: UIState.show_spectrum;
         SpectrumView {
