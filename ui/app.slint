@@ -17,6 +17,7 @@ import {
 } from "button.slint";
 import { SongInfo, TitleBar, SongItem, SortKey } from "song.slint";
 import { LyricLine } from "lyric.slint";
+import "msyhl.ttc";
 
 
 // lyric item
@@ -176,7 +177,7 @@ component SidebarNavItem inherits Rectangle {
             Text {
                 width: 100%;
                 text: root.icon;
-                font-size: 16px;
+                // font-size: 16px;
                 font-weight: root.selected ? 600 : 400;
                 color: root.selected ? Palette.accent-background : Palette.foreground.darker(0.2);
                 horizontal-alignment: center;
@@ -195,7 +196,7 @@ component SidebarNavItem inherits Rectangle {
             nav-label := Text {
                 width: 100%;
                 text: root.label;
-                font-size: 13px;
+                // font-size: 13px;
                 font-weight: root.selected ? 600 : 400;
                 color: root.selected ? Palette.foreground : Palette.foreground.darker(0.2);
                 vertical-alignment: center;
@@ -427,7 +428,7 @@ component LyricsPanel inherits Rectangle {
             Text {
                 width: 100%;
                 height: 25px;
-                font-size: 13px;
+                // font-size: 13px;
                 x: lyric-image.x;
                 vertical-alignment: bottom;
                 text: @tr("Artist: {}", current_song.singer);
@@ -437,7 +438,7 @@ component LyricsPanel inherits Rectangle {
             Text {
                 width: 100%;
                 height: 25px;
-                font-size: 13px;
+                // font-size: 13px;
                 x: lyric-image.x;
                 vertical-alignment: bottom;
                 text: @tr("Title: {}", current_song.song_name);
@@ -566,6 +567,10 @@ component SettingsPanel inherits Rectangle {
 }
 
 export component MainWindow inherits Window {
+    // Use locale-specific family names so Windows can resolve YaHei after runtime language switches.
+    private property <string> app_font_family: UIState.lang == "" ? "Microsoft YaHei UI Light" : "Microsoft YaHei UI";
+    default-font-family: app_font_family;
+    default-font-size: 14px;
     preferred-width: 850px;
     preferred-height: 500px;
     min-width: 850px;
@@ -634,7 +639,7 @@ export component MainWindow inherits Window {
                         Text {
                             width: 20px;
                             text: "☰";
-                            font-size: 16px;
+                            // font-size: 16px;
                             color: Palette.foreground.darker(0.2);
                             horizontal-alignment: center;
                             vertical-alignment: center;
@@ -650,7 +655,7 @@ export component MainWindow inherits Window {
                             }
                             title-label := Text {
                                 text: "Zeedle";
-                                font-size: 13px;
+                                // font-size: 13px;
                                 font-weight: 600;
                                 color: Palette.foreground;
                                 vertical-alignment: center;
@@ -848,7 +853,7 @@ export component MainWindow inherits Window {
             if root.current_page == 3: Text {
                 width: 100%;
                 height: 100%;
-                font-size: 16px;
+                // font-size: 16px;
                 text: UIState.about_info;
                 horizontal-alignment: center;
                 vertical-alignment: center;
