@@ -82,6 +82,8 @@ export global UIState {
     in property <float> volume;
     // 频谱数据 (0..1)
     in-out property <[float]> spectrum;
+    // 是否显示频谱条
+    in-out property <bool> show_spectrum: true;
 }
 
 component SpectrumView inherits Rectangle {
@@ -391,6 +393,7 @@ component SettingsPanel inherits Rectangle {
     in-out property <string> song_dir;
     in-out property <string> lang;
     in-out property <bool> light_ui;
+    in-out property <bool> show_spectrum;
     callback refresh_song_list(string);
     callback set_lang(string);
     callback set_light_theme(bool);
@@ -464,6 +467,26 @@ component SettingsPanel inherits Rectangle {
                 toggled => {
                     root.set_light_theme(self.checked);
                 }
+            }
+        }
+
+        HorizontalLayout {
+            alignment: center;
+            spacing: 10px;
+            Rectangle {
+                height: 30px;
+                width: 200px;
+                Text {
+                    x: parent.width - self.width;
+                    vertical-alignment: center;
+                    text: @tr("Spectrum display: ");
+                }
+            }
+
+            Switch {
+                width: 200px;
+                checked <=> show_spectrum;
+                text: self.checked ? @tr("On") : @tr("Off");
             }
         }
     }
@@ -592,6 +615,7 @@ export component MainWindow inherits Window {
                 song_dir <=> UIState.song_dir;
                 lang <=> UIState.lang;
                 light_ui <=> UIState.light_ui;
+                show_spectrum <=> UIState.show_spectrum;
                 refresh_song_list(p) => {
                     root.refresh_song_list(p);
                 }
@@ -621,6 +645,7 @@ export component MainWindow inherits Window {
         width: 100%;
         height: 100%;
         z: -5;
+        visible: UIState.show_spectrum;
         SpectrumView {
             width: parent.width;
             height: 60px;

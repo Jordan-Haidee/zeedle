@@ -3,7 +3,11 @@ use std::{
     cmp::Reverse,
     f32::consts::PI,
     path::PathBuf,
-    sync::{Arc, Mutex, mpsc},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
+        mpsc,
+    },
     thread,
     time::{Duration, Instant},
 };
@@ -57,10 +61,11 @@ struct TapSource<S> {
     left_buf: Vec<f32>,
     right_buf: Vec<f32>,
     tx: Sender<SpectrumChunk>,
+    spectrum_enabled: Arc<AtomicBool>,
 }
 
 impl<S> TapSource<S> {
-    fn new(inner: S, tx: Sender<SpectrumChunk>) -> Self
+    fn new(inner: S, tx: Sender<SpectrumChunk>, spectrum_enabled: Arc<AtomicBool>) -> Self
     where
         S: Source<Item = f32>,
     {
@@ -72,6 +77,7 @@ impl<S> TapSource<S> {
             left_buf: Vec::with_capacity(FFT_SIZE),
             right_buf: Vec::with_capacity(FFT_SIZE),
             tx,
+            spectrum_enabled,
         }
     }
 }
@@ -100,12 +106,21 @@ where
             self.frame_index = 0;
         }
 
+        if !self.spectrum_enabled.load(Ordering::Relaxed) {
+            self.left_buf.clear();
+            self.right_buf.clear();
+            return Some(sample);
+        }
+
         if self.left_buf.len() >= FFT_SIZE && self.right_buf.len() >= FFT_SIZE {
             let mut left = Vec::with_capacity(FFT_SIZE);
             let mut right = Vec::with_capacity(FFT_SIZE);
             std::mem::swap(&mut left, &mut self.left_buf);
             std::mem::swap(&mut right, &mut self.right_buf);
-            let _ = self.tx.try_send(SpectrumChunk { left, right });
+            let _ = self.tx.try_send(SpectrumChunk {
+                left,
+                right,
+            });
         }
 
         Some(sample)
@@ -143,6 +158,7 @@ where
 fn start_spectrum_worker(
     rx: crossbeam_channel::Receiver<SpectrumChunk>,
     spectrum: Arc<Mutex<Vec<f32>>>,
+    spectrum_enabled: Arc<AtomicBool>,
 ) {
     thread::spawn(move || {
         let mut planner = FftPlanner::<f32>::new();
@@ -163,6 +179,10 @@ fn start_spectrum_worker(
         let mut mags_right = vec![0.0; FFT_SIZE / 2];
 
         while let Ok(chunk) = rx.recv() {
+            if !spectrum_enabled.load(Ordering::Relaxed) {
+                continue;
+            }
+
             if chunk.left.len() != FFT_SIZE || chunk.right.len() != FFT_SIZE {
                 continue;
             }
@@ -274,10 +294,16 @@ fn set_raw_ui_state(ui: &MainWindow) {
     ui_state.set_user_listening(false);
     ui_state.set_lyric_viewport_y(0.);
     ui_state.set_volume(1.);
+    ui_state.set_show_spectrum(false);
 }
 
 /// Set UI state according to saved config
-fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink, fft_tx: &Sender<SpectrumChunk>) {
+fn set_start_ui_state(
+    ui: &MainWindow,
+    sink: &rodio::Sink,
+    fft_tx: &Sender<SpectrumChunk>,
+    spectrum_enabled: &Arc<AtomicBool>,
+) {
     let ui_state = ui.global::<UIState>();
     let cfg = Config::load();
     let song_list = utils::read_song_list(&cfg.song_dir, cfg.sort_key, cfg.sort_ascending);
@@ -299,6 +325,7 @@ fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink, fft_tx: &Sender<Spect
     ui_state.set_play_mode(cfg.play_mode);
     ui_state.set_lang(cfg.lang.clone().into());
     ui_state.set_volume(cfg.volume);
+    ui_state.set_show_spectrum(cfg.show_spectrum);
     slint::select_bundled_translation(&cfg.lang)
         .unwrap_or_else(|_| panic!("failed to set language: {}", cfg.lang));
     ui_state.set_song_list(song_list.as_slice().into());
@@ -334,7 +361,7 @@ fn set_start_ui_state(ui: &MainWindow, sink: &rodio::Sink, fft_tx: &Sender<Spect
     let file = std::fs::File::open(&cur_song_info.song_path)
         .unwrap_or_else(|_| panic!("failed to open audio file: {}", cur_song_info.song_path));
     let source = Decoder::try_from(file).expect("failed to decode audio file");
-    let tap = TapSource::new(source, fft_tx.clone());
+    let tap = TapSource::new(source, fft_tx.clone(), spectrum_enabled.clone());
     sink.append(tap);
     sink.pause();
     sink.set_volume(cfg.volume);
@@ -366,18 +393,21 @@ fn main() {
     let _sink = rodio::Sink::connect_new(stream_handle.mixer());
     let sink = Arc::new(Mutex::new(_sink));
     let spectrum_data = Arc::new(Mutex::new(default_spectrum()));
+    let spectrum_enabled = Arc::new(AtomicBool::new(true));
     let (fft_tx, fft_rx) = bounded::<SpectrumChunk>(4);
-    start_spectrum_worker(fft_rx, spectrum_data.clone());
+    start_spectrum_worker(fft_rx, spectrum_data.clone(), spectrum_enabled.clone());
     // 创建消息通道 ui --> backend
     let (tx, rx) = mpsc::channel::<PlayerCommand>();
     // 初始化 UI 状态
     let ui = MainWindow::new().expect("failed to create UI");
-    set_start_ui_state(&ui, &sink.lock().unwrap(), &fft_tx);
+    set_start_ui_state(&ui, &sink.lock().unwrap(), &fft_tx, &spectrum_enabled);
+    spectrum_enabled.store(ui.global::<UIState>().get_show_spectrum(), Ordering::Relaxed);
 
     // 播放线程
     let ui_weak = ui.as_weak();
     let sink_clone = sink.clone();
     let fft_tx = fft_tx.clone();
+    let spectrum_enabled_for_play = spectrum_enabled.clone();
     thread::spawn(move || {
         log::info!("player thread running...");
         while let Ok(cmd) = rx.recv() {
@@ -390,7 +420,8 @@ fn main() {
                     let lyrics = utils::read_lyrics(&song_info.song_path);
                     let sink_guard = sink_clone.lock().unwrap();
                     sink_guard.clear();
-                    let tap = TapSource::new(source, fft_tx.clone());
+                    let tap =
+                        TapSource::new(source, fft_tx.clone(), spectrum_enabled_for_play.clone());
                     sink_guard.append(tap);
                     sink_guard.play();
                     log::info!("start playing: <{}>", song_info.song_name);
@@ -829,6 +860,7 @@ fn main() {
     // UI 定时刷新频谱
     let ui_weak = ui.as_weak();
     let spectrum_data = spectrum_data.clone();
+    let spectrum_enabled = spectrum_enabled.clone();
     let spectrum_timer = slint::Timer::default();
     spectrum_timer.start(
         slint::TimerMode::Repeated,
@@ -838,6 +870,11 @@ fn main() {
                 && let Ok(guard) = spectrum_data.lock()
             {
                 let ui_state = ui.global::<UIState>();
+                let show_spectrum = ui_state.get_show_spectrum();
+                spectrum_enabled.store(show_spectrum, Ordering::Relaxed);
+                if !show_spectrum {
+                    return;
+                }
                 ui_state.set_spectrum(guard.as_slice().into());
             }
         },
@@ -860,6 +897,7 @@ fn main() {
         lang: ui_state.get_lang().into(),
         light_ui: ui_state.get_light_ui(),
         volume: ui_state.get_volume(),
+        show_spectrum: ui_state.get_show_spectrum(),
     });
     log::info!("app exited");
 }
