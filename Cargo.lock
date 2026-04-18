@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "Zeedle"
-version = "0.1.18"
+version = "0.2.0-alpha"
 dependencies = [
  "chrono",
  "crossbeam-channel",
