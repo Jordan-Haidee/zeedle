@@ -22,12 +22,12 @@ msgid "Lyrics"
 msgstr "Songtext"
 
 #: ui/app.slint:320
-msgctxt "MainWindow"
+msgctxt "LyricsPanel"
 msgid "Artist: {}"
 msgstr "Künstler: {}"
 
 #: ui/app.slint:330
-msgctxt "MainWindow"
+msgctxt "LyricsPanel"
 msgid "Title: {}"
 msgstr "Titel: {}"
 
@@ -37,27 +37,27 @@ msgid "Settings"
 msgstr "Einstellungen"
 
 #: ui/app.slint:368
-msgctxt "MainWindow"
+msgctxt "SettingsPanel"
 msgid "Music directory: "
 msgstr "Musikordner: "
 
 #: ui/app.slint:390
-msgctxt "MainWindow"
+msgctxt "SettingsPanel"
 msgid "Language: "
 msgstr "Sprache: "
 
 #: ui/app.slint:413
-msgctxt "MainWindow"
+msgctxt "SettingsPanel"
 msgid "Light theme: "
 msgstr "Helles Design: "
 
 #: ui/app.slint:420
-msgctxt "MainWindow"
+msgctxt "SettingsPanel"
 msgid "On"
 msgstr "Ein"
 
 #: ui/app.slint:420
-msgctxt "MainWindow"
+msgctxt "SettingsPanel"
 msgid "Off"
 msgstr "Aus"
 

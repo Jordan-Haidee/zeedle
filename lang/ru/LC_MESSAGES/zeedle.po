@@ -22,12 +22,12 @@ msgid "Lyrics"
 msgstr "Тексты песен"
 
 #: ui/app.slint:320
-msgctxt "MainWindow"
+msgctxt "LyricsPanel"
 msgid "Artist: {}"
 msgstr "Исполнитель: {}"
 
 #: ui/app.slint:330
-msgctxt "MainWindow"
+msgctxt "LyricsPanel"
 msgid "Title: {}"
 msgstr "Название: {}"
 
@@ -37,27 +37,27 @@ msgid "Settings"
 msgstr "Настройки"
 
 #: ui/app.slint:368
-msgctxt "MainWindow"
+msgctxt "SettingsPanel"
 msgid "Music directory: "
 msgstr "Музыкальная папка: "
 
 #: ui/app.slint:390
-msgctxt "MainWindow"
+msgctxt "SettingsPanel"
 msgid "Language: "
 msgstr "Язык: "
 
 #: ui/app.slint:413
-msgctxt "MainWindow"
+msgctxt "SettingsPanel"
 msgid "Light theme: "
 msgstr "Светлая тема: "
 
 #: ui/app.slint:420
-msgctxt "MainWindow"
+msgctxt "SettingsPanel"
 msgid "On"
 msgstr "Вкл."
 
 #: ui/app.slint:420
-msgctxt "MainWindow"
+msgctxt "SettingsPanel"
 msgid "Off"
 msgstr "Выкл."
 
