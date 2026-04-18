@@ -1,11 +1,6 @@
 fn main() {
-    println!("cargo:rerun-if-changed=ui/app.slint");
-    println!("cargo:rerun-if-changed=lang/zeedle.pot");
-    println!("cargo:rerun-if-changed=lang/de/LC_MESSAGES/zeedle.po");
-    println!("cargo:rerun-if-changed=lang/es/LC_MESSAGES/zeedle.po");
-    println!("cargo:rerun-if-changed=lang/fr/LC_MESSAGES/zeedle.po");
-    println!("cargo:rerun-if-changed=lang/ru/LC_MESSAGES/zeedle.po");
-    println!("cargo:rerun-if-changed=lang/zh_CN/LC_MESSAGES/zeedle.po");
+    println!("cargo:rerun-if-changed=ui/");
+    println!("cargo:rerun-if-changed=lang/");
 
     let cfg = slint_build::CompilerConfiguration::new()
         .with_style("fluent".into())
