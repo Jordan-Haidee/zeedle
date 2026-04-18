@@ -3,6 +3,33 @@
 version = 4
 
 [[package]]
+name = "Zeedle"
+version = "0.1.18"
+dependencies = [
+ "chrono",
+ "crossbeam-channel",
+ "env_logger",
+ "globset",
+ "home",
+ "image",
+ "lofty",
+ "log",
+ "pinyin",
+ "rand 0.9.2",
+ "rayon",
+ "rodio",
+ "rustfft",
+ "serde",
+ "single-instance",
+ "slint",
+ "slint-build",
+ "sysinfo",
+ "toml 0.9.5",
+ "walkdir",
+ "winresource",
+]
+
+[[package]]
 name = "ab_glyph"
 version = "0.2.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6264,33 +6291,6 @@ dependencies = [
  "static_assertions",
  "zbus_names",
  "zvariant",
-]
-
-[[package]]
-name = "zeedle"
-version = "0.1.18"
-dependencies = [
- "chrono",
- "crossbeam-channel",
- "env_logger",
- "globset",
- "home",
- "image",
- "lofty",
- "log",
- "pinyin",
- "rand 0.9.2",
- "rayon",
- "rodio",
- "rustfft",
- "serde",
- "single-instance",
- "slint",
- "slint-build",
- "sysinfo",
- "toml 0.9.5",
- "walkdir",
- "winresource",
 ]
 
 [[package]]
