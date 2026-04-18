@@ -1,6 +1,213 @@
-import { ListView } from "std-widgets.slint";
-import { SongInfo, TitleBar, SongItem, SortKey } from "song.slint";
+import { ListView, Palette } from "std-widgets.slint";
 import { TriggerSource } from "trigger.slint";
+
+export struct SongInfo {
+    id: int,
+    song_name: string,
+    singer: string,
+    duration: string,
+    song_path: string,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum SortKey {
+    BySongName,
+    BySinger,
+    ByDuration,
+}
+
+component SortIcon inherits Rectangle {
+    in-out property <bool> ascending:true;
+    in-out property <bool> display:true;
+    height: 15px;
+    width: 15px;
+    background: transparent;
+    if !ascending && display: Path {
+        MoveTo {
+            x: 5;
+            y: 1;
+        }
+
+        LineTo {
+            x: 5;
+            y: 9;
+        }
+
+        LineTo {
+            x: 7;
+            y: 7;
+        }
+
+        stroke: Palette.foreground.darker(0.5);
+        stroke-width: 1px;
+    }
+    if ascending && display:
+        Path {
+        MoveTo {
+            x: 5;
+            y: 9;
+        }
+
+        LineTo {
+            x: 5;
+            y: 1;
+        }
+
+        LineTo {
+            x: 3;
+            y: 3;
+        }
+
+        stroke: Palette.foreground.darker(0.5);
+        stroke-width: 1px;
+    }
+}
+
+component TitleBarItem inherits Rectangle {
+    in property <string> name:"name";
+    in-out property <bool> display-sort-icon <=> arrow.display;
+    in-out property <bool> ascending-sort <=> arrow.ascending;
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        text := Text {
+            text: name;
+            color: Palette.foreground.darker(0.5);
+            x: parent.width * 0.4;
+            y: parent.height / 2 - self.height / 2;
+        }
+
+        arrow := SortIcon {
+            ascending: true;
+            width: 12px;
+            height: 12px;
+            x: text.x + text.width + 5px;
+            y: parent.height / 2 - self.height / 2;
+        }
+    }
+}
+
+export component TitleBar inherits Rectangle {
+    height: 30px;
+    in-out property <SortKey> key;
+    in-out property <bool> ascending;
+    callback sort-items(SortKey, bool);
+    VerticalLayout {
+        HorizontalLayout {
+            alignment: space-between;
+            area1 := TouchArea {
+                width: 33%;
+                clicked => {
+                    sort-items(SortKey.BySongName, ascending);
+                }
+                TitleBarItem {
+                    width: 100%;
+                    height: 100%;
+                    name: @tr("Title");
+                    background: area1.has-hover ? Palette.control-background : transparent;
+                    display-sort-icon: key == SortKey.BySongName;
+                    ascending-sort: ascending;
+                }
+            }
+
+            area2 := TouchArea {
+                width: 33%;
+                clicked => {
+                    sort-items(SortKey.BySinger, ascending);
+                }
+                TitleBarItem {
+                    name: @tr("Artist");
+                    height: 100%;
+                    width: 100%;
+                    background: area2.has-hover ? Palette.control-background : transparent;
+                    display-sort-icon: key == SortKey.BySinger;
+                    ascending-sort: ascending;
+                }
+            }
+
+            area3 := TouchArea {
+                width: 33%;
+                clicked => {
+                    sort-items(SortKey.ByDuration, ascending);
+                }
+                TitleBarItem {
+                    name: @tr("Duration");
+                    height: 100%;
+                    width: 100%;
+                    background: area3.has-hover ? Palette.control-background : transparent;
+                    display-sort-icon: key == SortKey.ByDuration;
+                    ascending-sort: ascending;
+                }
+            }
+        }
+
+        Path {
+            height: 0.5px;
+            MoveTo {
+                x: 0;
+                y: 0;
+            }
+
+            LineTo {
+                x: 10;
+                y: 0;
+            }
+
+            stroke: Palette.foreground;
+            stroke-width: 0.1px;
+        }
+    }
+}
+
+export component SongItem inherits Rectangle {
+    height: 30px;
+    in property <SongInfo> info:{ id:0, song_name:"xxx", singer:"xxx", duration:"xxx", song_path:"xxx" };
+    in property <bool> playing:false;
+    callback double_clicked();
+    border-radius: 4px;
+    background: playing ? Palette.control-background.darker(0.08) : (area.has-hover ? Palette.control-background : Palette.background);
+    VerticalLayout {
+        area := TouchArea {
+            double-clicked => {
+                double_clicked();
+            }
+            HorizontalLayout {
+                alignment: space-between;
+                Rectangle {
+                    width: 33%;
+                    Text {
+                        width: 100%;
+                        x: parent.width * 0.4;
+                        text: info.song-name;
+                        font-weight: root.playing ? 600 : 400;
+                        color: root.playing ? Palette.accent-background : Palette.foreground;
+                        overflow: elide;
+                    }
+                }
+
+                Rectangle {
+                    width: 33%;
+                    Text {
+                        width: 100%;
+                        x: parent.width * 0.4;
+                        text: info.singer;
+                        color: root.playing ? Palette.accent-background.darker(0.1) : Palette.foreground;
+                        overflow: elide;
+                    }
+                }
+
+                Rectangle {
+                    width: 33%;
+                    Text {
+                        x: parent.width * 0.4;
+                        text: info.duration;
+                        color: root.playing ? Palette.accent-background.darker(0.1) : Palette.foreground;
+                    }
+                }
+            }
+        }
+    }
+}
 
 export component SongListView inherits Rectangle {
     in-out property <bool> ascending;

@@ -1,12 +1,29 @@
-import { ListView } from "std-widgets.slint";
-import { SongInfo } from "song.slint";
-import { LyricLine } from "lyric.slint";
+import { ListView, Palette } from "std-widgets.slint";
+import { SongInfo } from "song_list_view.slint";
 
 // lyric item
 export struct LyricItem {
     time: float,
     duration: float,
     text: string,
+}
+
+export component LyricLine inherits Rectangle {
+    height: 40px;
+    in-out property <string> content;
+    in-out property <bool> playing;
+    callback triggered();
+    Text {
+        width: 100%;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+        color: playing ? Palette.accent-background : Palette.foreground;
+        text: content;
+        font-size: playing ? 20px : 17px;
+        overflow: TextOverflow.elide;
+    }
+
+    background: transparent;
 }
 
 export component LyricsPanel inherits Rectangle {

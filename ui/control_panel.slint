@@ -1,8 +1,502 @@
-import { Slider } from "std-widgets.slint";
-import { OverlapButton, PrevSongButton, PlayPauseButton, NextSongButton, RandomButton, MusicVolumeButton, PlayMode } from "button.slint";
-import { SongInfo } from "song.slint";
-// Removing UIState import to avoid circular dependency if possible.
-// Wait, PlayMode is imported from button.slint
+import { Palette, Slider } from "std-widgets.slint";
+import { SongInfo } from "song_list_view.slint";
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum PlayMode { 
+    InOrder, 
+    Recursive, 
+    Random
+}
+
+export component NextSongButton inherits Rectangle {
+    callback clicked();
+    border-radius: self.width / 2;
+    clip: true;
+    border-width: 1px;
+    property <bool> hovered: touch.has-hover;
+    property <bool> pressed: touch.pressed;
+    property <color> icon-color: pressed ? Palette.accent-background : (hovered ? Palette.foreground : Palette.control-foreground);
+    background: pressed ? Palette.control-background.darker(0.22) : (hovered ? Palette.control-background.darker(0.1) : Palette.control-background.darker(0.03));
+    border-color: hovered ? Palette.foreground.darker(0.45) : Palette.foreground.darker(0.7);
+    drop-shadow-blur: hovered ? 8px : 4px;
+    animate background {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate border-color {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate drop-shadow-blur {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        width: 100%;
+        height: 100%;
+        clicked => {
+            root.clicked();
+        }
+    }
+
+    Path {
+        x: parent.width * 0.12;
+        y: parent.height * 0.12;
+        width: parent.width * 0.76;
+        height: parent.height * 0.76;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
+    }
+
+    Path {
+        x: parent.width * 0.12;
+        y: parent.height * 0.12;
+        width: parent.width * 0.76;
+        height: parent.height * 0.76;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M21 4v16";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
+    }
+}
+
+export component PrevSongButton inherits Rectangle {
+    callback clicked();
+    border-radius: self.width / 2;
+    clip: true;
+    border-width: 1px;
+    property <bool> hovered: touch.has-hover;
+    property <bool> pressed: touch.pressed;
+    property <color> icon-color: pressed ? Palette.accent-background : (hovered ? Palette.foreground : Palette.control-foreground);
+    background: pressed ? Palette.control-background.darker(0.22) : (hovered ? Palette.control-background.darker(0.1) : Palette.control-background.darker(0.03));
+    border-color: hovered ? Palette.foreground.darker(0.45) : Palette.foreground.darker(0.7);
+    drop-shadow-blur: hovered ? 8px : 4px;
+    animate background {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate border-color {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate drop-shadow-blur {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+
+    touch := TouchArea {
+        width: 100%;
+        height: 100%;
+        mouse-cursor: pointer;
+        clicked => {
+            root.clicked();
+        };
+    }
+
+    Path {
+        x: parent.width * 0.12;
+        y: parent.height * 0.12;
+        width: parent.width * 0.76;
+        height: parent.height * 0.76;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M17.971 4.285A2 2 0 0 1 21 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432z";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
+    }
+
+    Path {
+        x: parent.width * 0.12;
+        y: parent.height * 0.12;
+        width: parent.width * 0.76;
+        height: parent.height * 0.76;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M3 20V4";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
+    }
+}
+
+export component PlayPauseButton inherits Rectangle {
+    in-out property <bool> paused:true;
+    callback toggled();
+    border-radius: self.width / 2;
+    clip: true;
+    border-width: 1px;
+    property <bool> hovered: touch.has-hover;
+    property <bool> pressed: touch.pressed;
+    property <bool> active: !root.paused;
+    property <color> icon-color: active ? Palette.accent-background : (pressed ? Palette.accent-background : (hovered ? Palette.foreground : Palette.control-foreground));
+    background: active ? (pressed ? Palette.control-background.darker(0.24) : (hovered ? Palette.control-background.darker(0.16) : Palette.control-background.darker(0.08))) : (pressed ? Palette.control-background.darker(0.22) : (hovered ? Palette.control-background.darker(0.1) : Palette.control-background.darker(0.03)));
+    border-color: active ? Palette.accent-background.darker(0.25) : (hovered ? Palette.foreground.darker(0.45) : Palette.foreground.darker(0.7));
+    drop-shadow-blur: active ? 10px : (hovered ? 8px : 4px);
+    animate background {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate border-color {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate drop-shadow-blur {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+
+    touch := TouchArea {
+        width: 100%;
+        height: 100%;
+        mouse-cursor: pointer;
+        clicked => {
+            root.toggled();
+        }
+    }
+
+    if !root.paused: Path {
+        x: parent.width * 0.13;
+        y: parent.height * 0.13;
+        width: parent.width * 0.74;
+        height: parent.height * 0.74;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M14 3h5a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z M5 3h5a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
+    }
+
+    if root.paused: Path {
+        x: parent.width * 0.13;
+        y: parent.height * 0.13;
+        width: parent.width * 0.74;
+        height: parent.height * 0.74;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
+    }
+}
+
+export component InOrderButton inherits Rectangle {
+    in-out property <bool> selected;
+    Path {
+        MoveTo {
+            x: 90;
+            y: 50;
+        }
+
+        ArcTo {
+            x: 50;
+            y: 10;
+            radius-x: 40;
+            radius-y: 40;
+            x-rotation: 0;
+            large-arc: true;
+            sweep: true;
+        }
+
+        LineTo {
+            x: 40;
+            y: 4;
+        }
+
+        MoveTo {
+            x: 50;
+            y: 10;
+        }
+
+        LineTo {
+            x: 42;
+            y: 18;
+        }
+
+        stroke-width: 1px;
+        stroke: selected ? Palette.accent-background : Palette.foreground;
+    }
+}
+
+export component RecursiveButton inherits Rectangle {
+    in-out property <bool> selected;
+    Path {
+        MoveTo {
+            x: 90;
+            y: 50;
+        }
+
+        ArcTo {
+            x: 50;
+            y: 10;
+            radius-x: 40;
+            radius-y: 40;
+            x-rotation: 0;
+            large-arc: true;
+            sweep: true;
+        }
+
+        LineTo {
+            x: 40;
+            y: 4;
+        }
+
+        MoveTo {
+            x: 50;
+            y: 10;
+        }
+
+        LineTo {
+            x: 42;
+            y: 18;
+        }
+
+        MoveTo {
+            x: 50;
+            y: 40;
+        }
+
+        LineTo {
+            x: 50;
+            y: 60;
+        }
+
+        MoveTo {
+            x: 50;
+            y: 40;
+        }
+
+        LineTo {
+            x: 44;
+            y: 44;
+        }
+
+        stroke-width: 1px;
+        stroke: selected ? Palette.accent-background : Palette.foreground;
+    }
+}
+
+
+export component OverlapButton inherits Rectangle {
+    in-out property <PlayMode> mode;
+    callback clicked();
+    TouchArea {
+        width: 100%;
+        height: 100%;
+        clicked => {
+            root.clicked();
+        }
+        if mode == PlayMode.Recursive: RecursiveButton {
+            width: 100%;
+            height: 100%;
+            selected: mode == PlayMode.Recursive || mode == PlayMode.InOrder;
+        }
+        if mode != PlayMode.Recursive: InOrderButton {
+            width: 100%;
+            height: 100%;
+            selected: mode == PlayMode.Recursive || mode == PlayMode.InOrder;
+        }
+    }
+}
+
+export component RandomButton inherits Rectangle {
+    callback clicked();
+    in-out property <bool> selected;
+    TouchArea {
+        clicked => {
+            root.clicked();
+        };
+        Path {
+            MoveTo {
+                x: 0;
+                y: 20;
+            }
+
+            LineTo {
+                x: 30;
+                y: 20;
+            }
+
+            LineTo {
+                x: 70;
+                y: 80;
+            }
+
+            LineTo {
+                x: 100;
+                y: 80;
+            }
+
+            LineTo {
+                x: 90;
+                y: 70;
+            }
+
+            MoveTo {
+                x: 100;
+                y: 80;
+            }
+
+            LineTo {
+                x: 90;
+                y: 90;
+            }
+
+            // 第二段
+            MoveTo {
+                x: 0;
+                y: 80;
+            }
+
+            LineTo {
+                x: 30;
+                y: 80;
+            }
+
+            LineTo {
+                x: 70;
+                y: 20;
+            }
+
+            LineTo {
+                x: 100;
+                y: 20;
+            }
+
+            LineTo {
+                x: 90;
+                y: 30;
+            }
+
+            MoveTo {
+                x: 100;
+                y: 20;
+            }
+
+            LineTo {
+                x: 90;
+                y: 10;
+            }
+
+            stroke: selected ? Palette.accent-background : Palette.foreground;
+            stroke-width: 1px;
+        }
+    }
+}
+
+export component MusicVolumeButton inherits Rectangle {
+    in property <length> slider-height;
+    in property <length> icon-height;
+    in-out property <float> volume;
+    property <bool> selected: icon.has-hover;
+    callback change-volume(float);
+    icon := TouchArea {
+        if selected:
+            Rectangle {
+            z: 10;
+            Slider {
+                x: parent.width * 0.7;
+                height: root.slider-height;
+                minimum: 0;
+                maximum: 1;
+                value <=> root.volume;
+                orientation: vertical;
+                released(value) => {
+                    root.change-volume(value);
+                }
+            }
+        }
+        Rectangle {
+            height: root.icon-height;
+            Path {
+                MoveTo {
+                    x: 0;
+                    y: 50;
+                }
+
+                LineTo {
+                    x: 0;
+                    y: 25;
+                }
+
+                LineTo {
+                    x: 25;
+                    y: 25;
+                }
+
+                LineTo {
+                    x: 50;
+                    y: 0;
+                }
+
+                LineTo {
+                    x: 50;
+                    y: 100;
+                }
+
+                LineTo {
+                    x: 25;
+                    y: 75;
+                }
+
+                LineTo {
+                    x: 0;
+                    y: 75;
+                }
+
+                LineTo {
+                    x: 0;
+                    y: 25;
+                }
+
+                MoveTo {
+                    x: 65;
+                    y: 25;
+                }
+
+                ArcTo {
+                    radius-x: 35;
+                    radius-y: 35;
+                    x: 65;
+                    y: 75;
+                    sweep: true;
+                }
+
+                MoveTo {
+                    x: 80;
+                    y: 0;
+                }
+
+                ArcTo {
+                    radius-x: 70;
+                    radius-y: 70;
+                    x: 80;
+                    y: 100;
+                    sweep: true;
+                }
+
+                stroke: selected ? Palette.accent-background : Palette.foreground;
+                stroke-width: 1px;
+            }
+        }
+    }
+}
 
 export component ControlPanel inherits Rectangle {
     in-out property <float> progress;
@@ -29,7 +523,6 @@ export component ControlPanel inherits Rectangle {
         Slider {
             minimum: 0;
             maximum: root.duration;
-            // 单向绑定被用户强制改变状态后，绑定失效，不再自动更新, 所以双向绑定
             value <=> root.progress;
             released(v) => {
                 root.dragging = false;
@@ -124,7 +617,6 @@ export component ControlPanel inherits Rectangle {
                     y: parent.height / 2 - self.height / 2;
                     width: 28px;
                     height: 28px;
-                    // 单向绑定被用户强制改变状态后，绑定失效，不再自动更新, 所以双向绑定
                     paused: root.paused;
                     toggled => {
                         root.toggle_play();
