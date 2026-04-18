@@ -176,14 +176,15 @@ component SidebarNavItem inherits Rectangle {
 
         Rectangle {
             width: 20px;
-            Text {
-                width: 100%;
-                text: root.icon;
-                // font-size: 16px;
-                font-weight: root.selected ? 600 : 400;
-                color: root.selected ? Palette.accent-background : Palette.foreground.darker(0.2);
-                horizontal-alignment: center;
-                vertical-alignment: center;
+            Path {
+                y: (parent.height - self.height) / 2;
+                x: (parent.width - self.width) / 2;
+                width: 18px;
+                height: 18px;
+                viewbox-width: 24;
+                viewbox-height: 24;
+                commands: root.icon;
+                fill: root.selected ? Palette.accent-background : Palette.foreground.darker(0.2);
             }
         }
 
@@ -638,13 +639,18 @@ export component MainWindow inherits Window {
                             duration: 180ms;
                             easing: ease-out-quad;
                         }
-                        Text {
+                        Rectangle {
                             width: 20px;
-                            text: "☰";
-                            // font-size: 16px;
-                            color: Palette.foreground.darker(0.2);
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
+                            Path {
+                                y: (parent.height - self.height) / 2;
+                                x: (parent.width - self.width) / 2;
+                                width: 18px;
+                                height: 18px;
+                                viewbox-width: 24;
+                                viewbox-height: 24;
+                                commands: "M5 21q-.825 0-1.412-.587Q3 19.825 3 19V5q0-.825.588-1.412Q4.175 3 5 3h14q.825 0 1.413.588Q21 4.175 21 5v14q0 .825-.587 1.413Q19.825 21 19 21Zm0-2h4V5H5v14Zm6 0h8V5h-8v14Z";
+                                fill: Palette.foreground.darker(0.2);
+                            }
                         }
 
                         Rectangle {
@@ -681,7 +687,7 @@ export component MainWindow inherits Window {
                 }
 
                 SidebarNavItem {
-                    icon: "▤";
+                    icon: "M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 13.52V5.48c0-.4.45-.63.77-.38l6.23 4.02c.28.18.28.6 0 .78l-6.23 4.02c-.32.25-.77.02-.77-.38z";
                     label: @tr("Gallery");
                     selected: root.current_page == 0;
                     expanded: root.sidebar_expanded;
@@ -692,7 +698,7 @@ export component MainWindow inherits Window {
                 }
 
                 SidebarNavItem {
-                    icon: "♪";
+                    icon: "M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z";
                     label: @tr("Lyrics");
                     selected: root.current_page == 1;
                     expanded: root.sidebar_expanded;
@@ -712,7 +718,7 @@ export component MainWindow inherits Window {
                 }
 
                 SidebarNavItem {
-                    icon: "⚙";
+                    icon: "M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z";
                     label: @tr("Settings");
                     selected: root.current_page == 2;
                     expanded: root.sidebar_expanded;
@@ -723,7 +729,7 @@ export component MainWindow inherits Window {
                 }
 
                 SidebarNavItem {
-                    icon: "i";
+                    icon: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z";
                     label: @tr("About");
                     selected: root.current_page == 3;
                     expanded: root.sidebar_expanded;
