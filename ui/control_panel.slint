@@ -1,0 +1,192 @@
+import { Slider } from "std-widgets.slint";
+import { OverlapButton, PrevSongButton, PlayPauseButton, NextSongButton, RandomButton, MusicVolumeButton, PlayMode } from "button.slint";
+import { SongInfo } from "song.slint";
+// Removing UIState import to avoid circular dependency if possible.
+// Wait, PlayMode is imported from button.slint
+
+export component ControlPanel inherits Rectangle {
+    in-out property <float> progress;
+    in property <float> duration;
+    in property <bool> paused;
+    in property <PlayMode> play_mode;
+    in-out property <bool> dragging;
+    in property <SongInfo> current_song;
+    in property <image> album_image;
+    in-out property <float> volume;
+    
+    callback change-progress(float);
+    callback toggle-play();
+    callback play-next();
+    callback play-prev();
+    callback switch-mode(PlayMode);
+    callback change-volume(float);
+    callback double-clicked();
+    pure callback format-duration(float) -> string;
+    
+    VerticalLayout {
+        width: 100%;
+        height: 100%;
+        Slider {
+            minimum: 0;
+            maximum: root.duration;
+            // 单向绑定被用户强制改变状态后，绑定失效，不再自动更新, 所以双向绑定
+            value <=> root.progress;
+            released(v) => {
+                root.dragging = false;
+                change_progress(v);
+            }
+            changed(_) => {
+                root.dragging = true;
+            }
+        }
+
+        HorizontalLayout {
+            height: 80%;
+            alignment: center;
+            TouchArea {
+                width: 35%;
+                height: 100%;
+                double-clicked => {
+                    root.double-clicked()
+                };
+                HorizontalLayout {
+                    alignment: start;
+                    spacing: 3px;
+                    Rectangle {
+                        width: 20%;
+                        height: 100%;
+                        Rectangle {
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 4px;
+                            clip: true;
+                            drop-shadow-blur: 6px;
+                            Image {
+                                y: parent.height / 2 - self.height / 2;
+                                width: 100%;
+                                height: 100%;
+                                source: root.album_image;
+                                image-fit: contain;
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 80%;
+                        height: 100%;
+                        Text {
+                            width: 100%;
+                            x: parent.width / 2 - self.width / 2;
+                            text: root.current_song.song_name + " - " + root.current_song.singer;
+                            vertical-alignment: center;
+                            horizontal-alignment: center;
+                            overflow: TextOverflow.elide;
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 6%;
+                OverlapButton {
+                    x: parent.width / 2 - self.width / 2;
+                    y: parent.height / 2 - self.height / 2;
+                    width: 20px;
+                    height: 20px;
+                    mode: root.play_mode;
+                    clicked => {
+                        if (root.play_mode == PlayMode.InOrder) {
+                            root.switch_mode(PlayMode.Recursive);
+                        } else {
+                            root.switch_mode(PlayMode.InOrder);
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 6%;
+                PrevSongButton {
+                    x: parent.width / 2 - self.width / 2;
+                    y: parent.height / 2 - self.height / 2;
+                    width: 28px;
+                    height: 28px;
+                    clicked => {
+                        root.play_prev();
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 6%;
+                PlayPauseButton {
+                    x: parent.width / 2 - self.width / 2;
+                    y: parent.height / 2 - self.height / 2;
+                    width: 28px;
+                    height: 28px;
+                    // 单向绑定被用户强制改变状态后，绑定失效，不再自动更新, 所以双向绑定
+                    paused: root.paused;
+                    toggled => {
+                        root.toggle_play();
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 6%;
+                NextSongButton {
+                    x: parent.width / 2 - self.width / 2;
+                    y: parent.height / 2 - self.height / 2;
+                    width: 28px;
+                    height: 28px;
+                    clicked => {
+                        root.play_next();
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 6%;
+                border-color: transparent;
+                RandomButton {
+                    x: parent.width / 2 - self.width / 2;
+                    y: parent.height / 2 - self.height / 2;
+                    selected: root.play_mode == PlayMode.Random;
+                    width: 20px;
+                    height: 20px;
+                    clicked => {
+                        root.switch_mode(PlayMode.Random);
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 25%;
+                TouchArea {
+                    double-clicked => {
+                        root.double-clicked()
+                    }
+                }
+
+                Text {
+                    x: parent.width / 2 - self.width / 2;
+                    text: root.format-duration(root.progress) + " / " + root.format-duration(root.duration);
+                    vertical-alignment: center;
+                    horizontal-alignment: center;
+                }
+            }
+
+            Rectangle {
+                width: 10%;
+                MusicVolumeButton {
+                    icon-height: 20px;
+                    slider-height: 55px;
+                    volume <=> root.volume;
+                    change-volume(v) => {
+                        root.change-volume(v)
+                    }
+                }
+            }
+        }
+    }
+}
