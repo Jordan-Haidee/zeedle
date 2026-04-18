@@ -1,20 +1,5 @@
 import { ListView, Palette } from "std-widgets.slint";
-import { TriggerSource } from "trigger.slint";
-
-export struct SongInfo {
-    id: int,
-    song_name: string,
-    singer: string,
-    duration: string,
-    song_path: string,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-export enum SortKey {
-    BySongName,
-    BySinger,
-    ByDuration,
-}
+import { TriggerSource, SongInfo, SortKey } from "types.slint";
 
 component SortIcon inherits Rectangle {
     in-out property <bool> ascending:true;

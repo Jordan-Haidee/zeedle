@@ -1,12 +1,5 @@
 import { ListView, Palette } from "std-widgets.slint";
-import { SongInfo } from "song_list_view.slint";
-
-// lyric item
-export struct LyricItem {
-    time: float,
-    duration: float,
-    text: string,
-}
+import { SongInfo, LyricItem } from "types.slint";
 
 export component LyricLine inherits Rectangle {
     height: 40px;

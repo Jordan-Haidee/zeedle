@@ -1,12 +1,5 @@
 import { Palette, Slider } from "std-widgets.slint";
-import { SongInfo } from "song_list_view.slint";
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-export enum PlayMode { 
-    InOrder, 
-    Recursive, 
-    Random
-}
+import { SongInfo, PlayMode } from "types.slint";
 
 export component NextSongButton inherits Rectangle {
     callback clicked();

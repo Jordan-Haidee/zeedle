@@ -6,15 +6,15 @@ import {
     Switch,
     Palette,
 } from "std-widgets.slint";
-import { PlayMode, ControlPanel } from "control_panel.slint";
+import { ControlPanel } from "control_panel.slint";
 import { Sidebar } from "sidebar.slint";
 import { SpectrumView } from "spectrum.slint";
-import { LyricItem, LyricsPanel } from "lyrics_panel.slint";
-import { SongInfo, TitleBar, SongItem, SortKey, SongListView } from "song_list_view.slint";
+import { LyricsPanel } from "lyrics_panel.slint";
+import { TitleBar, SongItem, SongListView } from "song_list_view.slint";
+import { PlayMode, LyricItem, SongInfo, SortKey, TriggerSource } from "types.slint";
 import "msyhl.ttc";
 
-
-import { TriggerSource } from "trigger.slint";
+export { PlayMode, LyricItem, SongInfo, SortKey, TriggerSource }
 
 // ui state
 export global UIState {
