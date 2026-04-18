@@ -51,6 +51,11 @@ msgctxt "SettingsPanel"
 msgid "Light theme: "
 msgstr "Helles Design: "
 
+#: ui/app.slint:436
+msgctxt "SettingsPanel"
+msgid "Spectrum display: "
+msgstr "Spektrumanzeige: "
+
 #: ui/app.slint:420
 msgctxt "SettingsPanel"
 msgid "On"
