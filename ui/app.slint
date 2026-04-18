@@ -2,8 +2,6 @@ import {
     ListView,
     ComboBox,
     Slider,
-    TabWidget,
-    StandardListView,
     LineEdit,
     Switch,
     Palette,
@@ -19,6 +17,7 @@ import {
 } from "button.slint";
 import { SongInfo, TitleBar, SongItem, SortKey } from "song.slint";
 import { LyricLine } from "lyric.slint";
+import "msyhl.ttc";
 
 
 // lyric item
@@ -113,6 +112,7 @@ component SongListView inherits Rectangle {
     in-out property <SortKey> sort-key;
     in-out property <SortKey> last-sort-key;
     in-out property <[SongInfo]> song-list;
+    in property <SongInfo> current-song;
     callback sort-songs(SortKey, bool);
     callback play-song(SongInfo, TriggerSource);
     VerticalLayout {
@@ -133,10 +133,86 @@ component SongListView inherits Rectangle {
         ListView {
             for item in root.song-list: SongItem {
                 info: item;
+                playing: item.song-path == root.current-song.song-path;
                 double_clicked => {
                     root.play-song(item, TriggerSource.ClickItem);
                 }
             }
+        }
+    }
+}
+
+component SidebarNavItem inherits Rectangle {
+    in property <string> icon;
+    in property <string> label;
+    in property <bool> selected;
+    in property <bool> expanded;
+    callback clicked();
+    height: 38px;
+    border-radius: 8px;
+    clip: true;
+    background: touch.pressed ? Palette.control-background.darker(0.15) : (selected ? Palette.control-background.darker(0.1) : (touch.has-hover ? Palette.control-background : transparent));
+
+    Rectangle {
+        visible: selected;
+        width: 3px;
+        height: 16px;
+        x: 3px;
+        y: (parent.height - self.height) / 2;
+        border-radius: 1.5px;
+        background: Palette.accent-background;
+    }
+
+    HorizontalLayout {
+        width: 100%;
+        height: 100%;
+        padding-left: 14px;
+        padding-right: 10px;
+        spacing: expanded ? 10px : 0px;
+        animate spacing {
+            duration: 180ms;
+            easing: ease-out-quad;
+        }
+
+        Rectangle {
+            width: 20px;
+            Text {
+                width: 100%;
+                text: root.icon;
+                // font-size: 16px;
+                font-weight: root.selected ? 600 : 400;
+                color: root.selected ? Palette.accent-background : Palette.foreground.darker(0.2);
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+
+        Rectangle {
+            clip: true;
+            width: expanded ? nav-label.preferred-width : 0px;
+            visible: expanded || self.width > 0px;
+            animate width {
+                duration: 180ms;
+                easing: ease-out-quad;
+            }
+            nav-label := Text {
+                width: 100%;
+                text: root.label;
+                // font-size: 13px;
+                font-weight: root.selected ? 600 : 400;
+                color: root.selected ? Palette.foreground : Palette.foreground.darker(0.2);
+                vertical-alignment: center;
+                overflow: TextOverflow.elide;
+                opacity: expanded ? 1 : 0;
+                animate opacity { duration: 120ms; }
+            }
+        }
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            root.clicked();
         }
     }
 }
@@ -243,8 +319,8 @@ component ControlPanel inherits Rectangle {
                 PrevSongButton {
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
-                    width: 20px;
-                    height: 20px;
+                    width: 28px;
+                    height: 28px;
                     clicked => {
                         root.play_prev();
                     }
@@ -256,8 +332,8 @@ component ControlPanel inherits Rectangle {
                 PlayPauseButton {
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
-                    width: 20px;
-                    height: 20px;
+                    width: 28px;
+                    height: 28px;
                     // 单向绑定被用户强制改变状态后，绑定失效，不再自动更新, 所以双向绑定
                     paused: root.paused;
                     toggled => {
@@ -271,8 +347,8 @@ component ControlPanel inherits Rectangle {
                 NextSongButton {
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
-                    width: 20px;
-                    height: 20px;
+                    width: 28px;
+                    height: 28px;
                     clicked => {
                         root.play_next();
                     }
@@ -354,7 +430,7 @@ component LyricsPanel inherits Rectangle {
             Text {
                 width: 100%;
                 height: 25px;
-                font-size: 13px;
+                // font-size: 13px;
                 x: lyric-image.x;
                 vertical-alignment: bottom;
                 text: @tr("Artist: {}", current_song.singer);
@@ -364,7 +440,7 @@ component LyricsPanel inherits Rectangle {
             Text {
                 width: 100%;
                 height: 25px;
-                font-size: 13px;
+                // font-size: 13px;
                 x: lyric-image.x;
                 vertical-alignment: bottom;
                 text: @tr("Title: {}", current_song.song_name);
@@ -493,6 +569,10 @@ component SettingsPanel inherits Rectangle {
 }
 
 export component MainWindow inherits Window {
+    // Use locale-specific family names so Windows can resolve YaHei after runtime language switches.
+    private property <string> app_font_family: UIState.lang == "" ? "Microsoft YaHei UI Light" : "Microsoft YaHei UI";
+    default-font-family: app_font_family;
+    default-font-size: 14px;
     preferred-width: 850px;
     preferred-height: 500px;
     min-width: 850px;
@@ -511,6 +591,8 @@ export component MainWindow inherits Window {
     callback set_lang(string);
     callback change_volume(float);
     pure callback format_duration(float) -> string;
+    in-out property <int> current_page: 0;
+    in-out property <bool> sidebar_expanded: false;
     public function set_light_theme(yes: bool) {
         UIState.light_ui = yes;
         if (yes) {
@@ -519,15 +601,161 @@ export component MainWindow inherits Window {
             Palette.color-scheme = ColorScheme.dark;
         }
     }
-    tabs := TabWidget {
-        Tab {
-            title: @tr("Gallery");
+
+    HorizontalLayout {
+        height: 100%;
+        spacing: 0px;
+
+        sidebar := Rectangle {
+            width: root.sidebar_expanded ? 210px : 60px;
+            height: 100%;
+            background: Palette.control-background;
+            animate width {
+                duration: 200ms;
+                easing: ease-out-quad;
+            }
+
             VerticalLayout {
+                width: 100%;
+                height: 100%;
+                padding-left: 6px;
+                padding-right: 6px;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                spacing: 6px;
+
+                Rectangle {
+                    height: 36px;
+                    border-radius: 8px;
+                    background: toggle-touch.has-hover ? Palette.background : transparent;
+                    HorizontalLayout {
+                        width: 100%;
+                        height: 100%;
+                        padding-left: 14px;
+                        padding-right: 10px;
+                        spacing: root.sidebar_expanded ? 10px : 0px;
+                        animate spacing {
+                            duration: 180ms;
+                            easing: ease-out-quad;
+                        }
+                        Text {
+                            width: 20px;
+                            text: "☰";
+                            // font-size: 16px;
+                            color: Palette.foreground.darker(0.2);
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+
+                        Rectangle {
+                            clip: true;
+                            width: root.sidebar_expanded ? title-label.preferred-width : 0px;
+                            visible: root.sidebar_expanded || self.width > 0px;
+                            animate width {
+                                duration: 180ms;
+                                easing: ease-out-quad;
+                            }
+                            title-label := Text {
+                                text: "Zeedle";
+                                // font-size: 13px;
+                                font-weight: 600;
+                                color: Palette.foreground;
+                                vertical-alignment: center;
+                                opacity: root.sidebar_expanded ? 1 : 0;
+                                animate opacity { duration: 120ms; }
+                            }
+                        }
+                    }
+
+                    toggle-touch := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => {
+                            root.sidebar_expanded = !root.sidebar_expanded;
+                            root.focus();
+                        }
+                    }
+                }
+
+                Rectangle {
+                    height: 4px;
+                }
+
+                SidebarNavItem {
+                    icon: "▤";
+                    label: @tr("Gallery");
+                    selected: root.current_page == 0;
+                    expanded: root.sidebar_expanded;
+                    clicked => {
+                        root.current_page = 0;
+                        root.focus();
+                    }
+                }
+
+                SidebarNavItem {
+                    icon: "♪";
+                    label: @tr("Lyrics");
+                    selected: root.current_page == 1;
+                    expanded: root.sidebar_expanded;
+                    clicked => {
+                        root.current_page = 1;
+                        root.focus();
+                    }
+                }
+
+                Rectangle {
+                    vertical-stretch: 1;
+                }
+
+                Rectangle {
+                    height: 1px;
+                    background: Palette.background.darker(0.2);
+                }
+
+                SidebarNavItem {
+                    icon: "⚙";
+                    label: @tr("Settings");
+                    selected: root.current_page == 2;
+                    expanded: root.sidebar_expanded;
+                    clicked => {
+                        root.current_page = 2;
+                        root.focus();
+                    }
+                }
+
+                SidebarNavItem {
+                    icon: "i";
+                    label: @tr("About");
+                    selected: root.current_page == 3;
+                    expanded: root.sidebar_expanded;
+                    clicked => {
+                        root.current_page = 3;
+                        root.focus();
+                    }
+                }
+            }
+
+            Rectangle {
+                x: parent.width - 1px;
+                y: 0px;
+                width: 1px;
+                height: parent.height;
+                background: Palette.background.darker(0.2);
+            }
+        }
+
+        content-pane := Rectangle {
+            horizontal-stretch: 1;
+            height: 100%;
+
+            if root.current_page == 0: VerticalLayout {
+                width: 100%;
+                height: 100%;
                 SongListView {
                     ascending <=> UIState.sort_ascending;
                     sort-key <=> UIState.sort_key;
                     last-sort-key <=> UIState.last_sort_key;
                     song-list <=> UIState.song_list;
+                    current-song <=> UIState.current_song;
                     sort-songs(key, asc) => {
                         root.sort_song_list(key, asc);
                     }
@@ -568,72 +796,67 @@ export component MainWindow inherits Window {
                         root.focus();
                     }
                     double-clicked() => {
-                        tabs.current-index = 1; // 切换到歌词页
+                        root.current_page = 1;
                     }
                     format-duration(d) => {
                         return root.format_duration(d);
                     }
                 }
             }
-        }
 
-        Tab {
-            title: @tr("Lyrics");
-            Rectangle {
+            if root.current_page == 1: Rectangle {
                 width: 100%;
                 height: 100%;
                 z: -5;
                 TouchArea {
                     double-clicked => {
-                        tabs.current-index = 0; // 切换到歌曲列表页
+                        root.current_page = 0;
+                    }
+                }
+
+                LyricsPanel {
+                    width: 100%;
+                    height: 100%;
+                    album_image <=> UIState.album_image;
+                    current_song <=> UIState.current_song;
+                    lyrics <=> UIState.lyrics;
+                    progress <=> UIState.progress;
+                    lyric_viewport_y <=> UIState.lyric_viewport_y;
+                }
+            }
+
+            if root.current_page == 2: Rectangle {
+                width: 100%;
+                height: 100%;
+                TouchArea {
+                    clicked => {
+                        root.focus();
+                    }
+                }
+
+                SettingsPanel {
+                    width: 100%;
+                    height: 100%;
+                    song_dir <=> UIState.song_dir;
+                    lang <=> UIState.lang;
+                    light_ui <=> UIState.light_ui;
+                    show_spectrum <=> UIState.show_spectrum;
+                    refresh_song_list(p) => {
+                        root.refresh_song_list(p);
+                    }
+                    set_lang(l) => {
+                        root.set_lang(l);
+                    }
+                    set_light_theme(yes) => {
+                        root.set_light_theme(yes);
                     }
                 }
             }
 
-            LyricsPanel {
+            if root.current_page == 3: Text {
                 width: 100%;
                 height: 100%;
-                album_image <=> UIState.album_image;
-                current_song <=> UIState.current_song;
-                lyrics <=> UIState.lyrics;
-                progress <=> UIState.progress;
-                lyric_viewport_y <=> UIState.lyric_viewport_y;
-            }
-        }
-
-        Tab {
-            title: @tr("Settings");
-            TouchArea {
-                clicked => {
-                    root.focus();
-                }
-            }
-
-            SettingsPanel {
-                width: 100%;
-                height: 100%;
-                song_dir <=> UIState.song_dir;
-                lang <=> UIState.lang;
-                light_ui <=> UIState.light_ui;
-                show_spectrum <=> UIState.show_spectrum;
-                refresh_song_list(p) => {
-                    root.refresh_song_list(p);
-                }
-                set_lang(l) => {
-                    root.set_lang(l);
-                }
-                set_light_theme(yes) => {
-                    root.set_light_theme(yes);
-                }
-            }
-        }
-
-        Tab {
-            title: @tr("About");
-            Text {
-                width: 100%;
-                height: 100%;
-                font-size: 16px;
+                // font-size: 16px;
                 text: UIState.about_info;
                 horizontal-alignment: center;
                 vertical-alignment: center;
@@ -642,8 +865,9 @@ export component MainWindow inherits Window {
     }
 
     spectrum-bg := Rectangle {
-        width: 100%;
-        height: 100%;
+        x: root.sidebar_expanded ? 210px : 60px;
+        width: root.width - self.x;
+        height: root.height;
         z: -5;
         visible: UIState.show_spectrum;
         SpectrumView {
@@ -667,16 +891,16 @@ export component MainWindow inherits Window {
                 root.play_prev();
                 return accept;
             } else if event.text == Key.F1 {
-                tabs.current-index = 0;
+                root.current_page = 0;
                 return accept;
             } else if event.text == Key.F2 {
-                tabs.current-index = 1;
+                root.current_page = 1;
                 return accept;
             } else if event.text == Key.F3 {
-                tabs.current-index = 2;
+                root.current_page = 2;
                 return accept;
             } else if event.text == Key.F4 {
-                tabs.current-index = 3;
+                root.current_page = 3;
                 return accept;
             }
             return reject;
