@@ -12,7 +12,13 @@ import { SpectrumView } from "spectrum.slint";
 import { LyricsPanel } from "lyrics_panel.slint";
 import { TitleBar, SongItem, SongListView } from "song_list.slint";
 import { SettingsPanel } from "settings_panel.slint";
-import { PlayMode, LyricItem, SongInfo, SortKey, TriggerSource } from "types.slint";
+import {
+    PlayMode,
+    LyricItem,
+    SongInfo,
+    SortKey,
+    TriggerSource,
+} from "types.slint";
 import "msyhl.ttc";
 
 export { PlayMode, LyricItem, SongInfo, SortKey, TriggerSource }
@@ -69,9 +75,7 @@ export global UIState {
 }
 
 export component MainWindow inherits Window {
-    // Use locale-specific family names so Windows can resolve YaHei after runtime language switches.
-    private property <string> app_font_family: UIState.lang == "" ? "Microsoft YaHei UI Light" : "Microsoft YaHei UI";
-    default-font-family: app_font_family;
+    default-font-family: "Microsoft YaHei UI";
     default-font-size: 14px;
     preferred-width: 850px;
     preferred-height: 500px;
