@@ -319,8 +319,8 @@ component ControlPanel inherits Rectangle {
                 PrevSongButton {
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
-                    width: 20px;
-                    height: 20px;
+                    width: 28px;
+                    height: 28px;
                     clicked => {
                         root.play_prev();
                     }
@@ -332,8 +332,8 @@ component ControlPanel inherits Rectangle {
                 PlayPauseButton {
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
-                    width: 20px;
-                    height: 20px;
+                    width: 28px;
+                    height: 28px;
                     // 单向绑定被用户强制改变状态后，绑定失效，不再自动更新, 所以双向绑定
                     paused: root.paused;
                     toggled => {
@@ -347,8 +347,8 @@ component ControlPanel inherits Rectangle {
                 NextSongButton {
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
-                    width: 20px;
-                    height: 20px;
+                    width: 28px;
+                    height: 28px;
                     clicked => {
                         root.play_next();
                     }

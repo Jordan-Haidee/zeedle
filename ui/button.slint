@@ -1,170 +1,189 @@
 import { Palette, Slider } from "std-widgets.slint";
 export component NextSongButton inherits Rectangle {
     callback clicked();
-    TouchArea {
+    border-radius: self.width / 2;
+    clip: true;
+    border-width: 1px;
+    property <bool> hovered: touch.has-hover;
+    property <bool> pressed: touch.pressed;
+    property <color> icon-color: pressed ? Palette.accent-background : (hovered ? Palette.foreground : Palette.control-foreground);
+    background: pressed ? Palette.control-background.darker(0.22) : (hovered ? Palette.control-background.darker(0.1) : Palette.control-background.darker(0.03));
+    border-color: hovered ? Palette.foreground.darker(0.45) : Palette.foreground.darker(0.7);
+    drop-shadow-blur: hovered ? 8px : 4px;
+    animate background {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate border-color {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate drop-shadow-blur {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        width: 100%;
+        height: 100%;
         clicked => {
             root.clicked();
         }
-        Path {
-            width: 100%;
-            height: 100%;
-            MoveTo {
-                x: 0;
-                y: 0;
-            }
+    }
 
-            LineTo {
-                x: 0;
-                y: 100;
-            }
+    Path {
+        x: parent.width * 0.12;
+        y: parent.height * 0.12;
+        width: parent.width * 0.76;
+        height: parent.height * 0.76;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
+    }
 
-            LineTo {
-                x: 70;
-                y: 50;
-            }
-
-            Close { }
-
-            MoveTo {
-                x: 80;
-                y: 0;
-            }
-
-            LineTo {
-                x: 80;
-                y: 100;
-            }
-
-            stroke: Palette.control-foreground;
-            stroke-width: root.width * 0.1;
-        }
+    Path {
+        x: parent.width * 0.12;
+        y: parent.height * 0.12;
+        width: parent.width * 0.76;
+        height: parent.height * 0.76;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M21 4v16";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
     }
 }
 
 export component PrevSongButton inherits Rectangle {
     callback clicked();
-    TouchArea {
+    border-radius: self.width / 2;
+    clip: true;
+    border-width: 1px;
+    property <bool> hovered: touch.has-hover;
+    property <bool> pressed: touch.pressed;
+    property <color> icon-color: pressed ? Palette.accent-background : (hovered ? Palette.foreground : Palette.control-foreground);
+    background: pressed ? Palette.control-background.darker(0.22) : (hovered ? Palette.control-background.darker(0.1) : Palette.control-background.darker(0.03));
+    border-color: hovered ? Palette.foreground.darker(0.45) : Palette.foreground.darker(0.7);
+    drop-shadow-blur: hovered ? 8px : 4px;
+    animate background {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate border-color {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate drop-shadow-blur {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+
+    touch := TouchArea {
+        width: 100%;
+        height: 100%;
+        mouse-cursor: pointer;
         clicked => {
             root.clicked();
         };
-        Path {
-            width: 100%;
-            height: 100%;
-            MoveTo {
-                x: 80;
-                y: 0;
-            }
+    }
 
-            LineTo {
-                x: 80;
-                y: 100;
-            }
+    Path {
+        x: parent.width * 0.12;
+        y: parent.height * 0.12;
+        width: parent.width * 0.76;
+        height: parent.height * 0.76;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M17.971 4.285A2 2 0 0 1 21 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432z";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
+    }
 
-            LineTo {
-                x: 10;
-                y: 50;
-            }
-
-            Close { }
-
-            MoveTo {
-                x: 0;
-                y: 0;
-            }
-
-            LineTo {
-                x: 0;
-                y: 100;
-            }
-
-            stroke: Palette.control-foreground;
-            stroke-width: root.width * 0.1;
-        }
+    Path {
+        x: parent.width * 0.12;
+        y: parent.height * 0.12;
+        width: parent.width * 0.76;
+        height: parent.height * 0.76;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M3 20V4";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
     }
 }
 
 export component PlayPauseButton inherits Rectangle {
     in-out property <bool> paused:true;
     callback toggled();
-    TouchArea {
+    border-radius: self.width / 2;
+    clip: true;
+    border-width: 1px;
+    property <bool> hovered: touch.has-hover;
+    property <bool> pressed: touch.pressed;
+    property <bool> active: !root.paused;
+    property <color> icon-color: active ? Palette.accent-background : (pressed ? Palette.accent-background : (hovered ? Palette.foreground : Palette.control-foreground));
+    background: active ? (pressed ? Palette.control-background.darker(0.24) : (hovered ? Palette.control-background.darker(0.16) : Palette.control-background.darker(0.08))) : (pressed ? Palette.control-background.darker(0.22) : (hovered ? Palette.control-background.darker(0.1) : Palette.control-background.darker(0.03)));
+    border-color: active ? Palette.accent-background.darker(0.25) : (hovered ? Palette.foreground.darker(0.45) : Palette.foreground.darker(0.7));
+    drop-shadow-blur: active ? 10px : (hovered ? 8px : 4px);
+    animate background {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate border-color {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+    animate drop-shadow-blur {
+        duration: 120ms;
+        easing: ease-out-quad;
+    }
+
+    touch := TouchArea {
+        width: 100%;
+        height: 100%;
+        mouse-cursor: pointer;
         clicked => {
             root.toggled();
         }
-        if !root.paused:
-            Path {
-            width: 100%;
-            height: 100%;
-            MoveTo {
-                x: 0;
-                y: 0;
-            }
+    }
 
-            LineTo {
-                x: 0;
-                y: 100;
-            }
+    if !root.paused: Path {
+        x: parent.width * 0.13;
+        y: parent.height * 0.13;
+        width: parent.width * 0.74;
+        height: parent.height * 0.74;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M14 3h5a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z M5 3h5a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
+    }
 
-            LineTo {
-                x: 30;
-                y: 100;
-            }
-
-            LineTo {
-                x: 30;
-                y: 0;
-            }
-
-            Close { }
-
-            MoveTo {
-                x: 50;
-                y: 0;
-            }
-
-            LineTo {
-                x: 50;
-                y: 100;
-            }
-
-            LineTo {
-                x: 80;
-                y: 100;
-            }
-
-            LineTo {
-                x: 80;
-                y: 0;
-            }
-
-            Close { }
-
-            stroke: Palette.control-foreground;
-            stroke-width: root.width * 0.1;
-        }
-        if root.paused:
-            Path {
-            width: 100%;
-            height: 100%;
-            MoveTo {
-                x: 0;
-                y: 0;
-            }
-
-            LineTo {
-                x: 0;
-                y: 100;
-            }
-
-            LineTo {
-                x: 80;
-                y: 50;
-            }
-
-            Close { }
-
-            stroke: Palette.control-foreground;
-            stroke-width: root.width * 0.1;
-        }
+    if root.paused: Path {
+        x: parent.width * 0.13;
+        y: parent.height * 0.13;
+        width: parent.width * 0.74;
+        height: parent.height * 0.74;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: transparent;
+        commands: "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z";
+        stroke: root.icon-color;
+        stroke-width: 2.3px;
+        stroke-line-cap: round;
     }
 }
 
