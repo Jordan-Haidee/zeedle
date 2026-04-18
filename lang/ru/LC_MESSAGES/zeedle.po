@@ -12,12 +12,12 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: ui/app.slint:96
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "Gallery"
 msgstr "Галерея"
 
 #: ui/app.slint:282
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "Lyrics"
 msgstr "Тексты песен"
 
@@ -32,7 +32,7 @@ msgid "Title: {}"
 msgstr "Название: {}"
 
 #: ui/app.slint:353
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "Settings"
 msgstr "Настройки"
 
@@ -67,7 +67,7 @@ msgid "Off"
 msgstr "Выкл."
 
 #: ui/app.slint:430
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "About"
 msgstr "О программе"
 

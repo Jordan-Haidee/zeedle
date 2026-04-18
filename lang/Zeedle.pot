@@ -13,12 +13,12 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: ui/app.slint:96
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "Gallery"
 msgstr ""
 
 #: ui/app.slint:282
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "Lyrics"
 msgstr ""
 
@@ -33,7 +33,7 @@ msgid "Title: {}"
 msgstr ""
 
 #: ui/app.slint:353
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "Settings"
 msgstr ""
 
@@ -68,7 +68,7 @@ msgid "Off"
 msgstr ""
 
 #: ui/app.slint:430
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "About"
 msgstr ""
 
