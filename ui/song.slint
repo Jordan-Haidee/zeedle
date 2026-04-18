@@ -1,10 +1,10 @@
 import { Palette } from "std-widgets.slint";
 export struct SongInfo {
-    id:int,
-    song_name:string,
-    singer:string,
-    duration:string,
-    song_path:string,
+    id: int,
+    song_name: string,
+    singer: string,
+    duration: string,
+    song_path: string,
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
@@ -160,8 +160,10 @@ export component TitleBar inherits Rectangle {
 export component SongItem inherits Rectangle {
     height: 30px;
     in property <SongInfo> info:{ id:0, song_name:"xxx", singer:"xxx", duration:"xxx", song_path:"xxx" };
+    in property <bool> playing:false;
     callback double_clicked();
-    background: area.has-hover ? Palette.control-background : Palette.background;
+    border-radius: 4px;
+    background: playing ? Palette.control-background.darker(0.08) : (area.has-hover ? Palette.control-background : Palette.background);
     VerticalLayout {
         area := TouchArea {
             double-clicked => {
@@ -175,6 +177,8 @@ export component SongItem inherits Rectangle {
                         width: 100%;
                         x: parent.width * 0.4;
                         text: info.song-name;
+                        font-weight: root.playing ? 600 : 400;
+                        color: root.playing ? Palette.accent-background : Palette.foreground;
                         overflow: elide;
                     }
                 }
@@ -185,6 +189,7 @@ export component SongItem inherits Rectangle {
                         width: 100%;
                         x: parent.width * 0.4;
                         text: info.singer;
+                        color: root.playing ? Palette.accent-background.darker(0.1) : Palette.foreground;
                         overflow: elide;
                     }
                 }
@@ -194,6 +199,7 @@ export component SongItem inherits Rectangle {
                     Text {
                         x: parent.width * 0.4;
                         text: info.duration;
+                        color: root.playing ? Palette.accent-background.darker(0.1) : Palette.foreground;
                     }
                 }
             }

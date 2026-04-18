@@ -112,6 +112,7 @@ component SongListView inherits Rectangle {
     in-out property <SortKey> sort-key;
     in-out property <SortKey> last-sort-key;
     in-out property <[SongInfo]> song-list;
+    in property <SongInfo> current-song;
     callback sort-songs(SortKey, bool);
     callback play-song(SongInfo, TriggerSource);
     VerticalLayout {
@@ -132,6 +133,7 @@ component SongListView inherits Rectangle {
         ListView {
             for item in root.song-list: SongItem {
                 info: item;
+                playing: item.song-path == root.current-song.song-path;
                 double_clicked => {
                     root.play-song(item, TriggerSource.ClickItem);
                 }
@@ -753,6 +755,7 @@ export component MainWindow inherits Window {
                     sort-key <=> UIState.sort_key;
                     last-sort-key <=> UIState.last_sort_key;
                     song-list <=> UIState.song_list;
+                    current-song <=> UIState.current_song;
                     sort-songs(key, asc) => {
                         root.sort_song_list(key, asc);
                     }
