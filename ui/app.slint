@@ -19,7 +19,6 @@ import {
     SortKey,
     TriggerSource,
 } from "types.slint";
-import "msyhl.ttc";
 
 export { PlayMode, LyricItem, SongInfo, SortKey, TriggerSource }
 
@@ -72,10 +71,12 @@ export global UIState {
     in-out property <[float]> spectrum;
     // 是否显示频谱条
     in-out property <bool> show_spectrum: true;
+    // 默认字体
+    in-out property <string> app-font-family;
 }
 
 export component MainWindow inherits Window {
-    default-font-family: "Microsoft YaHei UI";
+    default-font-family <=> UIState.app-font-family;
     default-font-size: 14px;
     preferred-width: 850px;
     preferred-height: 500px;

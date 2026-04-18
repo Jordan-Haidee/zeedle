@@ -205,3 +205,15 @@ pub fn get_chars(s: &str) -> (u8, String) {
 fn is_chinese(c: char) -> bool {
     ('\u{4e00}'..='\u{9fff}').contains(&c)
 }
+
+/// Get default font family for different platforms to ensure proper rendering of Chinese characters.
+pub fn get_default_font_family() -> &'static str {
+    #[cfg(target_os = "windows")]
+    return "Microsoft YaHei UI";
+
+    #[cfg(target_os = "linux")]
+    return "Noto Sans CJK SC";
+
+    #[cfg(target_os = "macos")]
+    return "PingFang SC";
+}

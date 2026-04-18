@@ -305,6 +305,8 @@ fn set_start_ui_state(
     spectrum_enabled: &Arc<AtomicBool>,
 ) {
     let ui_state = ui.global::<UIState>();
+    let app_font = utils::get_default_font_family();
+    ui_state.set_app_font_family(app_font.into());
     let cfg = Config::load();
     let song_list = utils::read_song_list(&cfg.song_dir, cfg.sort_key, cfg.sort_ascending);
     if song_list.is_empty() {
