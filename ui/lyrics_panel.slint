@@ -1,0 +1,84 @@
+import { ListView, Palette } from "std-widgets.slint";
+import { SongInfo, LyricItem } from "types.slint";
+
+export component LyricLine inherits Rectangle {
+    height: 40px;
+    in-out property <string> content;
+    in-out property <bool> playing;
+    callback triggered();
+    Text {
+        width: 100%;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+        color: playing ? Palette.accent-background : Palette.foreground;
+        text: content;
+        font-size: playing ? 20px : 17px;
+        overflow: TextOverflow.elide;
+    }
+
+    background: transparent;
+}
+
+export component LyricsPanel inherits Rectangle {
+    in property <image> album_image;
+    in property <SongInfo> current_song;
+    in property <[LyricItem]> lyrics;
+    in property <float> progress;
+    in-out property <length> lyric_viewport_y;
+    HorizontalLayout {
+        width: 100%;
+        height: 100%;
+        VerticalLayout {
+            width: 30%;
+            alignment: center;
+            lyric-image := Rectangle {
+                x: parent.width / 2 - self.width / 2;
+                width: 180px;
+                height: self.width;
+                clip: true;
+                border-radius: 8px;
+                drop-shadow-blur: 8px;
+                Image {
+                    width: 100%;
+                    height: 100%;
+                    source: album_image;
+                }
+            }
+
+            Text {
+                width: 100%;
+                height: 25px;
+                // font-size: 13px;
+                x: lyric-image.x;
+                vertical-alignment: bottom;
+                text: @tr("Artist: {}", current_song.singer);
+                overflow: elide;
+            }
+
+            Text {
+                width: 100%;
+                height: 25px;
+                // font-size: 13px;
+                x: lyric-image.x;
+                vertical-alignment: bottom;
+                text: @tr("Title: {}", current_song.song_name);
+                overflow: elide;
+            }
+        }
+
+        VerticalLayout {
+            width: 70%;
+            alignment: center;
+            ListView {
+                height: 100%;
+                width: 100%;
+                mouse-drag-pan-enabled: false;
+                viewport-y <=> root.lyric_viewport_y;
+                for item in root.lyrics: LyricLine {
+                    content: item.text;
+                    playing: (root.progress >= item.time) && (root.progress < item.time + item.duration);
+                }
+            }
+        }
+    }
+}

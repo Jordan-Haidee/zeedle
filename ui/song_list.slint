@@ -1,18 +1,5 @@
-import { Palette } from "std-widgets.slint";
-export struct SongInfo {
-    id: int,
-    song_name: string,
-    singer: string,
-    duration: string,
-    song_path: string,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-export enum SortKey {
-    BySongName,
-    BySinger,
-    ByDuration,
-}
+import { ListView, Palette } from "std-widgets.slint";
+import { TriggerSource, SongInfo, SortKey } from "types.slint";
 
 component SortIcon inherits Rectangle {
     in-out property <bool> ascending:true;
@@ -201,6 +188,41 @@ export component SongItem inherits Rectangle {
                         text: info.duration;
                         color: root.playing ? Palette.accent-background.darker(0.1) : Palette.foreground;
                     }
+                }
+            }
+        }
+    }
+}
+
+export component SongListView inherits Rectangle {
+    in-out property <bool> ascending;
+    in-out property <SortKey> sort-key;
+    in-out property <SortKey> last-sort-key;
+    in-out property <[SongInfo]> song-list;
+    in property <SongInfo> current-song;
+    callback sort-songs(SortKey, bool);
+    callback play-song(SongInfo, TriggerSource);
+    VerticalLayout {
+        width: 100%;
+        height: 100%;
+        TitleBar {
+            ascending: root.ascending;
+            key: root.sort-key;
+            sort-items(key, ascending) => {
+                if (root.last-sort-key == key) {
+                    root.sort-songs(key, !ascending);
+                } else {
+                    root.sort-songs(key, true)
+                }
+            }
+        }
+
+        ListView {
+            for item in root.song-list: SongItem {
+                info: item;
+                playing: item.song-path == root.current-song.song-path;
+                double_clicked => {
+                    root.play-song(item, TriggerSource.ClickItem);
                 }
             }
         }

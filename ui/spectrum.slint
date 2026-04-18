@@ -1,0 +1,23 @@
+import { Palette } from "std-widgets.slint";
+
+export component SpectrumView inherits Rectangle {
+    in property <[float]> bins;
+    in property <color> bar-color: Palette.foreground;
+    height: 60px;
+    width: 200px;
+    clip: true;
+    HorizontalLayout {
+        width: 100%;
+        height: 100%;
+        alignment: center;
+        spacing: 0px;
+        for v in bins: Rectangle {
+            width: parent.width / (root.bins.length * 2);
+            height: parent.height * v;
+            y: parent.height - self.height;
+            border-radius: 1px;
+            opacity: 0.3;
+            background: root.bar-color;
+        }
+    }
+}
