@@ -13,12 +13,12 @@ msgstr ""
 "X-Generator: Poedit 3.7\n"
 
 #: ui/app.slint:96
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "Gallery"
 msgstr "音乐列表"
 
 #: ui/app.slint:282
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "Lyrics"
 msgstr "歌词"
 
@@ -33,7 +33,7 @@ msgid "Title: {}"
 msgstr "歌曲：{}"
 
 #: ui/app.slint:353
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "Settings"
 msgstr "设置"
 
@@ -68,7 +68,7 @@ msgid "Off"
 msgstr "关闭"
 
 #: ui/app.slint:430
-msgctxt "MainWindow"
+msgctxt "Sidebar"
 msgid "About"
 msgstr "关于"
 
