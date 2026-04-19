@@ -22,7 +22,9 @@ mod config;
 use config::Config;
 mod logger;
 mod spectrum;
-use spectrum::{TapSource, SpectrumChunk, SPECTRUM_UPDATE_MS, default_spectrum, start_spectrum_worker};
+use spectrum::{
+    SPECTRUM_UPDATE_MS, SpectrumChunk, TapSource, default_spectrum, try_start_spectrum_worker,
+};
 mod utils;
 
 /// Message in channel: ui --> backend
@@ -38,6 +40,7 @@ enum PlayerCommand {
     SortSongList(SortKey, bool),   // 刷新歌曲列表
     SetLang(String),               // 设置语言
     ChangeVolume(f32),             // 改变音量
+    SetShowSpectrum(bool),         // 设置是否显示频谱
 }
 
 /// Set UI state to default (no song)
@@ -73,16 +76,10 @@ fn set_raw_ui_state(ui: &MainWindow) {
 }
 
 /// Set UI state according to saved config
-fn set_start_ui_state(
-    ui: &MainWindow,
-    player: &rodio::Player,
-    fft_tx: &Sender<SpectrumChunk>,
-    spectrum_enabled: &Arc<AtomicBool>,
-) {
+fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f32, bool)> {
     let ui_state = ui.global::<UIState>();
     let app_font = utils::get_default_font_family();
     ui_state.set_app_font_family(app_font.into());
-    let cfg = Config::load();
     let song_list = utils::read_song_list(&cfg.song_dir, cfg.sort_key, cfg.sort_ascending);
     if song_list.is_empty() {
         log::warn!(
@@ -90,7 +87,7 @@ fn set_start_ui_state(
             cfg.song_dir
         );
         set_raw_ui_state(ui);
-        return;
+        return None;
     }
     log::info!("loaded {} songs from directory: {:?}", song_list.len(), cfg.song_dir);
     ui.invoke_set_light_theme(cfg.light_ui);
@@ -109,7 +106,7 @@ fn set_start_ui_state(
     ui_state.set_song_dir(cfg.song_dir.to_str().expect("failed to convert Path to String").into());
     ui_state.set_about_info(utils::get_about_info());
     let mut cur_song_info = utils::read_meta_info(
-        cfg.current_song_path.unwrap_or(song_list[0].song_path.as_str().into()),
+        cfg.current_song_path.clone().unwrap_or(song_list[0].song_path.as_str().into()),
     )
     .expect("failed to read meta info of current song");
     cur_song_info.id = song_list
@@ -135,52 +132,90 @@ fn set_start_ui_state(
         None => utils::get_default_album_cover(),
     };
     ui_state.set_album_image(cover);
+    let mut history = ui_state.get_play_history().iter().collect::<Vec<_>>();
+    history.push(cur_song_info.clone());
+    ui_state.set_play_history(history.as_slice().into());
+    ui_state.set_history_index(0);
+    Some((cur_song_info, cfg.volume, cfg.progress, cfg.show_spectrum))
+}
+
+fn set_start_player_state(
+    player: &rodio::Player,
+    cur_song_info: &SongInfo,
+    volume: f32,
+    progress: f32,
+    spectrum_enabled: Arc<AtomicBool>,
+    fft_tx: &Sender<SpectrumChunk>,
+) {
     let file = std::fs::File::open(&cur_song_info.song_path)
         .unwrap_or_else(|_| panic!("failed to open audio file: {}", cur_song_info.song_path));
     let source = Decoder::try_from(file).expect("failed to decode audio file");
     let tap = TapSource::new(source, fft_tx.clone(), spectrum_enabled.clone());
     player.append(tap);
     player.pause();
-    player.set_volume(cfg.volume);
-    player.try_seek(Duration::from_secs_f32(cfg.progress)).expect("failed to seek to given position");
-    let mut history = ui_state.get_play_history().iter().collect::<Vec<_>>();
-    history.push(cur_song_info.clone());
-    ui_state.set_play_history(history.as_slice().into());
-    ui_state.set_history_index(0);
+    player.set_volume(volume);
+    player.try_seek(Duration::from_secs_f32(progress)).expect("failed to seek to given position");
 }
 
 fn main() {
     let app_start = Instant::now();
-    logger::init_default_logger(None::<PathBuf>);
+
     // when panics happen, auto port errors to log
     std::panic::set_hook(Box::new(|info| {
         log::error!("{}", info);
     }));
+
+    // initialize logger
+    logger::init_default_logger(None::<PathBuf>);
+
+    // prevent multiple instances
     let ins = single_instance::SingleInstance::new("Zeedle Music Player").unwrap();
     if !ins.is_single() {
         log::warn!("Vanilla player can only run one instance !");
         return;
     }
-    let sink_handle = rodio::DeviceSinkBuilder::open_default_sink()
-        .expect("no output device available");
+
+    // initialize audio output
+    let mut sink_handle =
+        rodio::DeviceSinkBuilder::open_default_sink().expect("no output device available");
+    sink_handle.log_on_drop(false);
     let _player = rodio::Player::connect_new(sink_handle.mixer());
     let player = Arc::new(Mutex::new(_player));
-    let spectrum_data = Arc::new(Mutex::new(default_spectrum()));
-    let spectrum_enabled = Arc::new(AtomicBool::new(true));
-    let (fft_tx, fft_rx) = bounded::<SpectrumChunk>(4);
-    start_spectrum_worker(fft_rx, spectrum_data.clone(), spectrum_enabled.clone());
-    // 创建消息通道 ui --> backend
-    let (tx, rx) = mpsc::channel::<PlayerCommand>();
-    // 初始化 UI 状态
-    let ui = MainWindow::new().expect("failed to create UI");
-    set_start_ui_state(&ui, &player.lock().unwrap(), &fft_tx, &spectrum_enabled);
-    spectrum_enabled.store(ui.global::<UIState>().get_show_spectrum(), Ordering::Relaxed);
 
-    // 播放线程
+    // 创建消息通道 ui thread --> backend thread
+    let (tx, rx) = mpsc::channel::<PlayerCommand>();
+
+    // 初始化 UI 状态
+    let cfg = Config::load();
+    let ui = MainWindow::new().expect("failed to create UI");
+    let start_state = set_start_ui_state(&ui, &cfg);
+
+    // 初始化播放器状态
+    let spectrum_data = Arc::new(Mutex::new(default_spectrum()));
+    let spectrum_enabled: Arc<AtomicBool>;
+    let (fft_tx, fft_rx) = bounded::<SpectrumChunk>(4);
+    if let Some((cur_song_info, volume, progress, show_spectrum)) = start_state {
+        spectrum_enabled = Arc::new(AtomicBool::new(show_spectrum));
+        set_start_player_state(
+            &player.lock().unwrap(),
+            &cur_song_info,
+            volume,
+            progress,
+            spectrum_enabled.clone(),
+            &fft_tx,
+        );
+    } else {
+        spectrum_enabled = Arc::new(AtomicBool::new(true));
+    }
+
+    // 启动频谱分析线程
+    try_start_spectrum_worker(fft_rx, spectrum_data.clone(), spectrum_enabled.clone());
+
+    // 启动播放器线程
     let ui_weak = ui.as_weak();
     let player_clone = player.clone();
     let fft_tx = fft_tx.clone();
-    let spectrum_enabled_for_play = spectrum_enabled.clone();
+    let spectrum_enabled = spectrum_enabled.clone();
     thread::spawn(move || {
         log::info!("player thread running...");
         while let Ok(cmd) = rx.recv() {
@@ -193,8 +228,7 @@ fn main() {
                     let lyrics = utils::read_lyrics(&song_info.song_path);
                     let player_guard = player_clone.lock().unwrap();
                     player_guard.clear();
-                    let tap =
-                        TapSource::new(source, fft_tx.clone(), spectrum_enabled_for_play.clone());
+                    let tap = TapSource::new(source, fft_tx.clone(), spectrum_enabled.clone());
                     player_guard.append(tap);
                     player_guard.play();
                     log::info!("start playing: <{}>", song_info.song_name);
@@ -510,6 +544,20 @@ fn main() {
                     })
                     .unwrap()
                 }
+                PlayerCommand::SetShowSpectrum(show) => {
+                    spectrum_enabled.store(show, Ordering::Relaxed);
+                    let ui_weak = ui_weak.clone();
+                    slint::invoke_from_event_loop(move || {
+                        if let Some(ui) = ui_weak.upgrade() {
+                            let ui_state = ui.global::<UIState>();
+                            ui_state.set_show_spectrum(show);
+                            if !show {
+                                ui_state.set_spectrum(default_spectrum().as_slice().into());
+                            }
+                        }
+                    })
+                    .unwrap();
+                }
             }
         }
     });
@@ -590,6 +638,16 @@ fn main() {
             tx.send(PlayerCommand::ChangeVolume(v)).expect("failed to send change volume command");
         });
     }
+    {
+        let tx = tx.clone();
+        ui.on_set_show_spectrum(move |show| {
+            log::info!("request to set show_spectrum to: {}", show);
+            tx.send(PlayerCommand::SetShowSpectrum(show))
+                .expect("failed to send set show_spectrum command");
+        });
+    }
+    tx.send(PlayerCommand::SetShowSpectrum(ui.global::<UIState>().get_show_spectrum()))
+        .expect("failed to send initial show_spectrum command");
     // pure callback to format duration string
     ui.on_format_duration(|dura| {
         format!("{:02}:{:02}", (dura as u32) / 60, (dura as u32) % 60).to_shared_string()
@@ -633,7 +691,6 @@ fn main() {
     // UI 定时刷新频谱
     let ui_weak = ui.as_weak();
     let spectrum_data = spectrum_data.clone();
-    let spectrum_enabled = spectrum_enabled.clone();
     let spectrum_timer = slint::Timer::default();
     spectrum_timer.start(
         slint::TimerMode::Repeated,
@@ -644,7 +701,6 @@ fn main() {
             {
                 let ui_state = ui.global::<UIState>();
                 let show_spectrum = ui_state.get_show_spectrum();
-                spectrum_enabled.store(show_spectrum, Ordering::Relaxed);
                 if !show_spectrum {
                     return;
                 }

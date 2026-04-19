@@ -129,7 +129,7 @@ where
     }
 }
 
-pub fn start_spectrum_worker(
+pub fn try_start_spectrum_worker(
     rx: crossbeam_channel::Receiver<SpectrumChunk>,
     spectrum: Arc<Mutex<Vec<f32>>>,
     spectrum_enabled: Arc<AtomicBool>,

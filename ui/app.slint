@@ -95,6 +95,7 @@ export component MainWindow inherits Window {
     callback sort_song_list(SortKey, bool);
     callback set_lang(string);
     callback change_volume(float);
+    callback set_show_spectrum(bool);
     pure callback format_duration(float) -> string;
     in-out property <int> current_page: 0;
     in-out property <bool> sidebar_expanded: false;
@@ -229,6 +230,9 @@ export component MainWindow inherits Window {
                     }
                     set_light_theme(yes) => {
                         root.set_light_theme(yes);
+                    }
+                    set_show_spectrum(yes) => {
+                        root.set_show_spectrum(yes);
                     }
                 }
             }

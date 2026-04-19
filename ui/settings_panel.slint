@@ -12,6 +12,7 @@ export component SettingsPanel inherits Rectangle {
     callback refresh_song_list(string);
     callback set_lang(string);
     callback set_light_theme(bool);
+    callback set_show_spectrum(bool);
     VerticalLayout {
         width: 100%;
         height: 100%;
@@ -102,6 +103,9 @@ export component SettingsPanel inherits Rectangle {
                 width: 200px;
                 checked <=> show_spectrum;
                 text: self.checked ? @tr("On") : @tr("Off");
+                toggled => {
+                    root.set_show_spectrum(self.checked);
+                }
             }
         }
     }
