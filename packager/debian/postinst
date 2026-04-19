@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+# Update icon cache
+if [ -x "$(command -v gtk-update-icon-cache)" ]; then
+    gtk-update-icon-cache -q /usr/share/icons/hicolor/ 2>/dev/null || true
+fi
+
+# Update desktop database
+if [ -x "$(command -v update-desktop-database)" ]; then
+    update-desktop-database -q /usr/share/applications 2>/dev/null || true
+fi
+
+exit 0

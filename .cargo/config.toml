@@ -1,3 +1,0 @@
-[alias]
-pack-deb = "packager --config Packager.linux.toml --release"
-pack-nsis = "packager --config Packager.windows.toml --release"
