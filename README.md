@@ -11,6 +11,7 @@
 
 Enjoy your music in less than 0.5s:
 - ⚡ Instant startup — your music begins the moment you click.
+- 💾 Low memory footprint — only ~10MB RAM usage.
 - 🎶 Local focus — lightweight and distraction-free.
 - ✨ Minimal Dark UI — nothing but your music, beautifully clear.
 - 🦜 Multiple language support — English/Chinese/Spanish/French/German/Russian.
