@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 
 # Get version from Cargo.toml
 VERSION=$(grep -m1 '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
-DEB_FILE="target/release/Zeedle_${VERSION}_amd64.deb"
+DEB_FILE="target/release/Zeedle_${VERSION}_x64.deb"
 WORK_DIR="target/release/.cargo-packager/deb-inject"
 
 echo "Building deb package..."
