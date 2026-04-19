@@ -11,7 +11,7 @@ identifier = "dev.zeedle"
 copyright = "Copyright © 2025 Zeedle Dev. All rights reserved."
 
 [[binaries]]
-path = "Zeedle-x86_64-pc-windows-msvc.exe"
+path = "Zeedle"
 main = true
 
 [nsis]
