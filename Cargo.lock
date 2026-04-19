@@ -23,7 +23,6 @@ dependencies = [
  "single-instance",
  "slint",
  "slint-build",
- "sysinfo",
  "toml 0.9.5",
  "walkdir",
  "winresource",
@@ -2911,15 +2910,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0676bb32a98c1a483ce53e500a81ad9c3d5b3f7c920c28c24e9cb0980d0b5bc8"
 
 [[package]]
-name = "ntapi"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8a3895c6391c39d7fe7ebc444a87eb2991b2a0bc718fdabd071eec617fc68e4"
-dependencies = [
- "winapi",
-]
-
-[[package]]
 name = "num-bigint"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3268,16 +3258,6 @@ checksum = "e3e0adef53c21f888deb4fa59fc59f7eb17404926ee8a6f59f5df0fd7f9f3272"
 dependencies = [
  "bitflags 2.9.4",
  "objc2 0.6.3",
- "objc2-core-foundation",
-]
-
-[[package]]
-name = "objc2-io-kit"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71c1c64d6120e51cd86033f67176b1cb66780c2efe34dec55176f77befd93c0a"
-dependencies = [
- "libc",
  "objc2-core-foundation",
 ]
 
@@ -4684,20 +4664,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8eab9a99a024a169fe8a903cf9d4a3b3601109bcc13bd9e3c6fff259138626c4"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "sysinfo"
-version = "0.37.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07cec4dc2d2e357ca1e610cfb07de2fa7a10fc3e9fe89f72545f3d244ea87753"
-dependencies = [
- "libc",
- "memchr",
- "ntapi",
- "objc2-core-foundation",
- "objc2-io-kit",
- "windows 0.61.3",
 ]
 
 [[package]]
