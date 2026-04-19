@@ -1,6 +1,6 @@
 product-name = "Zeedle"
 name = "Zeedle"
-version = "0.2.2"
+version = "0.2.3"
 before-packaging-command = "cargo build --release --manifest-path ../Cargo.toml"
 formats = ["deb"]
 out-dir = "../target/release"
