@@ -15,7 +15,7 @@ use std::{
 use crossbeam_channel::{Sender, bounded};
 use rand::Rng;
 use rayon::slice::ParallelSliceMut;
-use rodio::{Decoder, Source, cpal};
+use rodio::{Decoder, Source};
 use rustfft::{FftPlanner, num_complex::Complex};
 use slint::{Model, ToSharedString};
 mod slint_types;
@@ -54,9 +54,11 @@ struct SpectrumChunk {
     right: Vec<f32>,
 }
 
+use std::num::NonZero;
+
 struct TapSource<S> {
     inner: S,
-    channels: u16,
+    ch_count: u16,
     frame_index: u16,
     left_buf: Vec<f32>,
     right_buf: Vec<f32>,
@@ -69,10 +71,10 @@ impl<S> TapSource<S> {
     where
         S: Source<Item = f32>,
     {
-        let channels = inner.channels();
+        let ch_count = inner.channels().get();
         Self {
             inner,
-            channels,
+            ch_count,
             frame_index: 0,
             left_buf: Vec::with_capacity(FFT_SIZE),
             right_buf: Vec::with_capacity(FFT_SIZE),
@@ -93,7 +95,7 @@ where
         let channel = self.frame_index;
         self.frame_index += 1;
 
-        if self.channels <= 1 {
+        if self.ch_count <= 1 {
             self.left_buf.push(sample);
             self.right_buf.push(sample);
         } else if channel == 0 {
@@ -102,7 +104,7 @@ where
             self.right_buf.push(sample);
         }
 
-        if self.frame_index >= self.channels {
+        if self.frame_index >= self.ch_count {
             self.frame_index = 0;
         }
 
@@ -135,11 +137,11 @@ where
         self.inner.current_span_len()
     }
 
-    fn channels(&self) -> u16 {
+    fn channels(&self) -> NonZero<u16> {
         self.inner.channels()
     }
 
-    fn sample_rate(&self) -> u32 {
+    fn sample_rate(&self) -> NonZero<u32> {
         self.inner.sample_rate()
     }
 
@@ -300,7 +302,7 @@ fn set_raw_ui_state(ui: &MainWindow) {
 /// Set UI state according to saved config
 fn set_start_ui_state(
     ui: &MainWindow,
-    sink: &rodio::Sink,
+    player: &rodio::Player,
     fft_tx: &Sender<SpectrumChunk>,
     spectrum_enabled: &Arc<AtomicBool>,
 ) {
@@ -364,10 +366,10 @@ fn set_start_ui_state(
         .unwrap_or_else(|_| panic!("failed to open audio file: {}", cur_song_info.song_path));
     let source = Decoder::try_from(file).expect("failed to decode audio file");
     let tap = TapSource::new(source, fft_tx.clone(), spectrum_enabled.clone());
-    sink.append(tap);
-    sink.pause();
-    sink.set_volume(cfg.volume);
-    sink.try_seek(Duration::from_secs_f32(cfg.progress)).expect("failed to seek to given position");
+    player.append(tap);
+    player.pause();
+    player.set_volume(cfg.volume);
+    player.try_seek(Duration::from_secs_f32(cfg.progress)).expect("failed to seek to given position");
     let mut history = ui_state.get_play_history().iter().collect::<Vec<_>>();
     history.push(cur_song_info.clone());
     ui_state.set_play_history(history.as_slice().into());
@@ -386,14 +388,10 @@ fn main() {
         log::warn!("Vanilla player can only run one instance !");
         return;
     }
-    let mut stream_handle = rodio::OutputStreamBuilder::from_default_device()
-        .expect("no output device available")
-        .with_buffer_size(cpal::BufferSize::Fixed(4096))
-        .open_stream()
-        .expect("failed to open output stream");
-    stream_handle.log_on_drop(false);
-    let _sink = rodio::Sink::connect_new(stream_handle.mixer());
-    let sink = Arc::new(Mutex::new(_sink));
+    let sink_handle = rodio::DeviceSinkBuilder::open_default_sink()
+        .expect("no output device available");
+    let _player = rodio::Player::connect_new(sink_handle.mixer());
+    let player = Arc::new(Mutex::new(_player));
     let spectrum_data = Arc::new(Mutex::new(default_spectrum()));
     let spectrum_enabled = Arc::new(AtomicBool::new(true));
     let (fft_tx, fft_rx) = bounded::<SpectrumChunk>(4);
@@ -402,12 +400,12 @@ fn main() {
     let (tx, rx) = mpsc::channel::<PlayerCommand>();
     // 初始化 UI 状态
     let ui = MainWindow::new().expect("failed to create UI");
-    set_start_ui_state(&ui, &sink.lock().unwrap(), &fft_tx, &spectrum_enabled);
+    set_start_ui_state(&ui, &player.lock().unwrap(), &fft_tx, &spectrum_enabled);
     spectrum_enabled.store(ui.global::<UIState>().get_show_spectrum(), Ordering::Relaxed);
 
     // 播放线程
     let ui_weak = ui.as_weak();
-    let sink_clone = sink.clone();
+    let player_clone = player.clone();
     let fft_tx = fft_tx.clone();
     let spectrum_enabled_for_play = spectrum_enabled.clone();
     thread::spawn(move || {
@@ -420,12 +418,12 @@ fn main() {
                     let source = Decoder::try_from(file).expect("failed to decode audio file");
                     let dura = source.total_duration().map(|d| d.as_secs_f32()).unwrap_or(0.0);
                     let lyrics = utils::read_lyrics(&song_info.song_path);
-                    let sink_guard = sink_clone.lock().unwrap();
-                    sink_guard.clear();
+                    let player_guard = player_clone.lock().unwrap();
+                    player_guard.clear();
                     let tap =
                         TapSource::new(source, fft_tx.clone(), spectrum_enabled_for_play.clone());
-                    sink_guard.append(tap);
-                    sink_guard.play();
+                    player_guard.append(tap);
+                    player_guard.play();
                     log::info!("start playing: <{}>", song_info.song_name);
                     let cover = utils::read_album_cover(&song_info.song_path);
                     let ui_weak = ui_weak.clone();
@@ -494,10 +492,10 @@ fn main() {
                     .unwrap();
                 }
                 PlayerCommand::Pause => {
-                    let sink_guard = sink_clone.lock().unwrap();
+                    let player_guard = player_clone.lock().unwrap();
                     let ui_weak = ui_weak.clone();
-                    if sink_guard.empty() {
-                        log::info!("sink is empty, play the first song in the list");
+                    if player_guard.empty() {
+                        log::info!("Queue is empty, playing the first song in the list");
                         slint::invoke_from_event_loop(move || {
                             if let Some(ui) = ui_weak.upgrade() {
                                 let ui_state = ui.global::<UIState>();
@@ -511,11 +509,11 @@ fn main() {
                         })
                         .unwrap();
                     } else {
-                        let paused = sink_guard.is_paused();
+                        let paused = player_guard.is_paused();
                         if paused {
-                            sink_guard.play();
+                            player_guard.play();
                         } else {
-                            sink_guard.pause();
+                            player_guard.pause();
                         }
                         slint::invoke_from_event_loop(move || {
                             if let Some(ui) = ui_weak.upgrade() {
@@ -529,8 +527,8 @@ fn main() {
                     }
                 }
                 PlayerCommand::ChangeProgress(new_progress) => {
-                    let sink_guard = sink_clone.lock().unwrap();
-                    match sink_guard.try_seek(Duration::from_secs_f32(new_progress)) {
+                    let player_guard = player_clone.lock().unwrap();
+                    match player_guard.try_seek(Duration::from_secs_f32(new_progress)) {
                         Ok(_) => {
                             let ui_weak = ui_weak.clone();
                             slint::invoke_from_event_loop(move || {
@@ -639,7 +637,7 @@ fn main() {
                 PlayerCommand::RefreshSongList(path) => {
                     let new_list = utils::read_song_list(&path, SortKey::BySongName, true);
                     let ui_weak = ui_weak.clone();
-                    let sink_clone = sink_clone.clone();
+                    let player_clone = player_clone.clone();
                     slint::invoke_from_event_loop(move || {
                         if let Some(ui) = ui_weak.upgrade() {
                             let ui_state = ui.global::<UIState>();
@@ -649,8 +647,8 @@ fn main() {
                             if let Some(first_song) = new_list.first() {
                                 ui.invoke_play(first_song.clone(), TriggerSource::ClickItem);
                             } else {
-                                let sink_guard = sink_clone.lock().unwrap();
-                                sink_guard.clear();
+                                let player_guard = player_clone.lock().unwrap();
+                                player_guard.clear();
                                 set_raw_ui_state(&ui);
                                 log::warn!("song list is empty, reset UI state");
                             }
@@ -727,8 +725,8 @@ fn main() {
                     .unwrap()
                 }
                 PlayerCommand::ChangeVolume(v) => {
-                    let sink_guard = sink_clone.lock().unwrap();
-                    sink_guard.set_volume(v);
+                    let player_guard = player_clone.lock().unwrap();
+                    player_guard.set_volume(v);
                     log::info!("volume changed to: {}", v);
                     let ui_weak = ui_weak.clone();
                     slint::invoke_from_event_loop(move || {
@@ -826,14 +824,14 @@ fn main() {
     // UI 定时刷新进度条
     let ui_weak = ui.as_weak();
     let timer = slint::Timer::default();
-    let sink_clone = sink.clone();
+    let player_clone = player.clone();
     timer.start(slint::TimerMode::Repeated, Duration::from_millis(200), move || {
-        let sink_guard = sink_clone.lock().unwrap();
+        let player_guard = player_clone.lock().unwrap();
         if let Some(ui) = ui_weak.upgrade() {
             // 如果不在拖动进度条，则自增进度条
             let ui_state = ui.global::<UIState>();
             if !ui_state.get_dragging() {
-                ui_state.set_progress(sink_guard.get_pos().as_secs_f32());
+                ui_state.set_progress(player_guard.get_pos().as_secs_f32());
             }
             if !ui_state.get_paused() {
                 for (idx, item) in ui_state.get_lyrics().iter().enumerate() {
@@ -852,7 +850,7 @@ fn main() {
                 }
             }
             // 如果播放完毕，且之前是在播放状态，则自动播放下一首
-            if sink_guard.empty() && ui_state.get_user_listening() && !ui_state.get_paused() {
+            if player_guard.empty() && ui_state.get_user_listening() && !ui_state.get_paused() {
                 ui.invoke_play_next();
                 log::info!("song ended, auto play next");
             }
