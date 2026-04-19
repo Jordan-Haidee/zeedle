@@ -9,6 +9,7 @@ icons = ["ui/cover.png"]
 authors = ["Jordan Haidee"]
 identifier = "dev.zeedle"
 copyright = "Copyright © 2025 Zeedle Dev. All rights reserved."
+category = "Music"
 
 [[binaries]]
 path = "Zeedle"
