@@ -19,10 +19,28 @@
 - 🎵 频谱可视化 — 实时音频频谱显示。
 
 ## 安装
-### Windows
+
+### Windows 和 Linux
+
 下载预编译的发行版。
-### 其他平台
-从源码构建。应当支持主流平台，如 Windows、Linux 和 MacOS。
+
+### 从源码构建
+
+应当支持 Slint 和 Rodio 支持的主流平台，如 Windows、Linux 和 MacOS。
+
+在 Windows 10/11 上测试通过：
+
+```shell
+./packager/pack-nsis.ps1
+```
+
+在 Ubuntu 24.04 LTS 上测试通过：
+
+```shell
+./packager/pack-deb.sh
+```
+
+构建好的安装包可以在 `target/release` 目录中找到。
 
 ## 配置
 输入你的音乐目录路径，然后按 **Enter**：
@@ -35,7 +53,7 @@
 
 ![p1](assets/p2-zh.png)
 
-## Note
+## 备注
 Zeedle 也是 Rust GUI 初学者的理想入门项目。
 它轻量、实用、足够简单，可以帮助初学者在做出有用东西的同时获得真实的上手体验。🤗🤗🤗
 

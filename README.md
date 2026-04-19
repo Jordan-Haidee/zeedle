@@ -21,10 +21,28 @@ Enjoy your music in less than 0.5s:
 <a href="README-zh.md">中文介绍</a> can be seen here.
 
 ## Installation
-### Windows
+
+### Windows and Linux
+
 Download prebuilt releases.
-### Other platforms
-Build from source. It should support main platforms like Windows, Linux and MacOS. 
+
+### Build from source
+
+It's expected to work well on main platforms that Slint and Rodio support, such as Windows, Linux and MacOS.
+
+Tested in Windows 10/11:
+
+```shell
+./packager/pack-nsis.ps1
+```
+
+Tested in Ubuntu 24.04 LTS:
+
+```shell
+./packager/pack-deb.sh
+```
+
+Then the built installer can be found in `target/release`.
 
 ## Config
 Input your music directory path, and **Enter**:
