@@ -38,17 +38,6 @@ slint-build = { version = "=1.13.1" }
 winresource = "0.1.17"
 
 
-[package.metadata.packager]
-product-name = "Zeedle"
-before-packaging-command = "cargo build --release"
-resources = ["DLLs/*.dll"]
-authors = ["Jordan Haidee"]
-identifier = "dev.zeedle"
-copyright = "Copyright © 2025 Zeedle Dev. All rights reserved."
-
-[package.metadata.packager.nsis]
-installer-icon = "ui/cover.ico"
-
 [profile.release]
 lto = true
 codegen-units = 1

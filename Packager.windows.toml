@@ -1,0 +1,18 @@
+product-name = "Zeedle"
+name = "Zeedle"
+version = "0.2.2"
+before-packaging-command = "cargo build --release"
+formats = ["nsis"]
+out-dir = "target/release"
+binaries-dir = "target/release"
+resources = ["DLLs/*.dll"]
+authors = ["Jordan Haidee"]
+identifier = "dev.zeedle"
+copyright = "Copyright © 2025 Zeedle Dev. All rights reserved."
+
+[[binaries]]
+path = "Zeedle"
+main = true
+
+[nsis]
+installer-icon = "ui/cover.ico"
