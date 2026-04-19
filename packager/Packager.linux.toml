@@ -11,9 +11,6 @@ identifier = "dev.zeedle"
 copyright = "Copyright © 2025 Zeedle Dev. All rights reserved."
 category = "Music"
 
-[deb]
-depends = ["libstdc++6", "libfontconfig1", "libfreetype6", "libasound2", "libgcc-s1", "libexpat1", "zlib1g", "libbz2-1.0", "libpng16-16", "libbrotli1"]
-
 [[binaries]]
 path = "Zeedle"
 main = true
