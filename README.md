@@ -15,6 +15,7 @@ Enjoy your music in less than 0.5s:
 - ✨ Minimal Dark UI — nothing but your music, beautifully clear.
 - 🦜 Multiple language support — English/Chinese/Spanish/French/German/Russian.
 - ⌨️ Hotkey support — total freedom, no mouse needed.
+- 🎵 Spectrum visualization — real-time audio spectrum display.
 
 <a href="README-zh.md">中文介绍</a> can be seen here.
 
