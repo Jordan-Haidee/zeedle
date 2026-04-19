@@ -105,10 +105,29 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
     ui_state.set_song_list(song_list.as_slice().into());
     ui_state.set_song_dir(cfg.song_dir.to_str().expect("failed to convert Path to String").into());
     ui_state.set_about_info(utils::get_about_info());
-    let mut cur_song_info = utils::read_meta_info(
-        cfg.current_song_path.clone().unwrap_or(song_list[0].song_path.as_str().into()),
-    )
-    .expect("failed to read meta info of current song");
+    // Use saved song path if valid, otherwise fall back to first song in list
+    let saved_path = cfg
+        .current_song_path
+        .as_ref()
+        .filter(|p| !p.as_os_str().is_empty() && p.exists());
+
+    // Try saved path first, then iterate through songs as fallback
+    let cur_song_info = saved_path
+        .and_then(|p| utils::read_meta_info(p))
+        .or_else(|| utils::read_meta_info(song_list[0].song_path.as_str()))
+        .or_else(|| {
+            log::warn!("first song unreadable, scanning for playable file...");
+            song_list.iter().find_map(|s| utils::read_meta_info(&s.song_path))
+        });
+
+    let mut cur_song_info = match cur_song_info {
+        Some(info) => info,
+        None => {
+            log::error!("all songs failed to load, using default UI state");
+            set_raw_ui_state(ui);
+            return None;
+        }
+    };
     cur_song_info.id = song_list
         .iter()
         .find(|x| x.song_path == cur_song_info.song_path)
