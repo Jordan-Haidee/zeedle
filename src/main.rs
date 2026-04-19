@@ -755,6 +755,10 @@ fn main() {
     // UI 定时刷新频谱
     let _spectrum_timer = build_spectrum_timer(ui.as_weak(), spectrum_data.clone());
 
+    // 设置 XDG app_id，让 dock 正确关联窗口图标
+    #[cfg(target_os = "linux")]
+    slint::set_xdg_app_id("Zeedle").expect("failed to set xdg app id");
+
     // 显示 UI，启动事件循环
     log::info!("ui state initialized, take: {:?}", app_start.elapsed());
     ui.run().expect("failed to run UI");
