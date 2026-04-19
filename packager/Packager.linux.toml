@@ -12,5 +12,5 @@ copyright = "Copyright © 2025 Zeedle Dev. All rights reserved."
 category = "Music"
 
 [[binaries]]
-path = "Zeedle"
+path = "Zeedle-x86_64-unknown-linux-gnu"
 main = true

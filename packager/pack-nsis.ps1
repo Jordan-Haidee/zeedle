@@ -13,10 +13,10 @@ $Version = $VersionLine.Matches.Groups[1].Value
 Write-Host "Building NSIS installer..."
 cargo packager --config packager/Packager.windows.toml --release
 
-$InstallerPath = "target\release\Zeedle_${Version}_x64-setup.exe"
+$InstallerPath = "target\release\Zeedle_${Version}_x86_64-pc-windows-msvc-setup.exe"
 
 if (Test-Path $InstallerPath) {
     Write-Host "✓ Package ready: $InstallerPath"
 } else {
-    Write-Host "✓ Package ready: target\release\Zeedle_${Version}_x64-setup.exe"
+    Write-Host "✓ Package ready: target\release\Zeedle_${Version}_x86_64-pc-windows-msvc-setup.exe"
 }
