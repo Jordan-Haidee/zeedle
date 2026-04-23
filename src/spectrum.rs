@@ -1,5 +1,4 @@
 use std::{
-    f32::consts::PI,
     num::NonZero,
     sync::{
         Arc, Mutex,
@@ -11,7 +10,7 @@ use std::{
 
 use crossbeam_channel::Sender;
 use rodio::Source;
-use rustfft::{FftPlanner, num_complex::Complex};
+use resonators::ResonatorBank;
 
 pub const FFT_SIZE: usize = 256;
 pub const SPECTRUM_BINS_PER_CH: usize = 24;
@@ -25,6 +24,7 @@ pub fn default_spectrum() -> Vec<f32> {
 pub struct SpectrumChunk {
     pub left: Vec<f32>,
     pub right: Vec<f32>,
+    pub sample_rate: f32,
 }
 
 pub struct TapSource<S> {
@@ -92,9 +92,10 @@ where
         if self.left_buf.len() >= FFT_SIZE && self.right_buf.len() >= FFT_SIZE {
             let mut left = Vec::with_capacity(FFT_SIZE);
             let mut right = Vec::with_capacity(FFT_SIZE);
+            let sr = self.inner.sample_rate().get() as f32;
             std::mem::swap(&mut left, &mut self.left_buf);
             std::mem::swap(&mut right, &mut self.right_buf);
-            let _ = self.tx.try_send(SpectrumChunk { left, right });
+            let _ = self.tx.try_send(SpectrumChunk { left, right, sample_rate: sr });
         }
 
         Some(sample)
@@ -135,41 +136,45 @@ pub fn try_start_spectrum_worker(
     spectrum_enabled: Arc<AtomicBool>,
 ) {
     thread::spawn(move || {
-        let mut planner = FftPlanner::<f32>::new();
-        let fft = planner.plan_fft_forward(FFT_SIZE);
-        let mut buffer = vec![Complex { re: 0.0, im: 0.0 }; FFT_SIZE];
-        let mut window = vec![0.0; FFT_SIZE];
-        for (i, val) in window.iter_mut().enumerate() {
-            *val = 0.5 - 0.5 * (2.0 * PI * i as f32 / (FFT_SIZE as f32)).cos();
-        }
-        let mut peak = 1e-6f32;
-        let mut mags_left = vec![0.0; FFT_SIZE / 2];
-        let mut mags_right = vec![0.0; FFT_SIZE / 2];
+        let min_freq: f32 = 50.0;
+        let max_freq: f32 = 15000.0;
+        let freqs: Vec<f32> = (0..SPECTRUM_BINS_PER_CH)
+            .map(|i| min_freq * (max_freq / min_freq).powf(i as f32 / (SPECTRUM_BINS_PER_CH as f32 - 1.0)))
+            .collect();
+
+        let mut bank_left: Option<(f32, ResonatorBank)> = None;
+        let mut bank_right: Option<(f32, ResonatorBank)> = None;
+
+        let mut peak = 1e-4f32;
 
         while let Ok(chunk) = rx.recv() {
             if !spectrum_enabled.load(Ordering::Relaxed) {
                 continue;
             }
 
-            if chunk.left.len() != FFT_SIZE || chunk.right.len() != FFT_SIZE {
+            if chunk.left.is_empty() || chunk.right.is_empty() {
                 continue;
             }
 
-            for i in 0..FFT_SIZE {
-                buffer[i].re = chunk.left[i] * window[i];
-                buffer[i].im = 0.0;
-            }
-            fft.process(&mut buffer);
-            for (i, c) in buffer.iter().take(FFT_SIZE / 2).enumerate() {
-                mags_left[i] = (c.re * c.re + c.im * c.im).sqrt();
+            let sr = chunk.sample_rate;
+            if bank_left.as_ref().map(|(s, _)| *s) != Some(sr) {
+                bank_left = Some((sr, ResonatorBank::from_frequencies(&freqs, sr)));
+                bank_right = Some((sr, ResonatorBank::from_frequencies(&freqs, sr)));
             }
 
-            for i in 0..FFT_SIZE {
-                buffer[i].re = chunk.right[i] * window[i];
-                buffer[i].im = 0.0;
+            let b_left = &mut bank_left.as_mut().unwrap().1;
+            let b_right = &mut bank_right.as_mut().unwrap().1;
+
+            let result_left = b_left.resonate(&chunk.left, chunk.left.len());
+            let result_right = b_right.resonate(&chunk.right, chunk.right.len());
+
+            let mut mags_left = vec![0.0; SPECTRUM_BINS_PER_CH];
+            let mut mags_right = vec![0.0; SPECTRUM_BINS_PER_CH];
+
+            for (i, c) in result_left.iter().take(SPECTRUM_BINS_PER_CH).enumerate() {
+                mags_left[i] = (c.re * c.re + c.im * c.im).sqrt();
             }
-            fft.process(&mut buffer);
-            for (i, c) in buffer.iter().take(FFT_SIZE / 2).enumerate() {
+            for (i, c) in result_right.iter().take(SPECTRUM_BINS_PER_CH).enumerate() {
                 mags_right[i] = (c.re * c.re + c.im * c.im).sqrt();
             }
 
@@ -182,46 +187,23 @@ pub fn try_start_spectrum_worker(
             if max_mag > peak {
                 peak = max_mag;
             }
-            if peak < 1e-6 {
-                peak = 1e-6;
+            if peak < 1e-4 {
+                peak = 1e-4;
             }
 
-            let bin_size = (mags_left.len() / SPECTRUM_BINS_PER_CH).max(1);
             let mut bars_left = vec![0.0; SPECTRUM_BINS_PER_CH];
             let mut bars_right = vec![0.0; SPECTRUM_BINS_PER_CH];
+            
             for (b, bar) in bars_left.iter_mut().enumerate() {
-                let start = b * bin_size;
-                let end = if b == SPECTRUM_BINS_PER_CH - 1 {
-                    mags_left.len()
-                } else {
-                    (b + 1) * bin_size
-                };
-                let mut sum = 0.0;
-                for mag in mags_left.iter().take(end).skip(start) {
-                    sum += mag;
-                }
-                let avg = sum / (end - start) as f32;
-                let norm = (avg / peak).sqrt();
+                let norm = (mags_left[b] / peak).sqrt();
                 *bar = norm.clamp(0.0, 1.0);
             }
-
             for (b, bar) in bars_right.iter_mut().enumerate() {
-                let start = b * bin_size;
-                let end = if b == SPECTRUM_BINS_PER_CH - 1 {
-                    mags_right.len()
-                } else {
-                    (b + 1) * bin_size
-                };
-                let mut sum = 0.0;
-                for mag in mags_right.iter().take(end).skip(start) {
-                    sum += mag;
-                }
-                let avg = sum / (end - start) as f32;
-                let norm = (avg / peak).sqrt();
+                let norm = (mags_right[b] / peak).sqrt();
                 *bar = norm.clamp(0.0, 1.0);
             }
 
-            peak *= 0.98;
+            peak *= 0.95; // Decay peak over time to adapt to lower volume
 
             let mut bars = Vec::with_capacity(SPECTRUM_BINS);
             bars.extend(bars_left.into_iter().rev());
