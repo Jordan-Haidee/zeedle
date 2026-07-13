@@ -8,9 +8,7 @@ description = "Music at the speed of a blink, designed for pure simplicity\nBuil
 [dependencies]
 dark-light = "1"
 chrono = "0.4.42"
-
 env_logger = "0.11.8"
-globset = "0.4.16"
 home = "0.5.11"
 image = "0.25.8"
 lofty = "0.22.4"

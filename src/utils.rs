@@ -1,6 +1,5 @@
 use std::path::Path;
 
-use globset::GlobBuilder;
 use lofty::{
     file::{AudioFile, TaggedFileExt},
     picture::PictureType,
@@ -53,32 +52,45 @@ pub fn read_song_list(
     if !audio_dir.exists() {
         return Vec::new();
     }
-    let glober = GlobBuilder::new("**/*.{mp3,flac,wav,ogg}").build().unwrap().compile_matcher();
     let entries = WalkDir::new(audio_dir)
         .into_iter()
         .filter_map(|x| x.ok())
-        .filter(|x| glober.is_match(x.path()))
+        .filter(|x| {
+            x.path()
+                .extension()
+                .and_then(|e| e.to_str())
+                .map(|e| matches!(e, "mp3" | "flac" | "wav" | "ogg"))
+                .unwrap_or(false)
+        })
         .collect::<Vec<_>>();
     let mut songs = entries
         .into_par_iter()
         .map(|entry| read_meta_info(entry.path()))
         .flatten()
         .collect::<Vec<_>>();
-    if ascending {
-        match sort_key {
-            SortKey::BySongName => songs.par_sort_by_key(|x| get_chars(x.song_name.as_str())),
-            SortKey::BySinger => songs.par_sort_by_key(|x| get_chars(x.singer.as_str())),
-            SortKey::ByDuration => songs.par_sort_by_key(|x| x.duration.clone()),
+    match sort_key {
+        SortKey::BySongName => {
+            let key_fn = |x: &SongInfo| get_chars(x.song_name.as_str());
+            if ascending {
+                songs.par_sort_by_key(key_fn);
+            } else {
+                songs.par_sort_by_key(|x| std::cmp::Reverse(key_fn(x)));
+            }
         }
-    } else {
-        match sort_key {
-            SortKey::BySongName => {
-                songs.par_sort_by_key(|x| std::cmp::Reverse(get_chars(x.song_name.as_str())))
+        SortKey::BySinger => {
+            let key_fn = |x: &SongInfo| get_chars(x.singer.as_str());
+            if ascending {
+                songs.par_sort_by_key(key_fn);
+            } else {
+                songs.par_sort_by_key(|x| std::cmp::Reverse(key_fn(x)));
             }
-            SortKey::BySinger => {
-                songs.par_sort_by_key(|x| std::cmp::Reverse(get_chars(x.singer.as_str())))
+        }
+        SortKey::ByDuration => {
+            if ascending {
+                songs.par_sort_by_key(|x| x.duration.clone());
+            } else {
+                songs.par_sort_by_key(|x| std::cmp::Reverse(x.duration.clone()));
             }
-            SortKey::ByDuration => songs.par_sort_by_key(|x| std::cmp::Reverse(x.duration.clone())),
         }
     }
     songs
@@ -147,13 +159,6 @@ pub fn read_album_cover(path: impl AsRef<Path>) -> Option<(Vec<u8>, u32, u32)> {
         return Some((buffer, width, height));
     }
     None
-}
-
-pub fn from_image_to_slint(buffer: Vec<u8>, width: u32, height: u32) -> slint::Image {
-    let mut pixel_buffer = slint::SharedPixelBuffer::new(width, height);
-    let pixel_buffer_data = pixel_buffer.make_mut_bytes();
-    pixel_buffer_data.copy_from_slice(&buffer);
-    slint::Image::from_rgba8(pixel_buffer)
 }
 
 pub fn get_default_album_cover() -> slint::Image {

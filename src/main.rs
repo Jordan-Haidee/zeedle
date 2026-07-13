@@ -151,11 +151,6 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
     ui_state.set_current_song(cur_song_info.clone());
     ui_state.set_lyrics(utils::read_lyrics(&cur_song_info.song_path).as_slice().into());
     ui_state.set_spectrum(default_spectrum().as_slice().into());
-    let cover = utils::read_album_cover(&cur_song_info.song_path);
-    match cover {
-        Some((buffer, width, height)) => utils::from_image_to_slint(buffer, width, height),
-        None => utils::get_default_album_cover(),
-    };
     ui_state.set_follow_system_theme(cfg.follow_system_theme);
     if cfg.follow_system_theme {
         let is_light = is_system_light();
@@ -259,7 +254,10 @@ fn start_player_backend_thread(
                             ui_state.set_lyric_viewport_y(0.);
                             let cover = match cover {
                                 Some((buffer, width, height)) => {
-                                    utils::from_image_to_slint(buffer, width, height)
+                                    let mut pixel_buffer = slint::SharedPixelBuffer::new(width, height);
+                                    let pixel_buffer_data = pixel_buffer.make_mut_bytes();
+                                    pixel_buffer_data.copy_from_slice(&buffer);
+                                    slint::Image::from_rgba8(pixel_buffer)
                                 }
                                 None => utils::get_default_album_cover(),
                             };

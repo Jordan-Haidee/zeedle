@@ -7,14 +7,6 @@ fn get_cfg_path() -> PathBuf {
     home::home_dir().expect("no home directory found").join(".config/zeedle/config.toml")
 }
 
-fn default_follow_system_theme() -> bool {
-    true
-}
-
-fn default_show_spectrum() -> bool {
-    true
-}
-
 /// Used to save/recover ui state
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub struct Config {
@@ -26,10 +18,10 @@ pub struct Config {
     pub sort_ascending: bool,
     pub lang: String,
     pub light_ui: bool,
-    #[serde(default = "default_follow_system_theme")]
+    #[serde(default)]
     pub follow_system_theme: bool,
     pub volume: f32,
-    #[serde(default = "default_show_spectrum")]
+    #[serde(default)]
     pub show_spectrum: bool,
 }
 impl Default for Config {
