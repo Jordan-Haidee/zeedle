@@ -51,12 +51,21 @@ export component TitleBar inherits Rectangle {
             height: 100%;
             background: theme-touch.has-hover ? Palette.control-background.darker(0.08) : transparent;
             animate background { duration: 100ms; }
-            Text {
-                text: root.is_light_theme ? "\u{2600}" : "\u{263E}";
-                font-size: 14px;
-                color: theme-touch.has-hover ? Palette.accent-background : Palette.foreground.darker(0.15);
-                horizontal-alignment: center;
-                vertical-alignment: center;
+            if root.is_light_theme: Image {
+                source: @image-url("sun.svg");
+                colorize: theme-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
+                width: 18px;
+                height: 18px;
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+            }
+            if !root.is_light_theme: Image {
+                source: @image-url("moon.svg");
+                colorize: theme-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
+                width: 18px;
+                height: 18px;
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
             }
             theme-touch := TouchArea {
                 mouse-cursor: pointer;
