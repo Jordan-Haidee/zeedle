@@ -152,7 +152,7 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
     ui_state.set_lyrics(utils::read_lyrics(&cur_song_info.song_path).as_slice().into());
     ui_state.set_spectrum(default_spectrum().as_slice().into());
     let cover = utils::read_album_cover(&cur_song_info.song_path);
-    let cover = match cover {
+    match cover {
         Some((buffer, width, height)) => utils::from_image_to_slint(buffer, width, height),
         None => utils::get_default_album_cover(),
     };
