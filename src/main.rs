@@ -619,46 +619,37 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
         .expect("failed to send initial show_spectrum command");
 
     // window control callbacks
-    {
-        let ui_weak = ui.as_weak();
-        ui.on_window_minimize(move || {
-            if let Some(ui) = ui_weak.upgrade() {
-                ui.window().set_minimized(true);
-            }
-        });
-    }
-    {
-        let ui_weak = ui.as_weak();
-        ui.on_window_maximize(move || {
-            if let Some(ui) = ui_weak.upgrade() {
-                let window = ui.window();
-                window.set_maximized(!window.is_maximized());
-            }
-        });
-    }
-    {
-        let ui_weak = ui.as_weak();
-        ui.on_window_close(move || {
-            if let Some(ui) = ui_weak.upgrade() {
-                let window = ui.window();
-                save_ui_state(&ui);
-                let _ = window.hide();
-                slint::quit_event_loop().ok();
-            }
-        });
-    }
-    {
-        let ah = ui.as_weak();
-        ui.on_window_drag_delta(move |dx: f32, dy: f32| {
-            if let Some(app) = ah.upgrade() {
-                let pos = app.window().position();
-                app.window().set_position(slint::PhysicalPosition::new(
-                    pos.x + dx as i32,
-                    pos.y + dy as i32
-                ));
-            }
-        });
-    }
+    let ui_weak = ui.as_weak();
+    ui.on_window_minimize(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            ui.window().set_minimized(true);
+        }
+    });
+    let ui_weak = ui.as_weak();
+    ui.on_window_maximize(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            let window = ui.window();
+            window.set_maximized(!window.is_maximized());
+        }
+    });
+    let ui_weak = ui.as_weak();
+    ui.on_window_close(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            save_ui_state(&ui);
+            let _ = ui.window().hide();
+            slint::quit_event_loop().ok();
+        }
+    });
+    let ui_weak = ui.as_weak();
+    ui.on_window_drag_delta(move |dx: f32, dy: f32| {
+        if let Some(app) = ui_weak.upgrade() {
+            let pos = app.window().position();
+            app.window().set_position(slint::PhysicalPosition::new(
+                pos.x + dx as i32,
+                pos.y + dy as i32
+            ));
+        }
+    });
 
     // pure callback to format duration string
     ui.on_format_duration(|dura| {

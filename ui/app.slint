@@ -101,11 +101,8 @@ export component MainWindow inherits Window {
         border-color: Palette.foreground.darker(0.5);
 
     title-bar := TitleBar {
-        x: 0;
         y: 0;
         width: 100%;
-        z: 10;
-        is_maximized: false;
         is_light_theme <=> UIState.light_ui;
         close => { root.window_close(); }
         minimize => { root.window_minimize(); }

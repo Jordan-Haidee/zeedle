@@ -1,10 +1,7 @@
 import { Palette } from "std-widgets.slint";
 
 export component TitleBar inherits Rectangle {
-    in-out property <bool> is_maximized: false;
     in-out property <bool> is_light_theme: false;
-    in-out property <float> drag-x;
-    in-out property <float> drag-y;
     callback close;
     callback minimize;
     callback maximize;
@@ -17,17 +14,11 @@ export component TitleBar inherits Rectangle {
     TouchArea {
         width: parent.width;
         height: parent.height;
-        pointer-event(event) => {
-            if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
-                root.drag-x = self.mouse-x / 1px;
-                root.drag-y = self.mouse-y / 1px;
-            }
-        }
         moved => {
             if (self.pressed) {
                 root.drag_delta(
-                    (self.mouse-x / 1px) - root.drag-x,
-                    (self.mouse-y / 1px) - root.drag-y
+                    (self.mouse-x - self.pressed-x) / 1px,
+                    (self.mouse-y - self.pressed-y) / 1px
                 );
             }
         }
@@ -52,10 +43,7 @@ export component TitleBar inherits Rectangle {
             }
         }
 
-        // Spacer to push buttons to the right
-        Rectangle {
-            horizontal-stretch: 1;
-        }
+        Rectangle { horizontal-stretch: 1; }
 
         // Theme toggle button
         title-theme := Rectangle {
@@ -72,13 +60,10 @@ export component TitleBar inherits Rectangle {
             }
             theme-touch := TouchArea {
                 mouse-cursor: pointer;
-                clicked => {
-                    root.toggle_theme();
-                }
+                clicked => { root.toggle_theme(); }
             }
         }
 
-        // Separator line
         Rectangle {
             width: 1px;
             height: 16px;
@@ -102,9 +87,7 @@ export component TitleBar inherits Rectangle {
             }
             min-touch := TouchArea {
                 mouse-cursor: pointer;
-                clicked => {
-                    root.minimize();
-                }
+                clicked => { root.minimize(); }
             }
         }
 
@@ -114,7 +97,7 @@ export component TitleBar inherits Rectangle {
             height: 100%;
             background: max-touch.has-hover ? Palette.control-background.darker(0.08) : transparent;
             animate background { duration: 100ms; }
-            if !root.is_maximized: Rectangle {
+            Rectangle {
                 width: 10px;
                 height: 10px;
                 x: (parent.width - self.width) / 2;
@@ -123,22 +106,9 @@ export component TitleBar inherits Rectangle {
                 border-color: max-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
                 border-radius: 1px;
             }
-            if root.is_maximized: Path {
-                x: (parent.width - 14px) / 2;
-                y: (parent.height - 14px) / 2;
-                width: 14px;
-                height: 14px;
-                viewbox-width: 14;
-                viewbox-height: 14;
-                stroke: max-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
-                stroke-width: 1.2px;
-                commands: "M 2 6 L 8 6 L 8 2 L 12 2 L 12 8 L 8 8 L 8 12 L 2 12 Z";
-            }
             max-touch := TouchArea {
                 mouse-cursor: pointer;
-                clicked => {
-                    root.maximize();
-                }
+                clicked => { root.maximize(); }
             }
         }
 
@@ -162,9 +132,7 @@ export component TitleBar inherits Rectangle {
             }
             close-touch := TouchArea {
                 mouse-cursor: pointer;
-                clicked => {
-                    root.close();
-                }
+                clicked => { root.close(); }
             }
         }
     }
