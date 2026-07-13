@@ -77,7 +77,23 @@ export component TitleBar inherits Rectangle {
     in-out property <SortKey> key;
     in-out property <bool> ascending;
     callback sort-items(SortKey, bool);
+
     VerticalLayout {
+        Path {
+            height: 0.5px;
+            MoveTo {
+                x: 0;
+                y: 0;
+            }
+    
+            LineTo {
+                x: 10;
+                y: 0;
+            }
+    
+            stroke: Palette.foreground;
+            stroke-width: 0.1px;
+        }
         HorizontalLayout {
             alignment: space-between;
             area1 := TouchArea {
