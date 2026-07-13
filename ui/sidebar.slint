@@ -107,11 +107,7 @@ export component Sidebar inherits Rectangle {
                 height: 100%;
                 padding-left: 14px;
                 padding-right: 10px;
-                spacing: root.expanded ? 10px : 0px;
-                animate spacing {
-                    duration: 180ms;
-                    easing: ease-out-quad;
-                }
+
                 Rectangle {
                     width: 20px;
                     Path {
@@ -123,24 +119,6 @@ export component Sidebar inherits Rectangle {
                         viewbox-height: 24;
                         commands: "M5 21q-.825 0-1.412-.587Q3 19.825 3 19V5q0-.825.588-1.412Q4.175 3 5 3h14q.825 0 1.413.588Q21 4.175 21 5v14q0 .825-.587 1.413Q19.825 21 19 21Zm0-2h4V5H5v14Zm6 0h8V5h-8v14Z";
                         fill: Palette.foreground.darker(0.2);
-                    }
-                }
-
-                Rectangle {
-                    clip: true;
-                    width: root.expanded ? title-label.preferred-width : 0px;
-                    visible: root.expanded || self.width > 0px;
-                    animate width {
-                        duration: 180ms;
-                        easing: ease-out-quad;
-                    }
-                    title-label := Text {
-                        text: "Zeedle";
-                        font-weight: 600;
-                        color: Palette.foreground;
-                        vertical-alignment: center;
-                        opacity: root.expanded ? 1 : 0;
-                        animate opacity { duration: 120ms; }
                     }
                 }
             }

@@ -10,7 +10,8 @@ import { ControlPanel } from "control_panel.slint";
 import { Sidebar } from "sidebar.slint";
 import { SpectrumView } from "spectrum.slint";
 import { LyricsPanel } from "lyrics_panel.slint";
-import { TitleBar, SongItem, SongListView } from "song_list.slint";
+import { SongItem, SongListView } from "song_list.slint";
+import { TitleBar } from "title_bar.slint";
 import { SettingsPanel } from "settings_panel.slint";
 import {
     PlayMode,
@@ -24,54 +25,30 @@ export { PlayMode, LyricItem, SongInfo, SortKey, TriggerSource }
 
 // ui state
 export global UIState {
-    // 当前播放进度 (秒)
     in-out property <float> progress;
-    // 总时长 (秒)
     in-out property <float> duration;
-    // 播放/暂停状态
     in-out property <bool> paused;
-    // 是否正在拖动进度条
     in-out property <bool> dragging;
-    // 歌曲列表
     in-out property <[SongInfo]> song_list;
-    // 当前播放歌曲的信息
     in-out property <SongInfo> current_song;
-    // 播放模式
     in-out property <PlayMode> play_mode;
-    // 是否已被用户触发播放
     in-out property <bool> user_listening;
-    // 当前播放歌曲的歌词
     in-out property <[LyricItem]> lyrics;
-    // 当前歌词视窗的滚动条位置（一般为负数）
     in property <length> lyric_viewport_y;
-    // 当前一行歌词的高度
     in-out property <length> lyric_line_height: 40px;
-    // 歌曲文件夹配置
     in-out property <string> song_dir;
-    // 关于信息
     in property <string> about_info;
-    // 专辑封面图像
     in property <image> album_image;
-    // 播放历史
     in property <[SongInfo]> play_history;
-    // 播放历史索引
     in property <int> history_index: 0;
-    // 歌曲排序方式
     in-out property <SortKey> sort_key;
     in-out property <SortKey> last_sort_key;
-    // 升序/降序
     in-out property <bool> sort_ascending: true;
-    // 当前语言
     in-out property <string> lang;
-    // 主题颜色
     in-out property <bool> light_ui;
-    // 音量大小
     in property <float> volume;
-    // 频谱数据 (0..1)
     in-out property <[float]> spectrum;
-    // 是否显示频谱条
     in-out property <bool> show_spectrum: true;
-    // 默认字体
     in-out property <string> app-font-family;
 }
 
@@ -84,6 +61,8 @@ export component MainWindow inherits Window {
     min-height: 500px;
     title: "Zeedle";
     icon: @image-url("cover.svg");
+    no-frame: true;
+    background: transparent;
     forward-focus: key-input-handler;
     callback toggle_play();
     callback play(SongInfo, TriggerSource);
@@ -97,6 +76,10 @@ export component MainWindow inherits Window {
     callback change_volume(float);
     callback set_show_spectrum(bool);
     pure callback format_duration(float) -> string;
+    callback window_minimize();
+    callback window_maximize();
+    callback window_close();
+    callback window_drag_delta(float, float);
     in-out property <int> current_page: 0;
     in-out property <bool> sidebar_expanded: false;
     public function set_light_theme(yes: bool) {
@@ -108,8 +91,36 @@ export component MainWindow inherits Window {
         }
     }
 
-    HorizontalLayout {
+    window-container := Rectangle {
+        width: 100%;
         height: 100%;
+        border-radius: 8px;
+        clip: true;
+        background: Palette.background;
+        border-width: 1px;
+        border-color: Palette.foreground.darker(0.5);
+
+    title-bar := TitleBar {
+        x: 0;
+        y: 0;
+        width: 100%;
+        z: 10;
+        is_maximized: false;
+        is_light_theme <=> UIState.light_ui;
+        close => { root.window_close(); }
+        minimize => { root.window_minimize(); }
+        maximize => { root.window_maximize(); }
+        toggle_theme => {
+            root.set_light_theme(!UIState.light_ui);
+        }
+        drag_delta(dx, dy) => {
+            root.window_drag_delta(dx, dy);
+        }
+    }
+
+    HorizontalLayout {
+        y: title-bar.height;
+        height: root.height - title-bar.height;
         spacing: 0px;
 
         sidebar := Sidebar {
@@ -240,7 +251,6 @@ export component MainWindow inherits Window {
             if root.current_page == 3: Text {
                 width: 100%;
                 height: 100%;
-                // font-size: 16px;
                 text: UIState.about_info;
                 horizontal-alignment: center;
                 vertical-alignment: center;
@@ -251,7 +261,8 @@ export component MainWindow inherits Window {
     spectrum-bg := Rectangle {
         x: root.sidebar_expanded ? 210px : 60px;
         width: root.width - self.x;
-        height: root.height;
+        y: title-bar.height;
+        height: root.height - title-bar.height;
         z: -5;
         visible: UIState.show_spectrum;
         SpectrumView {
@@ -289,5 +300,6 @@ export component MainWindow inherits Window {
             }
             return reject;
         }
+    }
     }
 }

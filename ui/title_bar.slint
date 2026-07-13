@@ -1,0 +1,171 @@
+import { Palette } from "std-widgets.slint";
+
+export component TitleBar inherits Rectangle {
+    in-out property <bool> is_maximized: false;
+    in-out property <bool> is_light_theme: false;
+    in-out property <float> drag-x;
+    in-out property <float> drag-y;
+    callback close;
+    callback minimize;
+    callback maximize;
+    callback toggle_theme;
+    callback drag_delta(float, float);
+    height: 36px;
+    background: Palette.background;
+
+    // Drag area - entire title bar
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+        pointer-event(event) => {
+            if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
+                root.drag-x = self.mouse-x / 1px;
+                root.drag-y = self.mouse-y / 1px;
+            }
+        }
+        moved => {
+            if (self.pressed) {
+                root.drag_delta(
+                    (self.mouse-x / 1px) - root.drag-x,
+                    (self.mouse-y / 1px) - root.drag-y
+                );
+            }
+        }
+    }
+
+    HorizontalLayout {
+        width: 100%;
+        height: 100%;
+        spacing: 0px;
+
+        // App title (left side)
+        Rectangle {
+            width: 120px;
+            Text {
+                x: 14px;
+                y: (parent.height - self.height) / 2;
+                text: "Zeedle";
+                font-size: 13px;
+                font-weight: 600;
+                color: Palette.foreground;
+                vertical-alignment: center;
+            }
+        }
+
+        // Spacer to push buttons to the right
+        Rectangle {
+            horizontal-stretch: 1;
+        }
+
+        // Theme toggle button
+        title-theme := Rectangle {
+            width: 42px;
+            height: 100%;
+            background: theme-touch.has-hover ? Palette.control-background.darker(0.08) : transparent;
+            animate background { duration: 100ms; }
+            Text {
+                text: root.is_light_theme ? "\u{2600}" : "\u{263E}";
+                font-size: 14px;
+                color: theme-touch.has-hover ? Palette.accent-background : Palette.foreground.darker(0.15);
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+            theme-touch := TouchArea {
+                mouse-cursor: pointer;
+                clicked => {
+                    root.toggle_theme();
+                }
+            }
+        }
+
+        // Separator line
+        Rectangle {
+            width: 1px;
+            height: 16px;
+            y: (parent.height - self.height) / 2;
+            background: Palette.foreground.darker(0.75);
+        }
+
+        // Minimize button
+        btn-min := Rectangle {
+            width: 42px;
+            height: 100%;
+            background: min-touch.has-hover ? Palette.control-background.darker(0.08) : transparent;
+            animate background { duration: 100ms; }
+            Rectangle {
+                width: 12px;
+                height: 2px;
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                border-radius: 1px;
+                background: min-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
+            }
+            min-touch := TouchArea {
+                mouse-cursor: pointer;
+                clicked => {
+                    root.minimize();
+                }
+            }
+        }
+
+        // Maximize/Restore button
+        btn-max := Rectangle {
+            width: 42px;
+            height: 100%;
+            background: max-touch.has-hover ? Palette.control-background.darker(0.08) : transparent;
+            animate background { duration: 100ms; }
+            if !root.is_maximized: Rectangle {
+                width: 10px;
+                height: 10px;
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                border-width: 1.5px;
+                border-color: max-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
+                border-radius: 1px;
+            }
+            if root.is_maximized: Path {
+                x: (parent.width - 14px) / 2;
+                y: (parent.height - 14px) / 2;
+                width: 14px;
+                height: 14px;
+                viewbox-width: 14;
+                viewbox-height: 14;
+                stroke: max-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
+                stroke-width: 1.2px;
+                commands: "M 2 6 L 8 6 L 8 2 L 12 2 L 12 8 L 8 8 L 8 12 L 2 12 Z";
+            }
+            max-touch := TouchArea {
+                mouse-cursor: pointer;
+                clicked => {
+                    root.maximize();
+                }
+            }
+        }
+
+        // Close button
+        btn-close := Rectangle {
+            width: 42px;
+            height: 100%;
+            background: close-touch.has-hover ? #e81123 : transparent;
+            animate background { duration: 100ms; }
+            Path {
+                x: (parent.width - 12px) / 2;
+                y: (parent.height - 12px) / 2;
+                width: 12px;
+                height: 12px;
+                viewbox-width: 12;
+                viewbox-height: 12;
+                stroke: close-touch.has-hover ? white : Palette.foreground.darker(0.15);
+                stroke-width: 1.5px;
+                stroke-line-cap: round;
+                commands: "M 1 1 L 11 11 M 11 1 L 1 11";
+            }
+            close-touch := TouchArea {
+                mouse-cursor: pointer;
+                clicked => {
+                    root.close();
+                }
+            }
+        }
+    }
+}
