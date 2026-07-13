@@ -31,9 +31,16 @@ export component TitleBar inherits Rectangle {
 
         // App title (left side)
         Rectangle {
-            width: 120px;
+            width: 130px;
+            Image {
+                source: @image-url("cover.svg");
+                width: 18px;
+                height: 18px;
+                x: 10px;
+                y: (parent.height - self.height) / 2;
+            }
             Text {
-                x: 14px;
+                x: 34px;
                 y: (parent.height - self.height) / 2;
                 text: "Zeedle";
                 font-size: 13px;
