@@ -17,6 +17,8 @@ use rayon::slice::ParallelSliceMut;
 use rodio::{Decoder, Source};
 use slint::{Model, ToSharedString};
 
+use dark_light;
+
 mod slint_types;
 use slint_types::*;
 mod config;
@@ -26,6 +28,10 @@ mod spectrum;
 use spectrum::{
     SPECTRUM_UPDATE_MS, SpectrumChunk, TapSource, default_spectrum, try_start_spectrum_worker,
 };
+fn is_system_light() -> bool {
+    matches!(dark_light::detect(), dark_light::Mode::Light)
+}
+
 mod utils;
 
 /// Message in channel: ui --> backend
@@ -91,7 +97,6 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
         return None;
     }
     log::info!("loaded {} songs from directory: {:?}", song_list.len(), cfg.song_dir);
-    ui.invoke_set_light_theme(cfg.light_ui);
     ui_state.set_sort_key(cfg.sort_key);
     ui_state.set_sort_ascending(cfg.sort_ascending);
     ui_state.set_last_sort_key(cfg.sort_key);
@@ -151,7 +156,14 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
         Some((buffer, width, height)) => utils::from_image_to_slint(buffer, width, height),
         None => utils::get_default_album_cover(),
     };
-    ui_state.set_album_image(cover);
+    ui_state.set_follow_system_theme(cfg.follow_system_theme);
+    if cfg.follow_system_theme {
+        let is_light = is_system_light();
+        ui.invoke_set_light_theme(is_light);
+        log::info!("system theme detected: {}", if is_light { "light" } else { "dark" });
+    } else {
+        ui.invoke_set_light_theme(cfg.light_ui);
+    }
     let mut history = ui_state.get_play_history().iter().collect::<Vec<_>>();
     history.push(cur_song_info.clone());
     ui_state.set_play_history(history.as_slice().into());
@@ -618,6 +630,23 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
     tx.send(PlayerCommand::SetShowSpectrum(ui.global::<UIState>().get_show_spectrum()))
         .expect("failed to send initial show_spectrum command");
 
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_set_follow_system_theme(move |follow| {
+            log::info!("request to set follow_system_theme to: {}", follow);
+            if let Some(ui) = ui_weak.upgrade() {
+                let ui_state = ui.global::<UIState>();
+                ui_state.set_follow_system_theme(follow);
+                if follow {
+                    let is_light = is_system_light();
+                    ui.invoke_set_light_theme(is_light);
+                    log::info!("follow system theme enabled, detected: {}",
+                        if is_light { "light" } else { "dark" });
+                }
+            }
+        });
+    }
+
     // window control callbacks
     let ui_weak = ui.as_weak();
     ui.on_window_minimize(move || {
@@ -731,9 +760,35 @@ fn save_ui_state(ui: &MainWindow) {
         sort_ascending: ui_state.get_sort_ascending(),
         lang: ui_state.get_lang().into(),
         light_ui: ui_state.get_light_ui(),
+        follow_system_theme: ui_state.get_follow_system_theme(),
         volume: ui_state.get_volume(),
         show_spectrum: ui_state.get_show_spectrum(),
     });
+}
+
+fn build_theme_timer(ui_weak: slint::Weak<MainWindow>) -> slint::Timer {
+    let timer = slint::Timer::default();
+    timer.start(
+        slint::TimerMode::Repeated,
+        Duration::from_secs(1),
+        move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                let ui_state = ui.global::<UIState>();
+                if ui_state.get_follow_system_theme() {
+                    let is_light = is_system_light();
+                    let current = ui_state.get_light_ui();
+                    if current != is_light {
+                        ui.invoke_set_light_theme(is_light);
+                        log::info!(
+                            "system theme changed to: {}",
+                            if is_light { "light" } else { "dark" }
+                        );
+                    }
+                }
+            }
+        },
+    );
+    timer
 }
 
 fn main() {
@@ -807,6 +862,9 @@ fn main() {
 
     // UI 定时刷新频谱
     let _spectrum_timer = build_spectrum_timer(ui.as_weak(), spectrum_data.clone());
+
+    // UI 定时检测系统主题
+    let _theme_timer = build_theme_timer(ui.as_weak());
 
     // 设置 XDG app_id，让 dock 正确关联窗口图标
     #[cfg(target_os = "linux")]

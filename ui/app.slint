@@ -46,6 +46,7 @@ export global UIState {
     in-out property <bool> sort_ascending: true;
     in-out property <string> lang;
     in-out property <bool> light_ui;
+    in-out property <bool> follow_system_theme;
     in property <float> volume;
     in-out property <[float]> spectrum;
     in-out property <bool> show_spectrum: true;
@@ -75,6 +76,7 @@ export component MainWindow inherits Window {
     callback set_lang(string);
     callback change_volume(float);
     callback set_show_spectrum(bool);
+    callback set_follow_system_theme(bool);
     pure callback format_duration(float) -> string;
     callback window_minimize();
     callback window_maximize();
@@ -108,6 +110,7 @@ export component MainWindow inherits Window {
         minimize => { root.window_minimize(); }
         maximize => { root.window_maximize(); }
         toggle_theme => {
+            UIState.follow_system_theme = false;
             root.set_light_theme(!UIState.light_ui);
         }
         drag_delta(dx, dy) => {
@@ -228,7 +231,7 @@ export component MainWindow inherits Window {
                     height: 100%;
                     song_dir <=> UIState.song_dir;
                     lang <=> UIState.lang;
-                    light_ui <=> UIState.light_ui;
+                    follow_system_theme <=> UIState.follow_system_theme;
                     show_spectrum <=> UIState.show_spectrum;
                     refresh_song_list(p) => {
                         root.refresh_song_list(p);
@@ -236,8 +239,8 @@ export component MainWindow inherits Window {
                     set_lang(l) => {
                         root.set_lang(l);
                     }
-                    set_light_theme(yes) => {
-                        root.set_light_theme(yes);
+                    set_follow_system_theme(yes) => {
+                        root.set_follow_system_theme(yes);
                     }
                     set_show_spectrum(yes) => {
                         root.set_show_spectrum(yes);

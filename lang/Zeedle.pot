@@ -49,7 +49,7 @@ msgstr ""
 
 #: ui/app.slint:413
 msgctxt "SettingsPanel"
-msgid "Light theme: "
+msgid "Follow system theme: "
 msgstr ""
 
 #: ui/app.slint:436

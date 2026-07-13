@@ -48,8 +48,8 @@ msgstr "Langue : "
 
 #: ui/app.slint:413
 msgctxt "SettingsPanel"
-msgid "Light theme: "
-msgstr "Thème clair : "
+msgid "Follow system theme: "
+msgstr "Thème système : "
 
 #: ui/app.slint:436
 msgctxt "SettingsPanel"

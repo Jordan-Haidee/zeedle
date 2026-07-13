@@ -7,11 +7,11 @@ import {
 export component SettingsPanel inherits Rectangle {
     in-out property <string> song_dir;
     in-out property <string> lang;
-    in-out property <bool> light_ui;
+    in-out property <bool> follow_system_theme;
     in-out property <bool> show_spectrum;
     callback refresh_song_list(string);
     callback set_lang(string);
-    callback set_light_theme(bool);
+    callback set_follow_system_theme(bool);
     callback set_show_spectrum(bool);
     VerticalLayout {
         width: 100%;
@@ -72,16 +72,16 @@ export component SettingsPanel inherits Rectangle {
                 Text {
                     x: parent.width - self.width;
                     vertical-alignment: center;
-                    text: @tr("Light theme: ");
+                    text: @tr("Follow system theme: ");
                 }
             }
 
             Switch {
                 width: 200px;
-                checked <=> light_ui;
+                checked <=> follow_system_theme;
                 text: self.checked ? @tr("On") : @tr("Off");
                 toggled => {
-                    root.set_light_theme(self.checked);
+                    root.set_follow_system_theme(self.checked);
                 }
             }
         }

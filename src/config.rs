@@ -7,6 +7,10 @@ fn get_cfg_path() -> PathBuf {
     home::home_dir().expect("no home directory found").join(".config/zeedle/config.toml")
 }
 
+fn default_follow_system_theme() -> bool {
+    true
+}
+
 fn default_show_spectrum() -> bool {
     true
 }
@@ -22,6 +26,8 @@ pub struct Config {
     pub sort_ascending: bool,
     pub lang: String,
     pub light_ui: bool,
+    #[serde(default = "default_follow_system_theme")]
+    pub follow_system_theme: bool,
     pub volume: f32,
     #[serde(default = "default_show_spectrum")]
     pub show_spectrum: bool,
@@ -37,6 +43,7 @@ impl Default for Config {
             sort_ascending: true,
             lang: "".into(),
             light_ui: false,
+            follow_system_theme: true,
             volume: 1f32,
             show_spectrum: true,
         }
