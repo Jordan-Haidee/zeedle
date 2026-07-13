@@ -2,14 +2,13 @@ use std::{
     f32::consts::PI,
     num::NonZero,
     sync::{
-        Arc, Mutex,
+        Arc, Mutex, mpsc,
         atomic::{AtomicBool, Ordering},
     },
     thread,
     time::Duration,
 };
 
-use crossbeam_channel::Sender;
 use rodio::Source;
 use rustfft::{FftPlanner, num_complex::Complex};
 
@@ -33,14 +32,14 @@ pub struct TapSource<S> {
     frame_index: u16,
     left_buf: Vec<f32>,
     right_buf: Vec<f32>,
-    tx: Sender<SpectrumChunk>,
+    tx: mpsc::SyncSender<SpectrumChunk>,
     spectrum_enabled: Arc<AtomicBool>,
 }
 
 impl<S> TapSource<S> {
     pub fn new(
         inner: S,
-        tx: Sender<SpectrumChunk>,
+        tx: mpsc::SyncSender<SpectrumChunk>,
         spectrum_enabled: Arc<AtomicBool>,
     ) -> Self
     where
@@ -130,7 +129,7 @@ where
 }
 
 pub fn try_start_spectrum_worker(
-    rx: crossbeam_channel::Receiver<SpectrumChunk>,
+    rx: mpsc::Receiver<SpectrumChunk>,
     spectrum: Arc<Mutex<Vec<f32>>>,
     spectrum_enabled: Arc<AtomicBool>,
 ) {

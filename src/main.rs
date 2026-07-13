@@ -11,7 +11,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crossbeam_channel::{Sender, bounded};
+
 use rand::Rng;
 use rayon::slice::ParallelSliceMut;
 use rodio::{Decoder, Source};
@@ -177,7 +177,7 @@ fn set_start_player_state(
     volume: f32,
     progress: f32,
     spectrum_enabled: Arc<AtomicBool>,
-    fft_tx: &Sender<SpectrumChunk>,
+    fft_tx: &mpsc::SyncSender<SpectrumChunk>,
 ) {
     let file = std::fs::File::open(&cur_song_info.song_path)
         .unwrap_or_else(|_| panic!("failed to open audio file: {}", cur_song_info.song_path));
@@ -193,7 +193,7 @@ fn start_player_backend_thread(
     rx: mpsc::Receiver<PlayerCommand>,
     ui_weak: slint::Weak<MainWindow>,
     player_clone: Arc<Mutex<rodio::Player>>,
-    fft_tx: Sender<SpectrumChunk>,
+    fft_tx: mpsc::SyncSender<SpectrumChunk>,
     spectrum_enabled: Arc<AtomicBool>,
 ) {
     thread::spawn(move || {
@@ -827,7 +827,7 @@ fn main() {
     // 初始化播放器状态
     let spectrum_data = Arc::new(Mutex::new(default_spectrum()));
     let spectrum_enabled: Arc<AtomicBool>;
-    let (fft_tx, fft_rx) = bounded::<SpectrumChunk>(4);
+    let (fft_tx, fft_rx) = mpsc::sync_channel::<SpectrumChunk>(4);
     if let Some((cur_song_info, volume, progress, show_spectrum)) = start_state {
         spectrum_enabled = Arc::new(AtomicBool::new(show_spectrum));
         set_start_player_state(
