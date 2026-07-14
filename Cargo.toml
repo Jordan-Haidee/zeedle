@@ -26,6 +26,7 @@ slint = { version = "=1.13.1", default-features = false, features = [
     "accessibility",
     "compat-1-2",
     "std",
+    "unstable-winit-030",
 ] }
 toml = "0.9.5"
 walkdir = "2.5.0"
