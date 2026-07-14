@@ -18,8 +18,7 @@ export component TitleBar inherits Rectangle {
             if (self.pressed) {
                 root.drag_delta(
                     (self.mouse-x - self.pressed-x) / 1px,
-                    (self.mouse-y - self.pressed-y) / 1px
-                );
+                    (self.mouse-y - self.pressed-y) / 1px);
             }
         }
     }
@@ -39,6 +38,7 @@ export component TitleBar inherits Rectangle {
                 x: 10px;
                 y: (parent.height - self.height) / 2;
             }
+
             Text {
                 x: 34px;
                 y: (parent.height - self.height) / 2;
@@ -50,7 +50,9 @@ export component TitleBar inherits Rectangle {
             }
         }
 
-        Rectangle { horizontal-stretch: 1; }
+        Rectangle {
+            horizontal-stretch: 1;
+        }
 
         // Theme toggle button
         title-theme := Rectangle {
@@ -66,6 +68,7 @@ export component TitleBar inherits Rectangle {
                 x: (parent.width - self.width) / 2;
                 y: (parent.height - self.height) / 2;
             }
+
             theme-touch := TouchArea {
                 mouse-cursor: pointer;
                 clicked => { root.toggle_theme(); }
@@ -93,6 +96,7 @@ export component TitleBar inherits Rectangle {
                 border-radius: 1px;
                 background: min-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
             }
+
             min-touch := TouchArea {
                 mouse-cursor: pointer;
                 clicked => { root.minimize(); }
@@ -114,6 +118,7 @@ export component TitleBar inherits Rectangle {
                 border-color: max-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
                 border-radius: 1px;
             }
+
             max-touch := TouchArea {
                 mouse-cursor: pointer;
                 clicked => { root.maximize(); }
@@ -138,6 +143,7 @@ export component TitleBar inherits Rectangle {
                 stroke-line-cap: round;
                 commands: "M 1 1 L 11 11 M 11 1 L 1 11";
             }
+
             close-touch := TouchArea {
                 mouse-cursor: pointer;
                 clicked => { root.close(); }

@@ -130,6 +130,7 @@ export component TitleBar inherits Rectangle {
                     root.sort-items(key, asc);
                 }
             }
+
             SortColumn {
                 label: @tr("Artist");
                 sort-key: SortKey.BySinger;
@@ -139,6 +140,7 @@ export component TitleBar inherits Rectangle {
                     root.sort-items(key, asc);
                 }
             }
+
             SortColumn {
                 label: @tr("Duration");
                 sort-key: SortKey.ByDuration;

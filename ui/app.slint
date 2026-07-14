@@ -21,7 +21,13 @@ import {
     TriggerSource,
 } from "types.slint";
 
-export { PlayMode, LyricItem, SongInfo, SortKey, TriggerSource }
+export {
+    PlayMode,
+    LyricItem,
+    SongInfo,
+    SortKey,
+    TriggerSource,
+}
 
 // ui state
 export global UIState {
@@ -106,205 +112,205 @@ export component MainWindow inherits Window {
             clip: true;
             background: Palette.background;
 
-    title-bar := TitleBar {
-        y: 0;
-        width: 100%;
-        is_light_theme <=> UIState.light_ui;
-        close => { root.window_close(); }
-        minimize => { root.window_minimize(); }
-        maximize => { root.window_maximize(); }
-        toggle_theme => {
-            UIState.follow_system_theme = false;
-            root.set_light_theme(!UIState.light_ui);
-        }
-        drag_delta(dx, dy) => {
-            root.window_drag_delta(dx, dy);
-        }
-    }
-
-    HorizontalLayout {
-        y: title-bar.height;
-        height: root.height - title-bar.height;
-        spacing: 0px;
-
-        sidebar := Sidebar {
-            expanded <=> root.sidebar_expanded;
-            current_page: root.current_page;
-            change_page(p) => {
-                root.current_page = p;
-            }
-            request_focus => {
-                root.focus();
-            }
-        }
-
-        content-pane := Rectangle {
-            horizontal-stretch: 1;
-            height: 100%;
-
-            if root.current_page == 0: VerticalLayout {
+            title-bar := TitleBar {
+                y: 0;
                 width: 100%;
-                height: 100%;
-                SongListView {
-                    ascending <=> UIState.sort_ascending;
-                    sort-key <=> UIState.sort_key;
-                    last-sort-key <=> UIState.last_sort_key;
-                    song-list <=> UIState.song_list;
-                    current-song <=> UIState.current_song;
-                    sort-songs(key, asc) => {
-                        root.sort_song_list(key, asc);
-                    }
-                    play-song(info, src) => {
-                        root.play(info, src);
-                    }
+                is_light_theme <=> UIState.light_ui;
+                close => { root.window_close(); }
+                minimize => { root.window_minimize(); }
+                maximize => { root.window_maximize(); }
+                toggle_theme => {
+                    UIState.follow_system_theme = false;
+                    root.set_light_theme(!UIState.light_ui);
                 }
-
-                ControlPanel {
-                    max-height: 80px;
-                    min-height: 50px;
-                    preferred-height: 60px;
-                    progress <=> UIState.progress;
-                    duration <=> UIState.duration;
-                    paused <=> UIState.paused;
-                    dragging <=> UIState.dragging;
-                    play_mode <=> UIState.play_mode;
-                    current_song <=> UIState.current_song;
-                    album_image <=> UIState.album_image;
-                    volume <=> UIState.volume;
-                    change-progress(p) => {
-                        root.change_progress(p);
-                        root.focus();
-                    }
-                    toggle-play() => {
-                        root.toggle_play();
-                    }
-                    play-next() => {
-                        root.play_next();
-                    }
-                    play-prev() => {
-                        root.play_prev();
-                    }
-                    switch-mode(m) => {
-                        root.switch_mode(m);
-                    }
-                    change-volume(v) => {
-                        root.change_volume(v);
-                        root.focus();
-                    }
-                    double-clicked() => {
-                        root.current_page = 1;
-                    }
-                    format-duration(d) => {
-                        return root.format_duration(d);
-                    }
+                drag_delta(dx, dy) => {
+                    root.window_drag_delta(dx, dy);
                 }
             }
 
-            if root.current_page == 1: Rectangle {
-                width: 100%;
-                height: 100%;
+            HorizontalLayout {
+                y: title-bar.height;
+                height: root.height - title-bar.height;
+                spacing: 0px;
+
+                sidebar := Sidebar {
+                    expanded <=> root.sidebar_expanded;
+                    current_page: root.current_page;
+                    change_page(p) => {
+                        root.current_page = p;
+                    }
+                    request_focus => {
+                        root.focus();
+                    }
+                }
+
+                content-pane := Rectangle {
+                    horizontal-stretch: 1;
+                    height: 100%;
+
+                    if root.current_page == 0: VerticalLayout {
+                        width: 100%;
+                        height: 100%;
+                        SongListView {
+                            ascending <=> UIState.sort_ascending;
+                            sort-key <=> UIState.sort_key;
+                            last-sort-key <=> UIState.last_sort_key;
+                            song-list <=> UIState.song_list;
+                            current-song <=> UIState.current_song;
+                            sort-songs(key, asc) => {
+                                root.sort_song_list(key, asc);
+                            }
+                            play-song(info, src) => {
+                                root.play(info, src);
+                            }
+                        }
+
+                        ControlPanel {
+                            max-height: 80px;
+                            min-height: 50px;
+                            preferred-height: 60px;
+                            progress <=> UIState.progress;
+                            duration <=> UIState.duration;
+                            paused <=> UIState.paused;
+                            dragging <=> UIState.dragging;
+                            play_mode <=> UIState.play_mode;
+                            current_song <=> UIState.current_song;
+                            album_image <=> UIState.album_image;
+                            volume <=> UIState.volume;
+                            change-progress(p) => {
+                                root.change_progress(p);
+                                root.focus();
+                            }
+                            toggle-play() => {
+                                root.toggle_play();
+                            }
+                            play-next() => {
+                                root.play_next();
+                            }
+                            play-prev() => {
+                                root.play_prev();
+                            }
+                            switch-mode(m) => {
+                                root.switch_mode(m);
+                            }
+                            change-volume(v) => {
+                                root.change_volume(v);
+                                root.focus();
+                            }
+                            double-clicked() => {
+                                root.current_page = 1;
+                            }
+                            format-duration(d) => {
+                                return root.format_duration(d);
+                            }
+                        }
+                    }
+
+                    if root.current_page == 1: Rectangle {
+                        width: 100%;
+                        height: 100%;
+                        z: -5;
+                        TouchArea {
+                            double-clicked => {
+                                root.current_page = 0;
+                            }
+                        }
+
+                        LyricsPanel {
+                            width: 100%;
+                            height: 100%;
+                            album_image <=> UIState.album_image;
+                            current_song <=> UIState.current_song;
+                            lyrics <=> UIState.lyrics;
+                            progress <=> UIState.progress;
+                            lyric_viewport_y <=> UIState.lyric_viewport_y;
+                        }
+                    }
+
+                    if root.current_page == 2: Rectangle {
+                        width: 100%;
+                        height: 100%;
+                        TouchArea {
+                            clicked => {
+                                root.focus();
+                            }
+                        }
+
+                        SettingsPanel {
+                            width: 100%;
+                            height: 100%;
+                            song_dir <=> UIState.song_dir;
+                            lang <=> UIState.lang;
+                            follow_system_theme <=> UIState.follow_system_theme;
+                            show_spectrum <=> UIState.show_spectrum;
+                            refresh_song_list(p) => {
+                                root.refresh_song_list(p);
+                            }
+                            set_lang(l) => {
+                                root.set_lang(l);
+                            }
+                            set_follow_system_theme(yes) => {
+                                root.set_follow_system_theme(yes);
+                            }
+                            set_show_spectrum(yes) => {
+                                root.set_show_spectrum(yes);
+                            }
+                        }
+                    }
+
+                    if root.current_page == 3: Text {
+                        width: 100%;
+                        height: 100%;
+                        text: UIState.about_info;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            spectrum-bg := Rectangle {
+                x: root.sidebar_expanded ? 210px : 60px;
+                width: root.width - self.x;
+                y: title-bar.height;
+                height: root.height - title-bar.height;
                 z: -5;
-                TouchArea {
-                    double-clicked => {
+                visible: UIState.show_spectrum;
+                SpectrumView {
+                    width: parent.width;
+                    height: 60px;
+                    y: parent.height - self.height;
+                    bins: UIState.spectrum;
+                }
+            }
+
+            key-input-handler := FocusScope {
+                focus-on-click: false;
+                key-released(event) => {
+                    if event.text == Key.Space {
+                        root.toggle_play();
+                        return accept;
+                    } else if event.text == Key.RightArrow || event.text == Key.DownArrow {
+                        root.play_next();
+                        return accept;
+                    } else if event.text == Key.LeftArrow || event.text == Key.UpArrow {
+                        root.play_prev();
+                        return accept;
+                    } else if event.text == Key.F1 {
                         root.current_page = 0;
+                        return accept;
+                    } else if event.text == Key.F2 {
+                        root.current_page = 1;
+                        return accept;
+                    } else if event.text == Key.F3 {
+                        root.current_page = 2;
+                        return accept;
+                    } else if event.text == Key.F4 {
+                        root.current_page = 3;
+                        return accept;
                     }
+                    return reject;
                 }
-
-                LyricsPanel {
-                    width: 100%;
-                    height: 100%;
-                    album_image <=> UIState.album_image;
-                    current_song <=> UIState.current_song;
-                    lyrics <=> UIState.lyrics;
-                    progress <=> UIState.progress;
-                    lyric_viewport_y <=> UIState.lyric_viewport_y;
-                }
-            }
-
-            if root.current_page == 2: Rectangle {
-                width: 100%;
-                height: 100%;
-                TouchArea {
-                    clicked => {
-                        root.focus();
-                    }
-                }
-
-                SettingsPanel {
-                    width: 100%;
-                    height: 100%;
-                    song_dir <=> UIState.song_dir;
-                    lang <=> UIState.lang;
-                    follow_system_theme <=> UIState.follow_system_theme;
-                    show_spectrum <=> UIState.show_spectrum;
-                    refresh_song_list(p) => {
-                        root.refresh_song_list(p);
-                    }
-                    set_lang(l) => {
-                        root.set_lang(l);
-                    }
-                    set_follow_system_theme(yes) => {
-                        root.set_follow_system_theme(yes);
-                    }
-                    set_show_spectrum(yes) => {
-                        root.set_show_spectrum(yes);
-                    }
-                }
-            }
-
-            if root.current_page == 3: Text {
-                width: 100%;
-                height: 100%;
-                text: UIState.about_info;
-                horizontal-alignment: center;
-                vertical-alignment: center;
             }
         }
     }
-
-    spectrum-bg := Rectangle {
-        x: root.sidebar_expanded ? 210px : 60px;
-        width: root.width - self.x;
-        y: title-bar.height;
-        height: root.height - title-bar.height;
-        z: -5;
-        visible: UIState.show_spectrum;
-        SpectrumView {
-            width: parent.width;
-            height: 60px;
-            y: parent.height - self.height;
-            bins: UIState.spectrum;
-        }
-    }
-
-    key-input-handler := FocusScope {
-        focus-on-click: false;
-        key-released(event) => {
-            if event.text == Key.Space {
-                root.toggle_play();
-                return accept;
-            } else if event.text == Key.RightArrow || event.text == Key.DownArrow {
-                root.play_next();
-                return accept;
-            } else if event.text == Key.LeftArrow || event.text == Key.UpArrow {
-                root.play_prev();
-                return accept;
-            } else if event.text == Key.F1 {
-                root.current_page = 0;
-                return accept;
-            } else if event.text == Key.F2 {
-                root.current_page = 1;
-                return accept;
-            } else if event.text == Key.F3 {
-                root.current_page = 2;
-                return accept;
-            } else if event.text == Key.F4 {
-                root.current_page = 3;
-                return accept;
-            }
-            return reject;
-        }
-    }
-}
-}
 }
