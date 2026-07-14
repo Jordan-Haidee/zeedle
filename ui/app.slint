@@ -258,12 +258,24 @@ export component MainWindow inherits Window {
                         }
                     }
 
-                    if root.current_page == 3: Text {
+                    if root.current_page == 3: VerticalLayout {
                         width: 100%;
                         height: 100%;
-                        text: UIState.about_info;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                        alignment: center;
+                        spacing: 10px;
+                        HorizontalLayout {
+                            alignment: center;
+                            Image {
+                                source: @image-url("cover.svg");
+                                width: 120px;
+                                height: 120px;
+                            }
+                        }
+
+                        Text {
+                            text: UIState.about_info;
+                            horizontal-alignment: center;
+                        }
                     }
                 }
             }
