@@ -63,6 +63,7 @@ export component MainWindow inherits Window {
     title: "Zeedle";
     icon: @image-url("cover.svg");
     no-frame: true;
+    resize-border-width: 10px;
     background: transparent;
     forward-focus: key-input-handler;
     callback toggle_play();
@@ -82,14 +83,6 @@ export component MainWindow inherits Window {
     callback window_maximize();
     callback window_close();
     callback window_drag_delta(float, float);
-    callback window_resize_left();
-    callback window_resize_right();
-    callback window_resize_top();
-    callback window_resize_bottom();
-    callback window_resize_top_left();
-    callback window_resize_top_right();
-    callback window_resize_bottom_left();
-    callback window_resize_bottom_right();
     in-out property <int> current_page: 0;
     in-out property <bool> sidebar_expanded: false;
     public function set_light_theme(yes: bool) {
@@ -309,91 +302,5 @@ export component MainWindow inherits Window {
             return reject;
         }
     }
-    }
-
-    // Resize handles for frameless window
-    // Direct children of MainWindow (outside window-container) to avoid clip/border-radius issues
-    // Corners (8x8) - declared after edges so they take priority at corners
-    resize-tl := Rectangle {
-        x: 0; y: 0;
-        width: 8px; height: 8px;
-        TouchArea {
-            mouse-cursor: nwse-resize;
-            moved => {
-                if (self.pressed) { root.window_resize_top_left(); }
-            }
-        }
-    }
-    resize-tr := Rectangle {
-        x: parent.width - 8px; y: 0;
-        width: 8px; height: 8px;
-        TouchArea {
-            mouse-cursor: nesw-resize;
-            moved => {
-                if (self.pressed) { root.window_resize_top_right(); }
-            }
-        }
-    }
-    resize-bl := Rectangle {
-        x: 0; y: parent.height - 8px;
-        width: 8px; height: 8px;
-        TouchArea {
-            mouse-cursor: nesw-resize;
-            moved => {
-                if (self.pressed) { root.window_resize_bottom_left(); }
-            }
-        }
-    }
-    resize-br := Rectangle {
-        x: parent.width - 8px; y: parent.height - 8px;
-        width: 8px; height: 8px;
-        TouchArea {
-            mouse-cursor: nwse-resize;
-            moved => {
-                if (self.pressed) { root.window_resize_bottom_right(); }
-            }
-        }
-    }
-
-    // Edges (5px thick)
-    resize-top := Rectangle {
-        x: 8px; y: 0;
-        width: parent.width - 16px; height: 5px;
-        TouchArea {
-            mouse-cursor: ns-resize;
-            moved => {
-                if (self.pressed) { root.window_resize_top(); }
-            }
-        }
-    }
-    resize-bottom := Rectangle {
-        x: 8px; y: parent.height - 5px;
-        width: parent.width - 16px; height: 5px;
-        TouchArea {
-            mouse-cursor: ns-resize;
-            moved => {
-                if (self.pressed) { root.window_resize_bottom(); }
-            }
-        }
-    }
-    resize-left := Rectangle {
-        x: 0; y: 8px;
-        width: 5px; height: parent.height - 16px;
-        TouchArea {
-            mouse-cursor: ew-resize;
-            moved => {
-                if (self.pressed) { root.window_resize_left(); }
-            }
-        }
-    }
-    resize-right := Rectangle {
-        x: parent.width - 5px; y: 8px;
-        width: 5px; height: parent.height - 16px;
-        TouchArea {
-            mouse-cursor: ew-resize;
-            moved => {
-                if (self.pressed) { root.window_resize_right(); }
-            }
-        }
-    }
+}
 }
