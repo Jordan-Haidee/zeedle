@@ -732,31 +732,33 @@ fn build_progress_timer(
 ) -> slint::Timer {
     let timer = slint::Timer::default();
     timer.start(slint::TimerMode::Repeated, Duration::from_millis(200), move || {
-        let player_guard = player_clone.lock().unwrap();
         if let Some(ui) = ui_weak.upgrade() {
-            // 如果不在拖动进度条，则自增进度条
             let ui_state = ui.global::<UIState>();
+            // ponytail: nothing changes when paused
+            if ui_state.get_paused() {
+                return;
+            }
+            let player_guard = player_clone.lock().unwrap();
+            // 如果不在拖动进度条，则自增进度条
             if !ui_state.get_dragging() {
                 ui_state.set_progress(player_guard.get_pos().as_secs_f32());
             }
-            if !ui_state.get_paused() {
-                for (idx, item) in ui_state.get_lyrics().iter().enumerate() {
-                    let delta = item.time - ui_state.get_progress();
-                    if delta < 0. && delta > -0.20 {
-                        if idx <= 5 {
-                            ui_state.set_lyric_viewport_y(0.)
-                        } else {
-                            ui_state.set_lyric_viewport_y(
-                                (5_f32 - idx as f32) * ui_state.get_lyric_line_height(),
-                            );
-                        }
-                        log::debug!("lyric changed to: <{:?}>", item);
-                        break;
+            for (idx, item) in ui_state.get_lyrics().iter().enumerate() {
+                let delta = item.time - ui_state.get_progress();
+                if delta < 0. && delta > -0.20 {
+                    if idx <= 5 {
+                        ui_state.set_lyric_viewport_y(0.)
+                    } else {
+                        ui_state.set_lyric_viewport_y(
+                            (5_f32 - idx as f32) * ui_state.get_lyric_line_height(),
+                        );
                     }
+                    log::debug!("lyric changed to: <{:?}>", item);
+                    break;
                 }
             }
             // 如果播放完毕，且之前是在播放状态，则自动播放下一首
-            if player_guard.empty() && ui_state.get_user_listening() && !ui_state.get_paused() {
+            if player_guard.empty() && ui_state.get_user_listening() {
                 ui.invoke_play_next();
                 log::info!("song ended, auto play next");
             }
@@ -774,15 +776,15 @@ fn build_spectrum_timer(
         slint::TimerMode::Repeated,
         Duration::from_millis(SPECTRUM_UPDATE_MS),
         move || {
-            if let Some(ui) = ui_weak.upgrade()
-                && let Ok(guard) = spectrum_data.lock()
-            {
+            if let Some(ui) = ui_weak.upgrade() {
                 let ui_state = ui.global::<UIState>();
-                let show_spectrum = ui_state.get_show_spectrum();
-                if !show_spectrum {
+                // ponytail: no new data when paused or hidden
+                if ui_state.get_paused() || !ui_state.get_show_spectrum() {
                     return;
                 }
-                ui_state.set_spectrum(guard.as_slice().into());
+                if let Ok(guard) = spectrum_data.lock() {
+                    ui_state.set_spectrum(guard.as_slice().into());
+                }
             }
         },
     );
