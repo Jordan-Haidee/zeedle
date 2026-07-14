@@ -2,54 +2,77 @@
 
 Instructions for AI coding agents working in this repository.
 
-## Scope
-- Keep changes small and focused.
-- Prefer editing existing modules in `src/` and `ui/` over adding new abstractions.
-- Do not change dependency versions (especially Slint) unless explicitly requested.
-
 ## Quick Start
-- Dev run: `cargo run`
-- Release build: `cargo build --release`
+- Dev run (with console): `cargo run`
+- Release build (no console): `cargo build --release`
 - Tests: `cargo test`
+- fmt (requires nightly): `cargo +nightly fmt`
+- clippy: `cargo clippy --all-targets --all-features -- -D warnings`
+- Pre-commit hooks: `cargo +nightly fmt && cargo clippy --all-targets --all-features -- -D warnings`
+
+## Distribution
+- Windows NSIS: `./packager/pack-nsis.ps1`
+- Linux deb: `./packager/pack-deb.sh`
+- Linux AppImage: `./packager/pack-appimage.sh`
+- All use `cargo packager` under the hood — see `packager/` for configs.
 
 ## Project Map
-- App entry and runtime orchestration: [src/main.rs](src/main.rs)
-- Config load/save: [src/config.rs](src/config.rs)
-- Logger setup and file target: [src/logger.rs](src/logger.rs)
-- Media metadata, lyrics, sorting helpers: [src/utils.rs](src/utils.rs)
+- Single binary crate, no workspace. Entrypoint: [src/main.rs](src/main.rs)
+- Backend (worker thread, rodio playback): [src/main.rs](src/main.rs#L201)
+- UI bridge types (generated from Slint): [src/slint_types.rs](src/slint_types.rs)
+- Config load/save (TOML): [src/config.rs](src/config.rs)
+- Logger (stdout + file): [src/logger.rs](src/logger.rs)
+- Media metadata/lyrics/sorting: [src/utils.rs](src/utils.rs)
+- FFT spectrum analysis: [src/spectrum.rs](src/spectrum.rs)
 - Slint UI root: [ui/app.slint](ui/app.slint)
-- Reusable UI components: [ui/button.slint](ui/button.slint), [ui/song.slint](ui/song.slint), [ui/lyric.slint](ui/lyric.slint)
-- Build-time Slint and Windows icon resource setup: [build.rs](build.rs)
+- Reusable Slint components: `ui/control_panel.slint`, `ui/song_list.slint`, `ui/lyrics_panel.slint`, `ui/settings_panel.slint`, `ui/sidebar.slint`, `ui/title_bar.slint`, `ui/spectrum.slint`
+- Example: [examples/rodio_usage.rs](examples/rodio_usage.rs)
 
 ## Architecture Rules
-- UI to backend communication uses message passing via `PlayerCommand` in [src/main.rs](src/main.rs#L23).
-- Backend to UI updates must use Slint event-loop callbacks (`invoke_from_event_loop`) in [src/main.rs](src/main.rs).
-- Keep audio playback logic in `main.rs` worker-thread flow; do not block the UI path.
+- UI → backend communication: `mpsc::channel<PlayerCommand>` [src/main.rs](src/main.rs#L42).
+- Backend → UI updates: must use `slint::invoke_from_event_loop` — never block the UI path.
+- Audio playback lives in the worker thread via `rodio::Player` (wrapped in `Arc<Mutex<...>>`).
+- Spectrum: `TapSource` taps audio samples in the playback thread, sends chunks to a separate FFT worker thread via `mpsc::sync_channel`, results polled by a Slint `Timer`.
+- Window is `no-frame: true` — custom `TitleBar` with native OS drag via `winit::window().drag_window()`, with manual `set_position()` fallback.
+- 4-page navigation: 0=song list, 1=lyrics, 2=settings, 3=about.
+- Two-phase init: (1) `set_start_ui_state` restores UI from config, (2) `set_start_player_state` starts playback.
+
+## Hotkeys (defined in `ui/app.slint` FocusScope)
+- `Space` — play/pause
+- `←` / `↑` — previous song
+- `→` / `↓` — next song
+- `F1` — song list, `F2` — lyrics, `F3` — settings, `F4` — about
+
+## Theme
+- Light/dark toggle + follow-system-theme (polled every 1s via timer).
+- `dark-light` crate detects system theme; `dark_light::Mode::Light` checks if light.
+- Applies via `Palette.color-scheme = ColorScheme.{light,dark}`.
 
 ## Conventions
-- Rust naming: snake_case functions, PascalCase types, SCREAMING_SNAKE_CASE constants.
-- Song scanning currently supports `mp3`, `flac`, `wav`, `ogg` in [src/utils.rs](src/utils.rs#L52).
-- Config persistence path is `~/.config/zeedle/config.toml` from [src/config.rs](src/config.rs#L6).
-- Default logger writes to stdout and `~/.zeedle.log` from [src/logger.rs](src/logger.rs#L23).
+- Logging: `env_logger` with level `Info` by default, writes to stdout + `~/.zeedle.log` (auto-trim at 10MB).
+- Config: `~/.config/zeedle/config.toml` (serde TOML).
+- Supported audio extensions: `mp3`, `flac`, `wav`, `ogg`.
+- Metadata: `lofty` for reading tags + cover art; `pinyin` for Chinese sorting.
+- Album cover: falls back to `ui/cover.svg`.
+- Font: auto-selects per platform (Windows: `Microsoft YaHei UI`, Linux: `Noto Sans CJK SC`, macOS: `PingFang SC`).
 
 ## Pitfalls
-- Slint is pinned to `=1.13.1` in [Cargo.toml](Cargo.toml#L22) and [Cargo.toml](Cargo.toml#L32); keep versions aligned.
-- `build.rs` compiles UI and bundles translations from `lang/`; UI/i18n changes may fail build if resources are inconsistent.
-- On Windows, icon resource embedding is handled in [build.rs](build.rs#L5); avoid changing icon paths without updating resources.
-- App uses single-instance behavior in [src/main.rs](src/main.rs#L355); do not remove this unless requested.
+- Slint pinned to `=1.13.1` in both `[dependencies]` and `[build-dependencies]` — keep versions aligned.
+- Build-time: `build.rs` uses `slint_build::CompilerConfiguration` with style `fluent` and `with_bundled_translations("lang")`. UI/i18n changes may fail if translations inconsistent.
+- Windows icon embedding via `winresource` in `build.rs` (Windows-only build dep).
+- Debug builds have a visible console window; release builds use `#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]` (Windows only).
+- `single-instance` prevents multiple instances — do not remove.
+- Release profile: `lto=true`, `codegen-units=1`, `strip=true`, `panic="abort"`.
+- Rust edition is `2024` — `cargo +nightly fmt` is required for formatting (`use_small_heuristics = "Off"`, `imports_granularity = "Crate"`, `group_imports = "StdExternalCrate"`).
+- Slint types are auto-generated via `slint::include_modules!()` in `src/slint_types.rs`. Add `#[allow(unused_imports)]` as needed.
 
 ## Change Playbooks
-- Add a new player command:
-  1. Add enum variant in `PlayerCommand` in [src/main.rs](src/main.rs#L23).
-  2. Handle it in backend command match in [src/main.rs](src/main.rs).
-  3. Wire UI callback sender path in [src/main.rs](src/main.rs).
-- Add new audio extension support:
-  1. Update glob in [src/utils.rs](src/utils.rs#L52).
-  2. Validate metadata and playback behavior on sample files.
-- Add/adjust UI strings:
-  1. Update Slint UI files in [ui/app.slint](ui/app.slint) and related components.
-  2. Ensure translation assets under [lang/](lang/) stay in sync.
+- **Add a player command:** 1) Add variant to `PlayerCommand` enum, 2) Handle in `start_player_backend_thread` match, 3) Wire UI callback sender in `register_ui_callbacks`.
+- **Add audio format:** Update glob in `src/utils.rs` line 62.
+- **Add/edit UI text:** Update Slint files, then run the i18n-update workflow (skill at `.agents/skills/i18n-update/SKILL.md`).
+- **Add Slint component:** Create file in `ui/`, import in `ui/app.slint`, add slint_types export and Rust wiring.
 
 ## Existing Docs
-- English overview: [README.md](README.md)
-- Chinese overview: [README-zh.md](README-zh.md)
+- [README.md](README.md) — English overview
+- [README-zh.md](README-zh.md) — Chinese overview
+- [.agents/skills/i18n-update/SKILL.md](.agents/skills/i18n-update/SKILL.md) — i18n workflow
