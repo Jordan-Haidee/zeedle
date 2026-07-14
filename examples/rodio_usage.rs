@@ -3,8 +3,8 @@ use std::{thread, time::Duration};
 use rodio::Decoder;
 fn main() {
     // create an output stream
-    let stream_handle = rodio::DeviceSinkBuilder::open_default_sink()
-        .expect("no output device available");
+    let stream_handle =
+        rodio::DeviceSinkBuilder::open_default_sink().expect("no output device available");
     // create a sink to play audio
     let sink = rodio::Player::connect_new(stream_handle.mixer());
     // open an audio file

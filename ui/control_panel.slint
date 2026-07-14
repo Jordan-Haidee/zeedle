@@ -1,8 +1,9 @@
 import { Palette, Slider } from "std-widgets.slint";
 import { SongInfo, PlayMode } from "types.slint";
 
-export component NextSongButton inherits Rectangle {
+export component SkipButton inherits Rectangle {
     callback clicked();
+    in property <bool> forward: true;
     border-radius: self.width / 2;
     clip: true;
     border-width: 1px;
@@ -42,7 +43,7 @@ export component NextSongButton inherits Rectangle {
         viewbox-width: 24;
         viewbox-height: 24;
         fill: transparent;
-        commands: "M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z";
+        commands: root.forward ? "M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z" : "M17.971 4.285A2 2 0 0 1 21 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432z";
         stroke: root.icon-color;
         stroke-width: 2.3px;
         stroke-line-cap: round;
@@ -56,69 +57,7 @@ export component NextSongButton inherits Rectangle {
         viewbox-width: 24;
         viewbox-height: 24;
         fill: transparent;
-        commands: "M21 4v16";
-        stroke: root.icon-color;
-        stroke-width: 2.3px;
-        stroke-line-cap: round;
-    }
-}
-
-export component PrevSongButton inherits Rectangle {
-    callback clicked();
-    border-radius: self.width / 2;
-    clip: true;
-    border-width: 1px;
-    property <bool> hovered: touch.has-hover;
-    property <bool> pressed: touch.pressed;
-    property <color> icon-color: pressed ? Palette.accent-background : (hovered ? Palette.foreground : Palette.control-foreground);
-    background: pressed ? Palette.control-background.darker(0.22) : (hovered ? Palette.control-background.darker(0.1) : Palette.control-background.darker(0.03));
-    border-color: hovered ? Palette.foreground.darker(0.45) : Palette.foreground.darker(0.7);
-    drop-shadow-blur: hovered ? 8px : 4px;
-    animate background {
-        duration: 120ms;
-        easing: ease-out-quad;
-    }
-    animate border-color {
-        duration: 120ms;
-        easing: ease-out-quad;
-    }
-    animate drop-shadow-blur {
-        duration: 120ms;
-        easing: ease-out-quad;
-    }
-
-    touch := TouchArea {
-        width: 100%;
-        height: 100%;
-        mouse-cursor: pointer;
-        clicked => {
-            root.clicked();
-        };
-    }
-
-    Path {
-        x: parent.width * 0.12;
-        y: parent.height * 0.12;
-        width: parent.width * 0.76;
-        height: parent.height * 0.76;
-        viewbox-width: 24;
-        viewbox-height: 24;
-        fill: transparent;
-        commands: "M17.971 4.285A2 2 0 0 1 21 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432z";
-        stroke: root.icon-color;
-        stroke-width: 2.3px;
-        stroke-line-cap: round;
-    }
-
-    Path {
-        x: parent.width * 0.12;
-        y: parent.height * 0.12;
-        width: parent.width * 0.76;
-        height: parent.height * 0.76;
-        viewbox-width: 24;
-        viewbox-height: 24;
-        fill: transparent;
-        commands: "M3 20V4";
+        commands: root.forward ? "M21 4v16" : "M3 20V4";
         stroke: root.icon-color;
         stroke-width: 2.3px;
         stroke-line-cap: round;
@@ -592,7 +531,8 @@ export component ControlPanel inherits Rectangle {
 
             Rectangle {
                 width: 6%;
-                PrevSongButton {
+                SkipButton {
+                    forward: false;
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
                     width: 28px;
@@ -619,7 +559,8 @@ export component ControlPanel inherits Rectangle {
 
             Rectangle {
                 width: 6%;
-                NextSongButton {
+                SkipButton {
+                    forward: true;
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
                     width: 28px;

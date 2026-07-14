@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use std::{
-    cmp::Reverse,
     cell::Cell,
+    cmp::Reverse,
     path::PathBuf,
     rc::Rc,
     sync::{
@@ -13,14 +13,11 @@ use std::{
     time::{Duration, Instant},
 };
 
-
+use dark_light;
 use rand::Rng;
 use rayon::slice::ParallelSliceMut;
 use rodio::{Decoder, Source};
-use slint::{Model, ToSharedString};
-use slint::winit_030::WinitWindowAccessor;
-
-use dark_light;
+use slint::{Model, ToSharedString, winit_030::WinitWindowAccessor};
 
 mod slint_types;
 use slint_types::*;
@@ -115,10 +112,8 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
     ui_state.set_song_dir(cfg.song_dir.to_str().expect("failed to convert Path to String").into());
     ui_state.set_about_info(utils::get_about_info());
     // Use saved song path if valid, otherwise fall back to first song in list
-    let saved_path = cfg
-        .current_song_path
-        .as_ref()
-        .filter(|p| !p.as_os_str().is_empty() && p.exists());
+    let saved_path =
+        cfg.current_song_path.as_ref().filter(|p| !p.as_os_str().is_empty() && p.exists());
 
     // Try saved path first, then iterate through songs as fallback
     let cur_song_info = saved_path
@@ -169,7 +164,14 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
     if cfg.follow_system_theme {
         let is_light = is_system_light();
         ui.invoke_set_light_theme(is_light);
-        log::info!("system theme detected: {}", if is_light { "light" } else { "dark" });
+        log::info!(
+            "system theme detected: {}",
+            if is_light {
+                "light"
+            } else {
+                "dark"
+            }
+        );
     } else {
         ui.invoke_set_light_theme(cfg.light_ui);
     }
@@ -268,7 +270,8 @@ fn start_player_backend_thread(
                             ui_state.set_lyric_viewport_y(0.);
                             let cover = match cover {
                                 Some((buffer, width, height)) => {
-                                    let mut pixel_buffer = slint::SharedPixelBuffer::new(width, height);
+                                    let mut pixel_buffer =
+                                        slint::SharedPixelBuffer::new(width, height);
                                     let pixel_buffer_data = pixel_buffer.make_mut_bytes();
                                     pixel_buffer_data.copy_from_slice(&buffer);
                                     slint::Image::from_rgba8(pixel_buffer)
@@ -652,8 +655,14 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
                 if follow {
                     let is_light = is_system_light();
                     ui.invoke_set_light_theme(is_light);
-                    log::info!("follow system theme enabled, detected: {}",
-                        if is_light { "light" } else { "dark" });
+                    log::info!(
+                        "follow system theme enabled, detected: {}",
+                        if is_light {
+                            "light"
+                        } else {
+                            "dark"
+                        }
+                    );
                 }
             }
         });
@@ -693,10 +702,8 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
     ui.on_window_drag_delta(move |dx: f32, dy: f32| {
         if let Some(app) = ui_weak.upgrade() {
             // Try native OS drag (works on Wayland, X11, Windows when button is pressed)
-            let native_ok = app
-                .window()
-                .with_winit_window(|w| w.drag_window().is_ok())
-                .unwrap_or(false);
+            let native_ok =
+                app.window().with_winit_window(|w| w.drag_window().is_ok()).unwrap_or(false);
 
             if native_ok {
                 // OS window manager/compositor handles all movement
@@ -710,10 +717,7 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
                 init_pos.set(Some((pos.x, pos.y)));
                 (pos.x, pos.y)
             });
-            app.window().set_position(slint::PhysicalPosition::new(
-                ix + dx as i32,
-                iy + dy as i32,
-            ));
+            app.window().set_position(slint::PhysicalPosition::new(ix + dx as i32, iy + dy as i32));
         }
     });
 
@@ -805,26 +809,26 @@ fn save_ui_state(ui: &MainWindow) {
 
 fn build_theme_timer(ui_weak: slint::Weak<MainWindow>) -> slint::Timer {
     let timer = slint::Timer::default();
-    timer.start(
-        slint::TimerMode::Repeated,
-        Duration::from_secs(1),
-        move || {
-            if let Some(ui) = ui_weak.upgrade() {
-                let ui_state = ui.global::<UIState>();
-                if ui_state.get_follow_system_theme() {
-                    let is_light = is_system_light();
-                    let current = ui_state.get_light_ui();
-                    if current != is_light {
-                        ui.invoke_set_light_theme(is_light);
-                        log::info!(
-                            "system theme changed to: {}",
-                            if is_light { "light" } else { "dark" }
-                        );
-                    }
+    timer.start(slint::TimerMode::Repeated, Duration::from_secs(1), move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            let ui_state = ui.global::<UIState>();
+            if ui_state.get_follow_system_theme() {
+                let is_light = is_system_light();
+                let current = ui_state.get_light_ui();
+                if current != is_light {
+                    ui.invoke_set_light_theme(is_light);
+                    log::info!(
+                        "system theme changed to: {}",
+                        if is_light {
+                            "light"
+                        } else {
+                            "dark"
+                        }
+                    );
                 }
             }
-        },
-    );
+        }
+    });
     timer
 }
 

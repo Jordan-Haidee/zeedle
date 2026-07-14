@@ -58,16 +58,8 @@ export component TitleBar inherits Rectangle {
             height: 100%;
             background: theme-touch.has-hover ? Palette.control-background.darker(0.08) : transparent;
             animate background { duration: 100ms; }
-            if root.is_light_theme: Image {
-                source: @image-url("sun.svg");
-                colorize: theme-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
-                width: 18px;
-                height: 18px;
-                x: (parent.width - self.width) / 2;
-                y: (parent.height - self.height) / 2;
-            }
-            if !root.is_light_theme: Image {
-                source: @image-url("moon.svg");
+            Image {
+                source: root.is_light_theme ? @image-url("sun.svg") : @image-url("moon.svg");
                 colorize: theme-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
                 width: 18px;
                 height: 18px;

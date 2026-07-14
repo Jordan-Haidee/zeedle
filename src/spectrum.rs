@@ -2,8 +2,9 @@ use std::{
     f32::consts::PI,
     num::NonZero,
     sync::{
-        Arc, Mutex, mpsc,
+        Arc, Mutex,
         atomic::{AtomicBool, Ordering},
+        mpsc,
     },
     thread,
     time::Duration,
@@ -93,7 +94,10 @@ where
             let mut right = Vec::with_capacity(FFT_SIZE);
             std::mem::swap(&mut left, &mut self.left_buf);
             std::mem::swap(&mut right, &mut self.right_buf);
-            let _ = self.tx.try_send(SpectrumChunk { left, right });
+            let _ = self.tx.try_send(SpectrumChunk {
+                left,
+                right,
+            });
         }
 
         Some(sample)
@@ -136,7 +140,13 @@ pub fn try_start_spectrum_worker(
     thread::spawn(move || {
         let mut planner = FftPlanner::<f32>::new();
         let fft = planner.plan_fft_forward(FFT_SIZE);
-        let mut buffer = vec![Complex { re: 0.0, im: 0.0 }; FFT_SIZE];
+        let mut buffer = vec![
+            Complex {
+                re: 0.0,
+                im: 0.0
+            };
+            FFT_SIZE
+        ];
         let mut window = vec![0.0; FFT_SIZE];
         for (i, val) in window.iter_mut().enumerate() {
             *val = 0.5 - 0.5 * (2.0 * PI * i as f32 / (FFT_SIZE as f32)).cos();

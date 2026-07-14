@@ -72,6 +72,30 @@ component TitleBarItem inherits Rectangle {
     }
 }
 
+component SortColumn inherits Rectangle {
+    in property <string> label;
+    in property <SortKey> sort-key;
+    in property <SortKey> current-key;
+    in property <bool> ascending;
+    callback clicked(SortKey, bool);
+    height: 100%;
+    width: 33%;
+
+    touch-area := TouchArea {
+        clicked => {
+            root.clicked(root.sort-key, root.ascending);
+        }
+        TitleBarItem {
+            width: 100%;
+            height: 100%;
+            name: root.label;
+            background: touch-area.has-hover ? Palette.control-background : transparent;
+            display-sort-icon: root.current-key == root.sort-key;
+            ascending-sort: root.ascending;
+        }
+    }
+}
+
 export component TitleBar inherits Rectangle {
     height: 30px;
     in-out property <SortKey> key;
@@ -85,59 +109,43 @@ export component TitleBar inherits Rectangle {
                 x: 0;
                 y: 0;
             }
-    
+
             LineTo {
                 x: 10;
                 y: 0;
             }
-    
+
             stroke: Palette.foreground;
             stroke-width: 0.1px;
         }
+
         HorizontalLayout {
             alignment: space-between;
-            area1 := TouchArea {
-                width: 33%;
-                clicked => {
-                    sort-items(SortKey.BySongName, ascending);
-                }
-                TitleBarItem {
-                    width: 100%;
-                    height: 100%;
-                    name: @tr("Title");
-                    background: area1.has-hover ? Palette.control-background : transparent;
-                    display-sort-icon: key == SortKey.BySongName;
-                    ascending-sort: ascending;
+            SortColumn {
+                label: @tr("Title");
+                sort-key: SortKey.BySongName;
+                current-key: root.key;
+                ascending: root.ascending;
+                clicked(key, asc) => {
+                    root.sort-items(key, asc);
                 }
             }
-
-            area2 := TouchArea {
-                width: 33%;
-                clicked => {
-                    sort-items(SortKey.BySinger, ascending);
-                }
-                TitleBarItem {
-                    name: @tr("Artist");
-                    height: 100%;
-                    width: 100%;
-                    background: area2.has-hover ? Palette.control-background : transparent;
-                    display-sort-icon: key == SortKey.BySinger;
-                    ascending-sort: ascending;
+            SortColumn {
+                label: @tr("Artist");
+                sort-key: SortKey.BySinger;
+                current-key: root.key;
+                ascending: root.ascending;
+                clicked(key, asc) => {
+                    root.sort-items(key, asc);
                 }
             }
-
-            area3 := TouchArea {
-                width: 33%;
-                clicked => {
-                    sort-items(SortKey.ByDuration, ascending);
-                }
-                TitleBarItem {
-                    name: @tr("Duration");
-                    height: 100%;
-                    width: 100%;
-                    background: area3.has-hover ? Palette.control-background : transparent;
-                    display-sort-icon: key == SortKey.ByDuration;
-                    ascending-sort: ascending;
+            SortColumn {
+                label: @tr("Duration");
+                sort-key: SortKey.ByDuration;
+                current-key: root.key;
+                ascending: root.ascending;
+                clicked(key, asc) => {
+                    root.sort-items(key, asc);
                 }
             }
         }
