@@ -23,7 +23,6 @@ dependencies = [
  "slint",
  "slint-build",
  "toml 0.9.5",
- "walkdir",
  "winresource",
 ]
 
