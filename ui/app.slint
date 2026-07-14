@@ -94,12 +94,19 @@ export component MainWindow inherits Window {
         }
     }
 
-    window-container := Rectangle {
+    window-frame := Rectangle {
         width: 100%;
         height: 100%;
         border-radius: root.maximized ? 0px : 6px;
-        clip: true;
-        background: Palette.background;
+        border-width: root.maximized ? 0px : 1px;
+        border-color: Palette.foreground.with_alpha(0.12);
+
+        window-container := Rectangle {
+            width: 100%;
+            height: 100%;
+            border-radius: root.maximized ? 0px : 6px;
+            clip: true;
+            background: Palette.background;
 
     title-bar := TitleBar {
         y: 0;
@@ -300,5 +307,6 @@ export component MainWindow inherits Window {
             return reject;
         }
     }
+}
 }
 }
