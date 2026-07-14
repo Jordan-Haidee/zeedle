@@ -2,6 +2,7 @@ import { Palette } from "std-widgets.slint";
 
 export component TitleBar inherits Rectangle {
     in-out property <bool> is_light_theme: false;
+    in-out property <bool> theme_toggle_enabled: true;
     callback close;
     callback minimize;
     callback maximize;
@@ -58,11 +59,12 @@ export component TitleBar inherits Rectangle {
         title-theme := Rectangle {
             width: 42px;
             height: 100%;
-            background: theme-touch.has-hover ? Palette.control-background.darker(0.08) : transparent;
+            opacity: root.theme_toggle_enabled ? 1.0 : 0.4;
+            background: (root.theme_toggle_enabled && theme-touch.has-hover) ? Palette.control-background.darker(0.08) : transparent;
             animate background { duration: 100ms; }
             Image {
                 source: root.is_light_theme ? @image-url("sun.svg") : @image-url("moon.svg");
-                colorize: theme-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
+                colorize: (root.theme_toggle_enabled && theme-touch.has-hover) ? Palette.foreground : Palette.foreground.darker(0.15);
                 width: 18px;
                 height: 18px;
                 x: (parent.width - self.width) / 2;
@@ -70,6 +72,7 @@ export component TitleBar inherits Rectangle {
             }
 
             theme-touch := TouchArea {
+                enabled: root.theme_toggle_enabled;
                 mouse-cursor: pointer;
                 clicked => { root.toggle_theme(); }
             }

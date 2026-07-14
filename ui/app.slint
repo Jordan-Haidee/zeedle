@@ -116,6 +116,7 @@ export component MainWindow inherits Window {
                 y: 0;
                 width: 100%;
                 is_light_theme <=> UIState.light_ui;
+                theme_toggle_enabled: !UIState.follow_system_theme;
                 close => { root.window_close(); }
                 minimize => { root.window_minimize(); }
                 maximize => { root.window_maximize(); }
