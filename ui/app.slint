@@ -63,7 +63,7 @@ export component MainWindow inherits Window {
     title: "Zeedle";
     icon: @image-url("cover.svg");
     no-frame: true;
-    resize-border-width: 10px;
+    resize-border-width: 5px;
     background: transparent;
     forward-focus: key-input-handler;
     callback toggle_play();
@@ -97,11 +97,9 @@ export component MainWindow inherits Window {
     window-container := Rectangle {
         width: 100%;
         height: 100%;
-        border-radius: 8px;
+        border-radius: root.maximized ? 0px : 6px;
         clip: true;
         background: Palette.background;
-        border-width: 1px;
-        border-color: Palette.foreground.darker(0.5);
 
     title-bar := TitleBar {
         y: 0;
