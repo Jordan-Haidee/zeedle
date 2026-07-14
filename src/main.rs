@@ -149,6 +149,17 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
         .unwrap_or(0.);
     ui_state.set_duration(dura);
     ui_state.set_current_song(cur_song_info.clone());
+    let cover = utils::read_album_cover(&cur_song_info.song_path);
+    let cover = match cover {
+        Some((buffer, width, height)) => {
+            let mut pixel_buffer = slint::SharedPixelBuffer::new(width, height);
+            let pixel_buffer_data = pixel_buffer.make_mut_bytes();
+            pixel_buffer_data.copy_from_slice(&buffer);
+            slint::Image::from_rgba8(pixel_buffer)
+        }
+        None => utils::get_default_album_cover(),
+    };
+    ui_state.set_album_image(cover);
     ui_state.set_lyrics(utils::read_lyrics(&cur_song_info.song_path).as_slice().into());
     ui_state.set_spectrum(default_spectrum().as_slice().into());
     ui_state.set_follow_system_theme(cfg.follow_system_theme);
