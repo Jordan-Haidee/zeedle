@@ -682,57 +682,40 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
         }
     });
 
-    // Window dragging with native OS move (works on Wayland, X11, Windows)
-    // Uses winit's drag_window() which lets the window manager handle dragging.
-    // Falls back to manual set_position() when native move is unavailable.
-    let drag_state = Rc::new(Cell::new((false, false, 0i32, 0i32)));
-    // (native_drag_active, has_initial_pos, initial_x, initial_y)
+    // Window dragging — use native OS move via winit's drag_window()
+    // On each drag_delta event, try drag_window().
+    // - First call of a gesture: OS takes over window movement.
+    // - Subsequent calls during same OS drag: return error (safe to ignore).
+    // - Next gesture's first call: succeeds again.
+    // Falls back to manual set_position() when native is unavailable.
+    let init_pos = Rc::new(Cell::new(None::<(i32, i32)>));
+    let ui_weak = ui.as_weak();
+    ui.on_window_drag_delta(move |dx: f32, dy: f32| {
+        if let Some(app) = ui_weak.upgrade() {
+            // Try native OS drag (works on Wayland, X11, Windows when button is pressed)
+            let native_ok = app
+                .window()
+                .with_winit_window(|w| w.drag_window().is_ok())
+                .unwrap_or(false);
 
-    {
-        let ui_weak = ui.as_weak();
-        let drag_state = drag_state.clone();
-        ui.on_window_drag_started(move || {
-            // Reset state for the new drag gesture
-            drag_state.set((false, false, 0, 0));
-
-            if let Some(app) = ui_weak.upgrade() {
-                // Use native window manager drag (works on Wayland, X11, Windows)
-                app.window().with_winit_window(|winit_window| {
-                    if winit_window.drag_window().is_ok() {
-                        drag_state.set((true, false, 0, 0));
-                    }
-                });
-            }
-        });
-    }
-
-    {
-        let ui_weak = ui.as_weak();
-        let drag_state = drag_state.clone();
-        ui.on_window_drag_delta(move |dx: f32, dy: f32| {
-            let (native_active, has_init, init_x, init_y) = drag_state.get();
-
-            // Native OS drag is active — window manager/compositor handles movement
-            if native_active {
+            if native_ok {
+                // OS window manager/compositor handles all movement
+                init_pos.set(None);
                 return;
             }
 
-            // Fallback: manually position the window (Windows without native, etc.)
-            if let Some(app) = ui_weak.upgrade() {
-                let (ix, iy) = if !has_init {
-                    let pos = app.window().position();
-                    drag_state.set((false, true, pos.x, pos.y));
-                    (pos.x, pos.y)
-                } else {
-                    (init_x, init_y)
-                };
-                app.window().set_position(slint::PhysicalPosition::new(
-                    ix + dx as i32,
-                    iy + dy as i32,
-                ));
-            }
-        });
-    }
+            // Fallback: manually position the window (non-winit backends)
+            let (ix, iy) = init_pos.get().unwrap_or_else(|| {
+                let pos = app.window().position();
+                init_pos.set(Some((pos.x, pos.y)));
+                (pos.x, pos.y)
+            });
+            app.window().set_position(slint::PhysicalPosition::new(
+                ix + dx as i32,
+                iy + dy as i32,
+            ));
+        }
+    });
 
     // pure callback to format duration string
     ui.on_format_duration(|dura| {

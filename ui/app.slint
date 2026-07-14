@@ -82,7 +82,6 @@ export component MainWindow inherits Window {
     callback window_maximize();
     callback window_close();
     callback window_drag_delta(float, float);
-    callback window_drag_started();
     in-out property <int> current_page: 0;
     in-out property <bool> sidebar_expanded: false;
     public function set_light_theme(yes: bool) {
@@ -116,9 +115,6 @@ export component MainWindow inherits Window {
         }
         drag_delta(dx, dy) => {
             root.window_drag_delta(dx, dy);
-        }
-        drag_started => {
-            root.window_drag_started();
         }
     }
 
