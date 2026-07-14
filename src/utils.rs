@@ -11,7 +11,6 @@ use rayon::{
     slice::ParallelSliceMut,
 };
 use slint::{SharedString, ToSharedString};
-use walkdir::WalkDir;
 
 use crate::slint_types::{LyricItem, SongInfo, SortKey};
 
@@ -52,8 +51,10 @@ pub fn read_song_list(
     if !audio_dir.exists() {
         return Vec::new();
     }
-    let entries = WalkDir::new(audio_dir)
+    // ponytail: 非递归扫描，如需子目录用 WalkDir
+    let entries = std::fs::read_dir(audio_dir)
         .into_iter()
+        .flatten()
         .filter_map(|x| x.ok())
         .filter(|x| {
             x.path()
