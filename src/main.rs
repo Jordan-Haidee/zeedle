@@ -13,7 +13,6 @@ use std::{
     time::{Duration, Instant},
 };
 
-use dark_light;
 use rand::Rng;
 use rayon::slice::ParallelSliceMut;
 use rodio::{Decoder, Source};
@@ -117,7 +116,7 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
 
     // Try saved path first, then iterate through songs as fallback
     let cur_song_info = saved_path
-        .and_then(|p| utils::read_meta_info(p))
+        .and_then(utils::read_meta_info)
         .or_else(|| utils::read_meta_info(song_list[0].song_path.as_str()))
         .or_else(|| {
             log::warn!("first song unreadable, scanning for playable file...");

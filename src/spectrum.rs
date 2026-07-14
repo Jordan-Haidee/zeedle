@@ -70,6 +70,14 @@ where
         let channel = self.frame_index;
         self.frame_index += 1;
 
+        if self.frame_index >= self.ch_count {
+            self.frame_index = 0;
+        }
+
+        if !self.spectrum_enabled.load(Ordering::Relaxed) {
+            return Some(sample);
+        }
+
         if self.ch_count <= 1 {
             self.left_buf.push(sample);
             self.right_buf.push(sample);
@@ -77,16 +85,6 @@ where
             self.left_buf.push(sample);
         } else if channel == 1 {
             self.right_buf.push(sample);
-        }
-
-        if self.frame_index >= self.ch_count {
-            self.frame_index = 0;
-        }
-
-        if !self.spectrum_enabled.load(Ordering::Relaxed) {
-            self.left_buf.clear();
-            self.right_buf.clear();
-            return Some(sample);
         }
 
         if self.left_buf.len() >= FFT_SIZE && self.right_buf.len() >= FFT_SIZE {
