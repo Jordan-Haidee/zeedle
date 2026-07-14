@@ -717,6 +717,97 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
         }
     });
 
+    // Window resize via native OS drag_resize_window
+    // Each callback is invoked once on press; the OS handles the drag gesture.
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_window_resize_left(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                ui.window()
+                    .with_winit_window(|w| {
+                        let _ = w.drag_resize_window(winit::window::ResizeDirection::West);
+                    });
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_window_resize_right(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                ui.window()
+                    .with_winit_window(|w| {
+                        let _ = w.drag_resize_window(winit::window::ResizeDirection::East);
+                    });
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_window_resize_top(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                ui.window()
+                    .with_winit_window(|w| {
+                        let _ = w.drag_resize_window(winit::window::ResizeDirection::North);
+                    });
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_window_resize_bottom(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                ui.window()
+                    .with_winit_window(|w| {
+                        let _ = w.drag_resize_window(winit::window::ResizeDirection::South);
+                    });
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_window_resize_top_left(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                ui.window()
+                    .with_winit_window(|w| {
+                        let _ = w.drag_resize_window(winit::window::ResizeDirection::NorthWest);
+                    });
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_window_resize_top_right(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                ui.window()
+                    .with_winit_window(|w| {
+                        let _ = w.drag_resize_window(winit::window::ResizeDirection::NorthEast);
+                    });
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_window_resize_bottom_left(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                ui.window()
+                    .with_winit_window(|w| {
+                        let _ = w.drag_resize_window(winit::window::ResizeDirection::SouthWest);
+                    });
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_window_resize_bottom_right(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                ui.window()
+                    .with_winit_window(|w| {
+                        let _ = w.drag_resize_window(winit::window::ResizeDirection::SouthEast);
+                    });
+            }
+        });
+    }
+
     // pure callback to format duration string
     ui.on_format_duration(|dura| {
         format!("{:02}:{:02}", (dura as u32) / 60, (dura as u32) % 60).to_shared_string()

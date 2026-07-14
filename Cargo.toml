@@ -20,6 +20,7 @@ rodio = "0.22.2"
 rustfft = "6.2.0"
 serde = { version = "1.0.223", features = ["derive"] }
 single-instance = "0.3.3"
+winit = "0.30"
 slint = { version = "=1.13.1", default-features = false, features = [
     "backend-winit",
     "renderer-skia",
