@@ -101,71 +101,38 @@ export component TitleBar inherits Rectangle {
     in-out property <SortKey> key;
     in-out property <bool> ascending;
     callback sort-items(SortKey, bool);
+    background: Palette.background;
 
-    VerticalLayout {
-        Path {
-            height: 0.5px;
-            MoveTo {
-                x: 0;
-                y: 0;
-            }
-
-            LineTo {
-                x: 10;
-                y: 0;
-            }
-
-            stroke: Palette.foreground;
-            stroke-width: 0.1px;
-        }
-
-        HorizontalLayout {
-            alignment: space-between;
-            SortColumn {
-                label: @tr("Title");
-                sort-key: SortKey.BySongName;
-                current-key: root.key;
-                ascending: root.ascending;
-                clicked(key, asc) => {
-                    root.sort-items(key, asc);
-                }
-            }
-
-            SortColumn {
-                label: @tr("Artist");
-                sort-key: SortKey.BySinger;
-                current-key: root.key;
-                ascending: root.ascending;
-                clicked(key, asc) => {
-                    root.sort-items(key, asc);
-                }
-            }
-
-            SortColumn {
-                label: @tr("Duration");
-                sort-key: SortKey.ByDuration;
-                current-key: root.key;
-                ascending: root.ascending;
-                clicked(key, asc) => {
-                    root.sort-items(key, asc);
-                }
+    HorizontalLayout {
+        alignment: space-between;
+        SortColumn {
+            label: @tr("Title");
+            sort-key: SortKey.BySongName;
+            current-key: root.key;
+            ascending: root.ascending;
+            clicked(key, asc) => {
+                root.sort-items(key, asc);
             }
         }
 
-        Path {
-            height: 0.5px;
-            MoveTo {
-                x: 0;
-                y: 0;
+        SortColumn {
+            label: @tr("Artist");
+            sort-key: SortKey.BySinger;
+            current-key: root.key;
+            ascending: root.ascending;
+            clicked(key, asc) => {
+                root.sort-items(key, asc);
             }
+        }
 
-            LineTo {
-                x: 10;
-                y: 0;
+        SortColumn {
+            label: @tr("Duration");
+            sort-key: SortKey.ByDuration;
+            current-key: root.key;
+            ascending: root.ascending;
+            clicked(key, asc) => {
+                root.sort-items(key, asc);
             }
-
-            stroke: Palette.foreground;
-            stroke-width: 0.1px;
         }
     }
 }

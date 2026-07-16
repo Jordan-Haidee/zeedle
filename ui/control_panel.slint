@@ -431,6 +431,8 @@ export component MusicVolumeButton inherits Rectangle {
 }
 
 export component ControlPanel inherits Rectangle {
+    background: Palette.background;
+
     in-out property <float> progress;
     in property <float> duration;
     in property <bool> paused;

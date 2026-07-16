@@ -81,7 +81,7 @@ export component Sidebar inherits Rectangle {
     callback change_page(int);
     callback request_focus();
 
-    width: root.expanded ? 210px : 60px;
+    width: root.expanded ? 200px : 54px;
     height: 100%;
     background: Palette.control-background;
     animate width {
@@ -184,13 +184,5 @@ export component Sidebar inherits Rectangle {
                 root.change_page(3);
             }
         }
-    }
-
-    Rectangle {
-        x: parent.width - 1px;
-        y: 0px;
-        width: 1px;
-        height: parent.height;
-        background: Palette.background.darker(0.2);
     }
 }
