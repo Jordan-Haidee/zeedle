@@ -84,6 +84,7 @@ export component MainWindow inherits Window {
     callback change_volume(float);
     callback set_show_spectrum(bool);
     callback set_follow_system_theme(bool);
+    callback select_song_dir();
     pure callback format_duration(float) -> string;
     callback window_minimize();
     callback window_maximize();
@@ -255,6 +256,9 @@ export component MainWindow inherits Window {
                             }
                             set_show_spectrum(yes) => {
                                 root.set_show_spectrum(yes);
+                            }
+                            select_song_dir => {
+                                root.select_song_dir();
                             }
                         }
                     }

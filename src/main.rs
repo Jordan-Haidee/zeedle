@@ -646,6 +646,24 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
 
     {
         let ui_weak = ui.as_weak();
+        let tx = tx.clone();
+        ui.on_select_song_dir(move || {
+            if let Some(path) =
+                rfd::FileDialog::new().set_title("Select Music Directory").pick_folder()
+            {
+                let path_str = path.display().to_string();
+                log::info!("music directory selected: {}", path_str);
+                if let Some(ui) = ui_weak.upgrade() {
+                    ui.global::<UIState>().set_song_dir(path_str.as_str().into());
+                }
+                tx.send(PlayerCommand::RefreshSongList(path))
+                    .expect("failed to send refresh song list command");
+            }
+        });
+    }
+
+    {
+        let ui_weak = ui.as_weak();
         ui.on_set_follow_system_theme(move |follow| {
             log::info!("request to set follow_system_theme to: {}", follow);
             if let Some(ui) = ui_weak.upgrade() {

@@ -1,8 +1,65 @@
 import {
     ComboBox,
     LineEdit,
-    Switch,
+    Palette,
 } from "std-widgets.slint";
+
+component SettingsCheckBox inherits Rectangle {
+    in-out property <bool> checked;
+    in property <string> text;
+    callback toggled;
+
+    min-height: 34px;
+    border-radius: 6px;
+    background: touch.has-hover ? Palette.control-background.darker(0.08) : transparent;
+    animate background { duration: 100ms; }
+
+    HorizontalLayout {
+        padding-left: 4px;
+        padding-right: 4px;
+        spacing: 12px;
+        alignment: start;
+
+        Rectangle {
+            width: 18px;
+            height: 18px;
+            y: (parent.height - self.height) / 2;
+            border-width: 1px;
+            border-color: root.checked ? Palette.accent-background : Palette.foreground.darker(0.55);
+            background: root.checked ? Palette.accent-background : transparent;
+            border-radius: 3px;
+            animate background { duration: 120ms; }
+            animate border-color { duration: 120ms; }
+
+            Path {
+                width: 100%;
+                height: 100%;
+                commands: "M 4 9 L 7 12 L 14 5";
+                stroke: Palette.accent-foreground;
+                stroke-width: 1.5px;
+                stroke-line-cap: round;
+                stroke-line-join: round;
+                opacity: root.checked ? 1 : 0;
+                animate opacity { duration: 120ms; }
+            }
+        }
+
+        Text {
+            text: root.text;
+            color: Palette.foreground;
+            font-size: 14px;
+            vertical-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            root.checked = !root.checked;
+            root.toggled();
+        }
+    }
+}
 
 export component SettingsPanel inherits Rectangle {
     in-out property <string> song_dir;
@@ -13,98 +70,164 @@ export component SettingsPanel inherits Rectangle {
     callback set_lang(string);
     callback set_follow_system_theme(bool);
     callback set_show_spectrum(bool);
-    VerticalLayout {
+    callback select_song_dir();
+
+    Flickable {
         width: 100%;
         height: 100%;
-        alignment: center;
-        spacing: 20px;
-        HorizontalLayout {
-            alignment: center;
-            spacing: 10px;
+        viewport-height: layout.preferred-height;
+        interactive: true;
+
+        layout := VerticalLayout {
+            width: 100%;
+            padding: 24px;
+            spacing: 20px;
+
+            // --- Playback Section ---
             Rectangle {
-                height: 30px;
-                width: 200px;
-                Text {
-                    x: parent.width - self.width;
-                    vertical-alignment: center;
-                    text: @tr("Music directory: ");
+                background: Palette.control-background.darker(0.035);
+                border-radius: 8px;
+                border-width: 1px;
+                border-color: Palette.foreground.darker(0.72);
+
+                VerticalLayout {
+                    padding: 16px;
+                    spacing: 12px;
+
+                    Text {
+                        text: @tr("Playback");
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: Palette.foreground.darker(0.25);
+                        letter-spacing: 0.3px;
+                    }
+
+                    Rectangle {
+                        height: 1px;
+                        background: Palette.foreground.darker(0.8);
+                    }
+
+                    // Music directory
+                    VerticalLayout {
+                        spacing: 6px;
+                        Text {
+                            text: @tr("Music directory");
+                            font-size: 13px;
+                            color: Palette.foreground.darker(0.2);
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+                            Rectangle {
+                                border-radius: 4px;
+                                border-width: 1px;
+                                border-color: Palette.foreground.darker(0.72);
+                                background: Palette.control-background.darker(0.06);
+                                horizontal-stretch: 1;
+                                clip: true;
+                                Text {
+                                    x: 12px;
+                                    width: parent.width - 24px;
+                                    height: 100%;
+                                    text: root.song_dir;
+                                    color: Palette.foreground.darker(0.15);
+                                    font-size: 13px;
+                                    vertical-alignment: center;
+                                    overflow: elide;
+                                }
+                            }
+
+                            Rectangle {
+                                height: 32px;
+                                min-width: 100px;
+                                border-radius: 4px;
+                                background: btn-touch.has-hover ? Palette.accent-background.darker(0.08) : Palette.accent-background;
+                                animate background { duration: 100ms; }
+                                HorizontalLayout {
+                                    padding-left: 16px;
+                                    padding-right: 16px;
+                                    spacing: 6px;
+                                    alignment: center;
+                                    Text {
+                                        text: @tr("Browse...");
+                                        color: Palette.accent-foreground;
+                                        font-size: 13px;
+                                        font-weight: 500;
+                                        vertical-alignment: center;
+                                    }
+                                }
+
+                                btn-touch := TouchArea {
+                                    mouse-cursor: pointer;
+                                    clicked => {
+                                        root.select_song_dir();
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Spectrum display
+                    SettingsCheckBox {
+                        text: @tr("Spectrum display");
+                        checked <=> root.show_spectrum;
+                        toggled => {
+                            root.set_show_spectrum(self.checked);
+                        }
+                    }
                 }
             }
 
-            LineEdit {
-                width: 200px;
-                text <=> song_dir;
-                accepted(p) => {
-                    refresh_song_list(p);
-                }
-            }
-        }
-
-        HorizontalLayout {
-            alignment: center;
-            spacing: 10px;
+            // --- Appearance Section ---
             Rectangle {
-                height: 30px;
-                width: 200px;
-                Text {
-                    x: parent.width - self.width;
-                    vertical-alignment: center;
-                    text: @tr("Language: ");
-                }
-            }
+                background: Palette.control-background.darker(0.035);
+                border-radius: 8px;
+                border-width: 1px;
+                border-color: Palette.foreground.darker(0.72);
 
-            ComboBox {
-                width: 200px;
-                current-value <=> lang;
-                model: ["", "zh_CN", "es", "fr", "de", "ru"];
-                selected(current-value) => {
-                    root.set_lang(current-value);
-                }
-            }
-        }
+                VerticalLayout {
+                    padding: 16px;
+                    spacing: 12px;
 
-        HorizontalLayout {
-            alignment: center;
-            spacing: 10px;
-            Rectangle {
-                height: 30px;
-                width: 200px;
-                Text {
-                    x: parent.width - self.width;
-                    vertical-alignment: center;
-                    text: @tr("Follow system theme: ");
-                }
-            }
+                    Text {
+                        text: @tr("Appearance");
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: Palette.foreground.darker(0.25);
+                        letter-spacing: 0.3px;
+                    }
 
-            Switch {
-                width: 200px;
-                checked <=> follow_system_theme;
-                text: self.checked ? @tr("On") : @tr("Off");
-                toggled => {
-                    root.set_follow_system_theme(self.checked);
-                }
-            }
-        }
+                    Rectangle {
+                        height: 1px;
+                        background: Palette.foreground.darker(0.8);
+                    }
 
-        HorizontalLayout {
-            alignment: center;
-            spacing: 10px;
-            Rectangle {
-                height: 30px;
-                width: 200px;
-                Text {
-                    x: parent.width - self.width;
-                    vertical-alignment: center;
-                    text: @tr("Spectrum display: ");
-                }
-            }
+                    // Follow system theme
+                    SettingsCheckBox {
+                        text: @tr("Follow system theme");
+                        checked <=> root.follow_system_theme;
+                        toggled => {
+                            root.set_follow_system_theme(self.checked);
+                        }
+                    }
 
-            Switch {
-                width: 200px;
-                checked <=> show_spectrum;
-                text: self.checked ? @tr("On") : @tr("Off");
-                toggled => {
-                    root.set_show_spectrum(self.checked);
+                    // Language
+                    VerticalLayout {
+                        spacing: 6px;
+                        Text {
+                            text: @tr("Language");
+                            font-size: 13px;
+                            color: Palette.foreground.darker(0.2);
+                        }
+
+                        ComboBox {
+                            current-value <=> root.lang;
+                            model: ["", "zh_CN", "es", "fr", "de", "ru"];
+                            selected(current-value) => {
+                                root.set_lang(current-value);
+                            }
+                        }
+                    }
                 }
             }
         }

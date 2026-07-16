@@ -36,35 +36,40 @@ msgctxt "Sidebar"
 msgid "Settings"
 msgstr "Paramètres"
 
-#: ui/app.slint:368
+#: ui/settings_panel.slint:99
 msgctxt "SettingsPanel"
-msgid "Music directory: "
-msgstr "Dossier de musique : "
+msgid "Playback"
+msgstr "Lecture"
 
-#: ui/app.slint:390
+#: ui/settings_panel.slint:108
 msgctxt "SettingsPanel"
-msgid "Language: "
-msgstr "Langue : "
+msgid "Music directory"
+msgstr "Dossier de musique"
 
-#: ui/app.slint:413
+#: ui/settings_panel.slint:120
 msgctxt "SettingsPanel"
-msgid "Follow system theme: "
-msgstr "Thème système : "
+msgid "Spectrum display"
+msgstr "Affichage du spectre"
 
-#: ui/app.slint:436
+#: ui/settings_panel.slint:131
 msgctxt "SettingsPanel"
-msgid "Spectrum display: "
-msgstr "Affichage du spectre : "
+msgid "Appearance"
+msgstr "Apparence"
 
-#: ui/app.slint:420
+#: ui/settings_panel.slint:148
 msgctxt "SettingsPanel"
-msgid "On"
-msgstr "Activé"
+msgid "Follow system theme"
+msgstr "Thème système"
 
-#: ui/app.slint:420
+#: ui/settings_panel.slint:156
 msgctxt "SettingsPanel"
-msgid "Off"
-msgstr "Désactivé"
+msgid "Language"
+msgstr "Langue"
+
+#: ui/settings_panel.slint:?line
+msgctxt "SettingsPanel"
+msgid "Browse..."
+msgstr "Parcourir..."
 
 #: ui/app.slint:430
 msgctxt "Sidebar"
