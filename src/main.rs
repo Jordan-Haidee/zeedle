@@ -49,12 +49,45 @@ enum PlayerCommand {
     SetShowSpectrum(bool),         // 设置是否显示频谱
 }
 
-/// Set UI state to default (no song)
-fn set_raw_ui_state(ui: &MainWindow) {
+/// Apply config values that don't depend on a current song.
+/// Used for both empty-list startup and normal startup.
+fn apply_config_to_ui(ui: &MainWindow, cfg: &Config) {
+    let ui_state = ui.global::<UIState>();
+    ui_state.set_sort_key(cfg.sort_key);
+    ui_state.set_sort_ascending(cfg.sort_ascending);
+    ui_state.set_last_sort_key(cfg.sort_key);
+    ui_state.set_paused(true);
+    ui_state.set_play_mode(cfg.play_mode);
+    ui_state.set_lang(cfg.lang.clone().into());
+    ui_state.set_volume(cfg.volume);
+    ui_state.set_show_spectrum(cfg.show_spectrum);
+    slint::select_bundled_translation(&cfg.lang)
+        .unwrap_or_else(|_| panic!("failed to set language: {}", cfg.lang));
+    ui_state.set_song_dir(cfg.song_dir.to_str().expect("failed to convert Path to String").into());
+    ui_state.set_about_info(utils::get_about_info());
+    ui_state.set_follow_system_theme(cfg.follow_system_theme);
+    if cfg.follow_system_theme {
+        let is_light = is_system_light();
+        ui.invoke_set_light_theme(is_light);
+        log::info!(
+            "system theme detected: {}",
+            if is_light {
+                "light"
+            } else {
+                "dark"
+            }
+        );
+    } else {
+        ui.invoke_set_light_theme(cfg.light_ui);
+    }
+}
+
+/// Clear song-dependent fields only. Keeps user settings (volume, lang,
+/// play_mode, show_spectrum, song_dir, theme) intact.
+fn clear_song_state(ui: &MainWindow) {
     let ui_state = ui.global::<UIState>();
     ui_state.set_progress(0.0);
     ui_state.set_duration(0.0);
-    ui_state.set_about_info(utils::get_about_info());
     ui_state.set_spectrum(default_spectrum().as_slice().into());
     ui_state.set_album_image(
         slint::Image::load_from_svg_data(include_bytes!("../ui/cover.svg"))
@@ -69,16 +102,10 @@ fn set_raw_ui_state(ui: &MainWindow) {
     });
     ui_state.set_lyrics(Vec::new().as_slice().into());
     ui_state.set_song_list(Vec::new().as_slice().into());
-    ui_state.set_song_dir(
-        Config::default().song_dir.to_str().expect("failed to convert Path to String").into(),
-    );
-    ui_state.set_play_mode(PlayMode::InOrder);
     ui_state.set_paused(true);
     ui_state.set_dragging(false);
     ui_state.set_user_listening(false);
     ui_state.set_lyric_viewport_y(0.);
-    ui_state.set_volume(1.);
-    ui_state.set_show_spectrum(false);
 }
 
 /// Set UI state according to saved config
@@ -88,28 +115,14 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
     ui_state.set_app_font_family(app_font.into());
     let song_list = utils::read_song_list(&cfg.song_dir, cfg.sort_key, cfg.sort_ascending);
     if song_list.is_empty() {
-        log::warn!(
-            "song list is empty in directory: {:?}, using default UI state ...",
-            cfg.song_dir
-        );
-        set_raw_ui_state(ui);
+        log::warn!("song list is empty in directory: {:?}, keeping saved config ...", cfg.song_dir);
+        apply_config_to_ui(ui, cfg);
         return None;
     }
     log::info!("loaded {} songs from directory: {:?}", song_list.len(), cfg.song_dir);
-    ui_state.set_sort_key(cfg.sort_key);
-    ui_state.set_sort_ascending(cfg.sort_ascending);
-    ui_state.set_last_sort_key(cfg.sort_key);
+    apply_config_to_ui(ui, cfg);
     ui_state.set_progress(cfg.progress);
-    ui_state.set_paused(true);
-    ui_state.set_play_mode(cfg.play_mode);
-    ui_state.set_lang(cfg.lang.clone().into());
-    ui_state.set_volume(cfg.volume);
-    ui_state.set_show_spectrum(cfg.show_spectrum);
-    slint::select_bundled_translation(&cfg.lang)
-        .unwrap_or_else(|_| panic!("failed to set language: {}", cfg.lang));
     ui_state.set_song_list(song_list.as_slice().into());
-    ui_state.set_song_dir(cfg.song_dir.to_str().expect("failed to convert Path to String").into());
-    ui_state.set_about_info(utils::get_about_info());
     // Use saved song path if valid, otherwise fall back to first song in list
     let saved_path =
         cfg.current_song_path.as_ref().filter(|p| !p.as_os_str().is_empty() && p.exists());
@@ -126,8 +139,8 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
     let mut cur_song_info = match cur_song_info {
         Some(info) => info,
         None => {
-            log::error!("all songs failed to load, using default UI state");
-            set_raw_ui_state(ui);
+            log::error!("all songs failed to load, clearing song state");
+            clear_song_state(ui);
             return None;
         }
     };
@@ -159,21 +172,6 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
     ui_state.set_album_image(cover);
     ui_state.set_lyrics(utils::read_lyrics(&cur_song_info.song_path).as_slice().into());
     ui_state.set_spectrum(default_spectrum().as_slice().into());
-    ui_state.set_follow_system_theme(cfg.follow_system_theme);
-    if cfg.follow_system_theme {
-        let is_light = is_system_light();
-        ui.invoke_set_light_theme(is_light);
-        log::info!(
-            "system theme detected: {}",
-            if is_light {
-                "light"
-            } else {
-                "dark"
-            }
-        );
-    } else {
-        ui.invoke_set_light_theme(cfg.light_ui);
-    }
     let mut history = ui_state.get_play_history().iter().collect::<Vec<_>>();
     history.push(cur_song_info.clone());
     ui_state.set_play_history(history.as_slice().into());
@@ -450,8 +448,8 @@ fn start_player_backend_thread(
                             } else {
                                 let player_guard = player_clone.lock().unwrap();
                                 player_guard.clear();
-                                set_raw_ui_state(&ui);
-                                log::warn!("song list is empty, reset UI state");
+                                clear_song_state(&ui);
+                                log::warn!("song list is empty, cleared song state");
                             }
                         }
                     })
