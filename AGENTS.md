@@ -25,11 +25,13 @@ Instructions for AI coding agents working in this repository.
 - Media metadata/lyrics/sorting: [src/utils.rs](src/utils.rs)
 - FFT spectrum analysis: [src/spectrum.rs](src/spectrum.rs)
 - Slint UI root: [ui/app.slint](ui/app.slint)
+- Slint UI types: [ui/types.slint](ui/types.slint) (structs, enums)
+- Slint custom theme: [ui/theme.slint](ui/theme.slint) (light/dark palette)
 - Reusable Slint components: `ui/control_panel.slint`, `ui/song_list.slint`, `ui/lyrics_panel.slint`, `ui/settings_panel.slint`, `ui/sidebar.slint`, `ui/title_bar.slint`, `ui/spectrum.slint`
 - Example: [examples/rodio_usage.rs](examples/rodio_usage.rs)
 
 ## Architecture Rules
-- UI → backend communication: `mpsc::channel<PlayerCommand>` [src/main.rs](src/main.rs#L42).
+- UI → backend communication: `mpsc::channel<PlayerCommand>` [src/main.rs](src/main.rs#L42). Variants: `Play`, `Pause`, `ChangeProgress`, `PlayNext`, `PlayPrev`, `SwitchMode`, `RefreshSongList`, `SortSongList`, `SetLang`, `ChangeVolume`, `SetShowSpectrum`.
 - Backend → UI updates: must use `slint::invoke_from_event_loop` — never block the UI path.
 - Audio playback lives in the worker thread via `rodio::Player` (wrapped in `Arc<Mutex<...>>`).
 - Spectrum: `TapSource` taps audio samples in the playback thread, sends chunks to a separate FFT worker thread via `mpsc::sync_channel`, results polled by a Slint `Timer`.
@@ -44,9 +46,9 @@ Instructions for AI coding agents working in this repository.
 - `F1` — song list, `F2` — lyrics, `F3` — settings, `F4` — about
 
 ## Theme
-- Light/dark toggle + follow-system-theme (polled every 1s via timer).
-- `dark-light` crate detects system theme; `dark_light::Mode::Light` checks if light.
-- Applies via `Palette.color-scheme = ColorScheme.{light,dark}`.
+- Custom `Theme` global in [ui/theme.slint](ui/theme.slint) with 11 fully opaque color tokens (panel, surface, text, accent, etc.).
+- Light/dark controlled by `Theme.is-dark`, set via `set_light_theme()` alongside `Palette.color-scheme` for std widgets.
+- `dark-light` crate polls system theme every 1s (timer); `dark_light::Mode::Light` checks if light.
 
 ## Conventions
 - Logging: `env_logger` with level `Info` by default, writes to stdout + `~/.zeedle.log` (auto-trim at 10MB).
@@ -57,7 +59,7 @@ Instructions for AI coding agents working in this repository.
 - Font: auto-selects per platform (Windows: `Microsoft YaHei UI`, Linux: `Noto Sans CJK SC`, macOS: `PingFang SC`).
 
 ## Pitfalls
-- Slint pinned to `=1.13.1` in both `[dependencies]` and `[build-dependencies]` — keep versions aligned.
+- Slint pinned to `=1.17.1` in both `[dependencies]` and `[build-dependencies]` — keep versions aligned.
 - Build-time: `build.rs` uses `slint_build::CompilerConfiguration` with style `fluent` and `with_bundled_translations("lang")`. UI/i18n changes may fail if translations inconsistent.
 - Windows icon embedding via `winresource` in `build.rs` (Windows-only build dep).
 - Debug builds have a visible console window; release builds use `#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]` (Windows only).
