@@ -51,7 +51,6 @@ pub fn read_song_list(
     if !audio_dir.exists() {
         return Vec::new();
     }
-    // ponytail: 非递归扫描，如需子目录用 WalkDir
     let entries = std::fs::read_dir(audio_dir)
         .into_iter()
         .flatten()

@@ -28,7 +28,6 @@ use spectrum::{
     SPECTRUM_UPDATE_MS, SpectrumChunk, TapSource, default_spectrum, try_start_spectrum_worker,
 };
 fn is_system_light() -> bool {
-    // ponytail: Err -> dark (safe default)
     matches!(dark_light::detect(), Ok(dark_light::Mode::Light))
 }
 
@@ -735,7 +734,6 @@ fn build_progress_timer(
     timer.start(slint::TimerMode::Repeated, Duration::from_millis(200), move || {
         if let Some(ui) = ui_weak.upgrade() {
             let ui_state = ui.global::<UIState>();
-            // ponytail: nothing changes when paused
             if ui_state.get_paused() {
                 return;
             }
@@ -779,7 +777,6 @@ fn build_spectrum_timer(
         move || {
             if let Some(ui) = ui_weak.upgrade() {
                 let ui_state = ui.global::<UIState>();
-                // ponytail: no new data when paused or hidden
                 if ui_state.get_paused() || !ui_state.get_show_spectrum() {
                     return;
                 }
