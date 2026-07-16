@@ -1,4 +1,5 @@
-import { Palette, Slider } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { Slider } from "std-widgets.slint";
 import { SongInfo, PlayMode } from "types.slint";
 
 export component SkipButton inherits Rectangle {
@@ -9,9 +10,9 @@ export component SkipButton inherits Rectangle {
     border-width: 1px;
     property <bool> hovered: touch.has-hover;
     property <bool> pressed: touch.pressed;
-    property <color> icon-color: pressed ? Palette.accent-background : (hovered ? Palette.foreground : Palette.control-foreground);
-    background: pressed ? Palette.control-background.darker(0.22) : (hovered ? Palette.control-background.darker(0.1) : Palette.control-background.darker(0.03));
-    border-color: hovered ? Palette.foreground.darker(0.45) : Palette.foreground.darker(0.7);
+    property <color> icon-color: pressed ? Theme.accent : (hovered ? Theme.text : Theme.text-secondary);
+    background: pressed ? Theme.press : (hovered ? Theme.hover : Theme.surface);
+    border-color: hovered ? Theme.text : Theme.border;
     drop-shadow-blur: hovered ? 8px : 4px;
     animate background {
         duration: 120ms;
@@ -73,9 +74,9 @@ export component PlayPauseButton inherits Rectangle {
     property <bool> hovered: touch.has-hover;
     property <bool> pressed: touch.pressed;
     property <bool> active: !root.paused;
-    property <color> icon-color: active ? Palette.accent-background : (pressed ? Palette.accent-background : (hovered ? Palette.foreground : Palette.control-foreground));
-    background: active ? (pressed ? Palette.control-background.darker(0.24) : (hovered ? Palette.control-background.darker(0.16) : Palette.control-background.darker(0.08))) : (pressed ? Palette.control-background.darker(0.22) : (hovered ? Palette.control-background.darker(0.1) : Palette.control-background.darker(0.03)));
-    border-color: active ? Palette.accent-background.darker(0.25) : (hovered ? Palette.foreground.darker(0.45) : Palette.foreground.darker(0.7));
+    property <color> icon-color: active ? Theme.accent : (pressed ? Theme.accent : (hovered ? Theme.text : Theme.text-secondary));
+    background: pressed ? Theme.press : (hovered ? Theme.hover : Theme.surface);
+    border-color: active ? Theme.accent : (hovered ? Theme.text : Theme.border);
     drop-shadow-blur: active ? 10px : (hovered ? 8px : 4px);
     animate background {
         duration: 120ms;
@@ -172,7 +173,7 @@ export component PlayModeButton inherits Rectangle {
         }
 
         stroke-width: 1px;
-        stroke: selected ? Palette.accent-background : Palette.foreground;
+        stroke: selected ? Theme.accent : Theme.text;
     }
 
     if root.recursive: Path {
@@ -197,7 +198,7 @@ export component PlayModeButton inherits Rectangle {
         }
 
         stroke-width: 1px;
-        stroke: selected ? Palette.accent-background : Palette.foreground;
+        stroke: selected ? Theme.accent : Theme.text;
     }
 }
 
@@ -295,7 +296,7 @@ export component RandomButton inherits Rectangle {
                 y: 10;
             }
 
-            stroke: selected ? Palette.accent-background : Palette.foreground;
+            stroke: selected ? Theme.accent : Theme.text;
             stroke-width: 1px;
         }
     }
@@ -392,7 +393,7 @@ export component MusicVolumeButton inherits Rectangle {
                     sweep: true;
                 }
 
-                stroke: selected ? Palette.accent-background : Palette.foreground;
+                stroke: selected ? Theme.accent : Theme.text;
                 stroke-width: 1px;
             }
         }
@@ -400,7 +401,7 @@ export component MusicVolumeButton inherits Rectangle {
 }
 
 export component ControlPanel inherits Rectangle {
-    background: Palette.background;
+    background: Theme.surface;
 
     in-out property <float> progress;
     in property <float> duration;

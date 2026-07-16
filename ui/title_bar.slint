@@ -1,4 +1,4 @@
-import { Palette } from "std-widgets.slint";
+import { Theme } from "theme.slint";
 
 export component TitleBar inherits Rectangle {
     in-out property <bool> is_light_theme: false;
@@ -9,7 +9,7 @@ export component TitleBar inherits Rectangle {
     callback toggle_theme;
     callback drag_delta(float, float);
     height: 40px;
-    background: Palette.control-background;
+    background: Theme.panel;
 
     // Drag area - entire title bar
     TouchArea {
@@ -46,7 +46,7 @@ export component TitleBar inherits Rectangle {
                 text: "Zeedle";
                 font-size: 13px;
                 font-weight: 600;
-                color: Palette.foreground;
+                color: Theme.text;
                 vertical-alignment: center;
             }
         }
@@ -60,11 +60,11 @@ export component TitleBar inherits Rectangle {
             width: 42px;
             height: 100%;
             opacity: root.theme_toggle_enabled ? 1.0 : 0.4;
-            background: (root.theme_toggle_enabled && theme-touch.has-hover) ? Palette.control-background.darker(0.08) : transparent;
+            background: (root.theme_toggle_enabled && theme-touch.has-hover) ? Theme.hover : transparent;
             animate background { duration: 100ms; }
             Image {
                 source: root.is_light_theme ? @image-url("sun.svg") : @image-url("moon.svg");
-                colorize: (root.theme_toggle_enabled && theme-touch.has-hover) ? Palette.foreground : Palette.foreground.darker(0.15);
+                colorize: (root.theme_toggle_enabled && theme-touch.has-hover) ? Theme.text : Theme.text-secondary;
                 width: 18px;
                 height: 18px;
                 x: (parent.width - self.width) / 2;
@@ -82,14 +82,14 @@ export component TitleBar inherits Rectangle {
             width: 1px;
             height: 16px;
             y: (parent.height - self.height) / 2;
-            background: Palette.foreground.darker(0.75);
+            background: Theme.divider;
         }
 
         // Minimize button
         btn-min := Rectangle {
             width: 42px;
             height: 100%;
-            background: min-touch.has-hover ? Palette.control-background.darker(0.08) : transparent;
+            background: min-touch.has-hover ? Theme.hover : transparent;
             animate background { duration: 100ms; }
             Rectangle {
                 width: 12px;
@@ -97,7 +97,7 @@ export component TitleBar inherits Rectangle {
                 x: (parent.width - self.width) / 2;
                 y: (parent.height - self.height) / 2;
                 border-radius: 1px;
-                background: min-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
+                background: min-touch.has-hover ? Theme.text : Theme.text-secondary;
             }
 
             min-touch := TouchArea {
@@ -110,7 +110,7 @@ export component TitleBar inherits Rectangle {
         btn-max := Rectangle {
             width: 42px;
             height: 100%;
-            background: max-touch.has-hover ? Palette.control-background.darker(0.08) : transparent;
+            background: max-touch.has-hover ? Theme.hover : transparent;
             animate background { duration: 100ms; }
             Rectangle {
                 width: 10px;
@@ -118,7 +118,7 @@ export component TitleBar inherits Rectangle {
                 x: (parent.width - self.width) / 2;
                 y: (parent.height - self.height) / 2;
                 border-width: 1.5px;
-                border-color: max-touch.has-hover ? Palette.foreground : Palette.foreground.darker(0.15);
+                border-color: max-touch.has-hover ? Theme.text : Theme.text-secondary;
                 border-radius: 1px;
             }
 
@@ -141,7 +141,7 @@ export component TitleBar inherits Rectangle {
                 height: 12px;
                 viewbox-width: 12;
                 viewbox-height: 12;
-                stroke: close-touch.has-hover ? white : Palette.foreground.darker(0.15);
+                stroke: close-touch.has-hover ? white : Theme.text-secondary;
                 stroke-width: 1.5px;
                 stroke-line-cap: round;
                 commands: "M 1 1 L 11 11 M 11 1 L 1 11";

@@ -1,0 +1,30 @@
+// Zeedle Custom Theme — Fluent-inspired, fully opaque
+// Two complete palettes: light (is-dark = false) and dark (is-dark = true)
+
+export global Theme {
+    in-out property <bool> is-dark;
+
+    // === Background layers (back → front) ===
+    // Window frame — shown behind sidebar/titlebar, visible as outer border area
+    out property <color> window: is-dark ? #1C1C1C : #FAFAFA;
+    // Panel background — sidebar, title bar
+    out property <color> panel: is-dark ? #2D2D30 : #F3F3F3;
+    // Content surface — main area, cards, controls
+    out property <color> surface: is-dark ? #1E1E1E : #FFFFFF;
+    // Hover state — items, buttons
+    out property <color> hover: is-dark ? #3C3C3F : #EAEAEA;
+    // Pressed state — items, buttons
+    out property <color> press: is-dark ? #4A4A4D : #D6D6D6;
+
+    // === Text ===
+    out property <color> text: is-dark ? #FFFFFF : #1A1A1A;
+    out property <color> text-secondary: is-dark ? #9D9D9D : #666666;
+    out property <color> text-tertiary: is-dark ? #6E6E6E : #999999;
+
+    // === Borders & Dividers ===
+    out property <color> border: is-dark ? #3E3E42 : #E0E0E0;
+    out property <color> divider: is-dark ? #38383A : #EBEBEB;
+
+    // === Accent (Fluent blue) ===
+    out property <color> accent: is-dark ? #60CDFF : #005FB8;
+}

@@ -1,4 +1,4 @@
-import { Palette } from "std-widgets.slint";
+import { Theme } from "theme.slint";
 
 export component SidebarNavItem inherits Rectangle {
     in property <string> icon;
@@ -9,7 +9,7 @@ export component SidebarNavItem inherits Rectangle {
     height: 38px;
     border-radius: 8px;
     clip: true;
-    background: touch.pressed ? Palette.control-background.darker(0.15) : (selected ? Palette.control-background.darker(0.1) : (touch.has-hover ? Palette.control-background : transparent));
+    background: touch.pressed ? Theme.press : (selected ? Theme.hover : (touch.has-hover ? Theme.hover : transparent));
 
     Rectangle {
         visible: selected;
@@ -18,7 +18,7 @@ export component SidebarNavItem inherits Rectangle {
         x: 3px;
         y: (parent.height - self.height) / 2;
         border-radius: 1.5px;
-        background: Palette.accent-background;
+        background: Theme.accent;
     }
 
     HorizontalLayout {
@@ -42,7 +42,7 @@ export component SidebarNavItem inherits Rectangle {
                 viewbox-width: 24;
                 viewbox-height: 24;
                 commands: root.icon;
-                fill: root.selected ? Palette.accent-background : Palette.foreground.darker(0.2);
+                fill: root.selected ? Theme.accent : Theme.text-secondary;
             }
         }
 
@@ -58,7 +58,7 @@ export component SidebarNavItem inherits Rectangle {
                 width: 100%;
                 text: root.label;
                 font-weight: root.selected ? 600 : 400;
-                color: root.selected ? Palette.foreground : Palette.foreground.darker(0.2);
+                color: root.selected ? Theme.text : Theme.text-secondary;
                 vertical-alignment: center;
                 overflow: TextOverflow.elide;
                 opacity: expanded ? 1 : 0;
@@ -83,7 +83,7 @@ export component Sidebar inherits Rectangle {
 
     width: root.expanded ? 200px : 54px;
     height: 100%;
-    background: Palette.control-background;
+    background: Theme.panel;
     animate width {
         duration: 200ms;
         easing: ease-out-quad;
@@ -101,7 +101,7 @@ export component Sidebar inherits Rectangle {
         Rectangle {
             height: 36px;
             border-radius: 8px;
-            background: toggle-touch.has-hover ? Palette.background : transparent;
+            background: toggle-touch.has-hover ? Theme.surface : transparent;
             HorizontalLayout {
                 width: 100%;
                 height: 100%;
@@ -118,7 +118,7 @@ export component Sidebar inherits Rectangle {
                         viewbox-width: 24;
                         viewbox-height: 24;
                         commands: "M5 21q-.825 0-1.412-.587Q3 19.825 3 19V5q0-.825.588-1.412Q4.175 3 5 3h14q.825 0 1.413.588Q21 4.175 21 5v14q0 .825-.587 1.413Q19.825 21 19 21Zm0-2h4V5H5v14Zm6 0h8V5h-8v14Z";
-                        fill: Palette.foreground.darker(0.2);
+                        fill: Theme.text-secondary;
                     }
                 }
             }
@@ -162,7 +162,7 @@ export component Sidebar inherits Rectangle {
 
         Rectangle {
             height: 1px;
-            background: Palette.background.darker(0.2);
+            background: Theme.divider;
         }
 
         SidebarNavItem {

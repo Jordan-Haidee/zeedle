@@ -1,4 +1,5 @@
-import { ListView, Palette } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { ListView } from "std-widgets.slint";
 import { TriggerSource, SongInfo, SortKey } from "types.slint";
 
 component SortIcon inherits Rectangle {
@@ -9,12 +10,12 @@ component SortIcon inherits Rectangle {
     background: transparent;
     if !ascending && display: Path {
         commands: "M 5 1 L 5 9 L 7 7";
-        stroke: Palette.foreground.darker(0.5);
+        stroke: Theme.text-tertiary;
         stroke-width: 1px;
     }
     if ascending && display: Path {
         commands: "M 5 9 L 5 1 L 3 3";
-        stroke: Palette.foreground.darker(0.5);
+        stroke: Theme.text-tertiary;
         stroke-width: 1px;
     }
 }
@@ -28,7 +29,7 @@ component TitleBarItem inherits Rectangle {
         height: 100%;
         text := Text {
             text: name;
-            color: Palette.foreground.darker(0.5);
+            color: Theme.text-tertiary;
             x: parent.width * 0.4;
             y: parent.height / 2 - self.height / 2;
         }
@@ -60,7 +61,7 @@ component SortColumn inherits Rectangle {
             width: 100%;
             height: 100%;
             name: root.label;
-            background: touch-area.has-hover ? Palette.control-background : transparent;
+            background: touch-area.has-hover ? Theme.hover : transparent;
             display-sort-icon: root.current-key == root.sort-key;
             ascending-sort: root.ascending;
         }
@@ -72,7 +73,7 @@ component SortBar inherits Rectangle {
     in-out property <SortKey> key;
     in-out property <bool> ascending;
     callback sort-items(SortKey, bool);
-    background: Palette.background;
+    background: Theme.surface;
 
     HorizontalLayout {
         alignment: space-between;
@@ -113,7 +114,7 @@ export component SongItem inherits Rectangle {
     in property <SongInfo> info:{ id:0, song_name:"xxx", singer:"xxx", duration:"xxx", song_path:"xxx" };
     in property <bool> playing:false;
     callback double_clicked();
-    background: playing ? Palette.control-background.darker(0.08) : (area.has-hover ? Palette.control-background : Palette.background);
+    background: playing ? Theme.hover : (area.has-hover ? Theme.hover : Theme.surface);
     VerticalLayout {
         area := TouchArea {
             double-clicked => {
@@ -128,7 +129,7 @@ export component SongItem inherits Rectangle {
                         x: parent.width * 0.4;
                         text: info.song-name;
                         font-weight: root.playing ? 600 : 400;
-                        color: root.playing ? Palette.accent-background : Palette.foreground;
+                        color: root.playing ? Theme.accent : Theme.text;
                         overflow: elide;
                     }
                 }
@@ -139,7 +140,7 @@ export component SongItem inherits Rectangle {
                         width: 100%;
                         x: parent.width * 0.4;
                         text: info.singer;
-                        color: root.playing ? Palette.accent-background.darker(0.1) : Palette.foreground;
+                        color: root.playing ? Theme.accent : Theme.text;
                         overflow: elide;
                     }
                 }
@@ -149,7 +150,7 @@ export component SongItem inherits Rectangle {
                     Text {
                         x: parent.width * 0.4;
                         text: info.duration;
-                        color: root.playing ? Palette.accent-background.darker(0.1) : Palette.foreground;
+                        color: root.playing ? Theme.accent : Theme.text;
                     }
                 }
             }

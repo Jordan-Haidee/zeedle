@@ -1,8 +1,8 @@
-import { Palette } from "std-widgets.slint";
+import { Theme } from "theme.slint";
 
 export component SpectrumView inherits Rectangle {
     in property <[float]> bins;
-    in property <color> bar-color: Palette.foreground;
+    in property <color> bar-color: Theme.accent;
     height: 60px;
     width: 200px;
     clip: true;
