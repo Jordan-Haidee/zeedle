@@ -77,17 +77,17 @@ msgctxt "Sidebar"
 msgid "About"
 msgstr "关于"
 
-#: ui/song.slint:104
-msgctxt "TitleBar"
+#: ui/song_list.slint:81
+msgctxt "SortBar"
 msgid "Title"
 msgstr "歌曲"
 
-#: ui/song.slint:117
-msgctxt "TitleBar"
+#: ui/song_list.slint:91
+msgctxt "SortBar"
 msgid "Artist"
 msgstr "艺术家"
 
-#: ui/song.slint:132
-msgctxt "TitleBar"
+#: ui/song_list.slint:101
+msgctxt "SortBar"
 msgid "Duration"
 msgstr "时长"

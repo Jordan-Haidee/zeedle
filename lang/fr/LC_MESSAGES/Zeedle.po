@@ -2,14 +2,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2025-09-28 15:04+0000\n"
-"PO-Revision-Date: 2025-09-28 23:59+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: German <LL@li.org>\n"
+"Language-Team: French <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: de\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: ui/app.slint:96
 msgctxt "Sidebar"
@@ -19,74 +19,74 @@ msgstr "Galerie"
 #: ui/app.slint:282
 msgctxt "Sidebar"
 msgid "Lyrics"
-msgstr "Songtext"
+msgstr "Paroles"
 
 #: ui/app.slint:320
 msgctxt "LyricsPanel"
 msgid "Artist: {}"
-msgstr "Künstler: {}"
+msgstr "Artiste: {}"
 
 #: ui/app.slint:330
 msgctxt "LyricsPanel"
 msgid "Title: {}"
-msgstr "Titel: {}"
+msgstr "Titre: {}"
 
 #: ui/app.slint:353
 msgctxt "Sidebar"
 msgid "Settings"
-msgstr "Einstellungen"
+msgstr "Paramètres"
 
 #: ui/settings_panel.slint:99
 msgctxt "SettingsPanel"
 msgid "Playback"
-msgstr "Wiedergabe"
+msgstr "Lecture"
 
 #: ui/settings_panel.slint:108
 msgctxt "SettingsPanel"
 msgid "Music directory"
-msgstr "Musikordner"
+msgstr "Dossier de musique"
 
 #: ui/settings_panel.slint:120
 msgctxt "SettingsPanel"
 msgid "Spectrum display"
-msgstr "Spektrumanzeige"
+msgstr "Affichage du spectre"
 
 #: ui/settings_panel.slint:131
 msgctxt "SettingsPanel"
 msgid "Appearance"
-msgstr "Aussehen"
+msgstr "Apparence"
 
 #: ui/settings_panel.slint:148
 msgctxt "SettingsPanel"
 msgid "Follow system theme"
-msgstr "Systemdesign folgen"
+msgstr "Thème système"
 
 #: ui/settings_panel.slint:156
 msgctxt "SettingsPanel"
 msgid "Language"
-msgstr "Sprache"
+msgstr "Langue"
 
 #: ui/settings_panel.slint:?line
 msgctxt "SettingsPanel"
 msgid "Browse..."
-msgstr "Durchsuchen..."
+msgstr "Parcourir..."
 
 #: ui/app.slint:430
 msgctxt "Sidebar"
 msgid "About"
-msgstr "Über"
+msgstr "À propos"
 
-#: ui/song.slint:104
-msgctxt "TitleBar"
+#: ui/song_list.slint:81
+msgctxt "SortBar"
 msgid "Title"
-msgstr "Titel"
+msgstr "Titre"
 
-#: ui/song.slint:117
-msgctxt "TitleBar"
+#: ui/song_list.slint:91
+msgctxt "SortBar"
 msgid "Artist"
-msgstr "Künstler"
+msgstr "Artiste"
 
-#: ui/song.slint:132
-msgctxt "TitleBar"
+#: ui/song_list.slint:101
+msgctxt "SortBar"
 msgid "Duration"
-msgstr "Dauer"
+msgstr "Durée"

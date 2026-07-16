@@ -77,18 +77,18 @@ msgctxt "Sidebar"
 msgid "About"
 msgstr ""
 
-#: ui/song.slint:104
-msgctxt "TitleBar"
+#: ui/song_list.slint:81
+msgctxt "SortBar"
 msgid "Title"
 msgstr ""
 
-#: ui/song.slint:117
-msgctxt "TitleBar"
+#: ui/song_list.slint:91
+msgctxt "SortBar"
 msgid "Artist"
 msgstr ""
 
-#: ui/song.slint:132
-msgctxt "TitleBar"
+#: ui/song_list.slint:101
+msgctxt "SortBar"
 msgid "Duration"
 msgstr ""
 
