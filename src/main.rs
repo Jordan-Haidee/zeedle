@@ -28,7 +28,8 @@ use spectrum::{
     SPECTRUM_UPDATE_MS, SpectrumChunk, TapSource, default_spectrum, try_start_spectrum_worker,
 };
 fn is_system_light() -> bool {
-    matches!(dark_light::detect(), dark_light::Mode::Light)
+    // ponytail: Err -> dark (safe default)
+    matches!(dark_light::detect(), Ok(dark_light::Mode::Light))
 }
 
 mod utils;

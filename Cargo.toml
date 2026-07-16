@@ -6,7 +6,7 @@ authors = ["Jordan Haidee"]
 description = "Music at the speed of a blink, designed for pure simplicity\nBuilt by Rodio and Slint UI"
 
 [dependencies]
-dark-light = "1"
+dark-light = "2"
 chrono = "0.4.42"
 env_logger = "0.11.8"
 home = "0.5.11"
