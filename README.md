@@ -44,7 +44,7 @@ Tested in Ubuntu 24.04 LTS:
 Then the built installer can be found in `target/release`.
 
 ## Config
-Input your music directory path, and **Enter**:
+Select your music directory:
 ![p3](assets/p3.png)
 
 ## Enjoy
