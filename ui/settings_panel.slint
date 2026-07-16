@@ -25,7 +25,7 @@ component SettingsCheckBox inherits Rectangle {
             height: 18px;
             y: (parent.height - self.height) / 2;
             border-width: 1px;
-            border-color: root.checked ? Palette.accent-background : Palette.foreground.darker(0.55);
+            border-color: root.checked ? Palette.accent-background : Palette.foreground.with-alpha(0.3);
             background: root.checked ? Palette.accent-background : transparent;
             border-radius: 3px;
             animate background { duration: 120ms; }
@@ -88,7 +88,7 @@ export component SettingsPanel inherits Rectangle {
                 background: Palette.control-background.darker(0.035);
                 border-radius: 8px;
                 border-width: 1px;
-                border-color: Palette.foreground.darker(0.72);
+                border-color: Palette.foreground.with-alpha(0.15);
 
                 VerticalLayout {
                     padding: 16px;
@@ -98,13 +98,13 @@ export component SettingsPanel inherits Rectangle {
                         text: @tr("Playback");
                         font-size: 12px;
                         font-weight: 600;
-                        color: Palette.foreground.darker(0.25);
+                        color: Palette.foreground.with-alpha(0.55);
                         letter-spacing: 0.3px;
                     }
 
                     Rectangle {
                         height: 1px;
-                        background: Palette.foreground.darker(0.8);
+                        background: Palette.foreground.with-alpha(0.1);
                     }
 
                     // Music directory
@@ -113,7 +113,7 @@ export component SettingsPanel inherits Rectangle {
                         Text {
                             text: @tr("Music directory");
                             font-size: 13px;
-                            color: Palette.foreground.darker(0.2);
+                            color: Palette.foreground.with-alpha(0.65);
                         }
 
                         HorizontalLayout {
@@ -121,7 +121,7 @@ export component SettingsPanel inherits Rectangle {
                             Rectangle {
                                 border-radius: 4px;
                                 border-width: 1px;
-                                border-color: Palette.foreground.darker(0.72);
+                                border-color: Palette.foreground.with-alpha(0.15);
                                 background: Palette.control-background.darker(0.06);
                                 horizontal-stretch: 1;
                                 clip: true;
@@ -130,7 +130,7 @@ export component SettingsPanel inherits Rectangle {
                                     width: parent.width - 24px;
                                     height: 100%;
                                     text: root.song_dir;
-                                    color: Palette.foreground.darker(0.15);
+                                    color: Palette.foreground.with-alpha(0.7);
                                     font-size: 13px;
                                     vertical-alignment: center;
                                     overflow: elide;
@@ -183,7 +183,7 @@ export component SettingsPanel inherits Rectangle {
                 background: Palette.control-background.darker(0.035);
                 border-radius: 8px;
                 border-width: 1px;
-                border-color: Palette.foreground.darker(0.72);
+                border-color: Palette.foreground.with-alpha(0.15);
 
                 VerticalLayout {
                     padding: 16px;
@@ -193,13 +193,13 @@ export component SettingsPanel inherits Rectangle {
                         text: @tr("Appearance");
                         font-size: 12px;
                         font-weight: 600;
-                        color: Palette.foreground.darker(0.25);
+                        color: Palette.foreground.with-alpha(0.55);
                         letter-spacing: 0.3px;
                     }
 
                     Rectangle {
                         height: 1px;
-                        background: Palette.foreground.darker(0.8);
+                        background: Palette.foreground.with-alpha(0.1);
                     }
 
                     // Follow system theme
@@ -217,7 +217,7 @@ export component SettingsPanel inherits Rectangle {
                         Text {
                             text: @tr("Language");
                             font-size: 13px;
-                            color: Palette.foreground.darker(0.2);
+                            color: Palette.foreground.with-alpha(0.65);
                         }
 
                         ComboBox {
