@@ -166,6 +166,7 @@ export component SongListView inherits Rectangle {
     in property <SongInfo> current-song;
     callback sort-songs(SortKey, bool);
     callback play-song(SongInfo, TriggerSource);
+    background: Theme.surface;
     VerticalLayout {
         width: 100%;
         height: 100%;
