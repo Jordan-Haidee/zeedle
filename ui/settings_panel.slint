@@ -2,9 +2,36 @@ import { Theme } from "theme.slint";
 import {
     Button,
     CheckBox,
-    ComboBox,
     Palette,
 } from "std-widgets.slint";
+
+component LangButton inherits Rectangle {
+    in property <string> lang-code;
+    in property <string> current-lang;
+    in property <string> text;
+    callback clicked(string);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: lang-code == current-lang ? Theme.accent : Theme.border;
+    background: lang-code == current-lang ? Theme.accent : Theme.hover;
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        alignment: center;
+        Text {
+            text: root.text;
+            color: lang-code == current-lang ? Theme.surface : Theme.text;
+            font-size: 13px;
+        }
+    }
+
+    TouchArea {
+        clicked => { root.clicked(lang-code); }
+    }
+}
 
 export component SettingsPanel inherits Rectangle {
     in-out property <string> song_dir;
@@ -145,11 +172,18 @@ export component SettingsPanel inherits Rectangle {
                             color: Theme.text-secondary;
                         }
 
-                        ComboBox {
-                            current-value <=> root.lang;
-                            model: ["", "zh_CN", "es", "fr", "de", "ru"];
-                            selected(current-value) => {
-                                root.set_lang(current-value);
+                        HorizontalLayout {
+                            spacing: 8px;
+                            for lc[i] in ["", "zh_CN", "es", "fr", "de", "ru"]: LangButton {
+                                lang-code: lc;
+                                current-lang: root.lang;
+                                text: lc == "" ? "English" :
+                                    lc == "zh_CN" ? "中文" :
+                                    lc == "es" ? "Español" :
+                                    lc == "fr" ? "Français" :
+                                    lc == "de" ? "Deutsch" :
+                                    "Русский";
+                                clicked(code) => { root.lang = code; root.set_lang(code); }
                             }
                         }
                     }
