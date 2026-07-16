@@ -1,7 +1,7 @@
 import {
+    Button,
     CheckBox,
     ComboBox,
-    LineEdit,
     Palette,
 } from "std-widgets.slint";
 
@@ -82,31 +82,10 @@ export component SettingsPanel inherits Rectangle {
                                 }
                             }
 
-                            Rectangle {
-                                height: 32px;
-                                min-width: 100px;
-                                border-radius: 4px;
-                                background: btn-touch.has-hover ? Palette.accent-background.darker(0.08) : Palette.accent-background;
-                                animate background { duration: 100ms; }
-                                HorizontalLayout {
-                                    padding-left: 16px;
-                                    padding-right: 16px;
-                                    spacing: 6px;
-                                    alignment: center;
-                                    Text {
-                                        text: @tr("Browse...");
-                                        color: Palette.accent-foreground;
-                                        font-size: 13px;
-                                        font-weight: 500;
-                                        vertical-alignment: center;
-                                    }
-                                }
-
-                                btn-touch := TouchArea {
-                                    mouse-cursor: pointer;
-                                    clicked => {
-                                        root.select_song_dir();
-                                    }
+                            Button {
+                                text: @tr("Browse...");
+                                clicked => {
+                                    root.select_song_dir();
                                 }
                             }
                         }

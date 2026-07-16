@@ -2,47 +2,18 @@ import { ListView, Palette } from "std-widgets.slint";
 import { TriggerSource, SongInfo, SortKey } from "types.slint";
 
 component SortIcon inherits Rectangle {
-    in-out property <bool> ascending:true;
-    in-out property <bool> display:true;
+    in-out property <bool> ascending: true;
+    in-out property <bool> display: true;
     height: 15px;
     width: 15px;
     background: transparent;
     if !ascending && display: Path {
-        MoveTo {
-            x: 5;
-            y: 1;
-        }
-
-        LineTo {
-            x: 5;
-            y: 9;
-        }
-
-        LineTo {
-            x: 7;
-            y: 7;
-        }
-
+        commands: "M 5 1 L 5 9 L 7 7";
         stroke: Palette.foreground.darker(0.5);
         stroke-width: 1px;
     }
-    if ascending && display:
-        Path {
-        MoveTo {
-            x: 5;
-            y: 9;
-        }
-
-        LineTo {
-            x: 5;
-            y: 1;
-        }
-
-        LineTo {
-            x: 3;
-            y: 3;
-        }
-
+    if ascending && display: Path {
+        commands: "M 5 9 L 5 1 L 3 3";
         stroke: Palette.foreground.darker(0.5);
         stroke-width: 1px;
     }
@@ -96,7 +67,7 @@ component SortColumn inherits Rectangle {
     }
 }
 
-export component TitleBar inherits Rectangle {
+component SortBar inherits Rectangle {
     height: 30px;
     in-out property <SortKey> key;
     in-out property <bool> ascending;
@@ -142,7 +113,6 @@ export component SongItem inherits Rectangle {
     in property <SongInfo> info:{ id:0, song_name:"xxx", singer:"xxx", duration:"xxx", song_path:"xxx" };
     in property <bool> playing:false;
     callback double_clicked();
-    border-radius: 4px;
     background: playing ? Palette.control-background.darker(0.08) : (area.has-hover ? Palette.control-background : Palette.background);
     VerticalLayout {
         area := TouchArea {
@@ -198,7 +168,7 @@ export component SongListView inherits Rectangle {
     VerticalLayout {
         width: 100%;
         height: 100%;
-        TitleBar {
+        SortBar {
             ascending: root.ascending;
             key: root.sort-key;
             sort-items(key, ascending) => {

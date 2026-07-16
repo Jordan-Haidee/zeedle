@@ -128,8 +128,18 @@ export component PlayPauseButton inherits Rectangle {
     }
 }
 
-export component InOrderButton inherits Rectangle {
+export component PlayModeButton inherits Rectangle {
     in-out property <bool> selected;
+    in-out property <bool> recursive: false;
+    callback clicked();
+    TouchArea {
+        width: 100%;
+        height: 100%;
+        clicked => {
+            root.clicked();
+        }
+    }
+
     Path {
         MoveTo {
             x: 90;
@@ -164,41 +174,8 @@ export component InOrderButton inherits Rectangle {
         stroke-width: 1px;
         stroke: selected ? Palette.accent-background : Palette.foreground;
     }
-}
 
-export component RecursiveButton inherits Rectangle {
-    in-out property <bool> selected;
-    Path {
-        MoveTo {
-            x: 90;
-            y: 50;
-        }
-
-        ArcTo {
-            x: 50;
-            y: 10;
-            radius-x: 40;
-            radius-y: 40;
-            x-rotation: 0;
-            large-arc: true;
-            sweep: true;
-        }
-
-        LineTo {
-            x: 40;
-            y: 4;
-        }
-
-        MoveTo {
-            x: 50;
-            y: 10;
-        }
-
-        LineTo {
-            x: 42;
-            y: 18;
-        }
-
+    if root.recursive: Path {
         MoveTo {
             x: 50;
             y: 40;
@@ -228,21 +205,13 @@ export component RecursiveButton inherits Rectangle {
 export component OverlapButton inherits Rectangle {
     in-out property <PlayMode> mode;
     callback clicked();
-    TouchArea {
+    PlayModeButton {
         width: 100%;
         height: 100%;
+        recursive: mode == PlayMode.Recursive;
+        selected: mode == PlayMode.Recursive || mode == PlayMode.InOrder;
         clicked => {
             root.clicked();
-        }
-        if mode == PlayMode.Recursive: RecursiveButton {
-            width: 100%;
-            height: 100%;
-            selected: mode == PlayMode.Recursive || mode == PlayMode.InOrder;
-        }
-        if mode != PlayMode.Recursive: InOrderButton {
-            width: 100%;
-            height: 100%;
-            selected: mode == PlayMode.Recursive || mode == PlayMode.InOrder;
         }
     }
 }
