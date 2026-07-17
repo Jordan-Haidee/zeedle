@@ -21,7 +21,6 @@ rodio = "0.22.2"
 rustfft = "6.2.0"
 serde = { version = "1.0.223", features = ["derive"] }
 single-instance = "0.3.3"
-symphonia = "0.5"
 slint = { version = "=1.17.1", default-features = false, features = [
     "backend-winit",
     "renderer-skia",
@@ -37,7 +36,6 @@ slint-build = { version = "=1.17.1" }
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1.17"
-
 
 [profile.release]
 lto = true
