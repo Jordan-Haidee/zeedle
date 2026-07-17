@@ -1,8 +1,10 @@
-use std::path::Path;
+use std::{fs::File, io::BufReader, path::Path};
 
 use lofty::{
+    error::LoftyError,
     file::{AudioFile, TaggedFileExt},
     picture::PictureType,
+    probe::Probe,
     tag::{Accessor, ItemKey},
 };
 use pinyin::ToPinyin;
@@ -14,31 +16,52 @@ use slint::{SharedString, ToSharedString};
 
 use crate::slint_types::{LyricItem, SongInfo, SortKey};
 
-/// Read meta info from audio file `fp`, return a SongInfo
-pub fn read_meta_info(path: impl AsRef<Path>) -> Option<SongInfo> {
-    let path = path.as_ref();
-    if let Ok(tagged) = lofty::read_from_path(path) {
-        let dura = tagged.properties().duration().as_secs_f32();
-        if let Some(tag) = tagged.primary_tag() {
-            let song_name = tag.title();
-            let song_name = song_name
-                .as_deref()
-                .unwrap_or(path.file_stem().and_then(|x| x.to_str()).unwrap_or("unknown"));
-            let singer_name = tag.artist();
-            let singer_name = singer_name.as_deref().unwrap_or("unknown");
+/// Open an audio file and detect its type, returning a configured [`Probe`] ready to read.
+fn open_audio_probe(path: &Path) -> Result<Probe<BufReader<File>>, LoftyError> {
+    Probe::open(path)?.guess_file_type().map_err(|e| e.into())
+}
 
-            let item = SongInfo {
-                id: 0,
-                song_path: path.display().to_shared_string(),
-                song_name: song_name.into(),
-                singer: singer_name.into(),
-                duration: format!("{:02}:{:02}", (dura as u32) / 60, (dura as u32) % 60)
-                    .to_shared_string(),
-            };
-            return Some(item);
+/// Read meta info from audio file `fp`, return a SongInfo
+pub fn read_meta_info(path: impl AsRef<Path>) -> Result<SongInfo, LoftyError> {
+    let path = path.as_ref();
+
+    let probe = open_audio_probe(path)?;
+    match probe.read() {
+        Ok(tagged) => {
+            let file_stem = path.file_stem().and_then(|x| x.to_str()).unwrap_or("unknown");
+            let dura = tagged.properties().duration().as_secs_f32();
+            let dura_str =
+                format!("{:02}:{:02}", (dura as u32) / 60, (dura as u32) % 60).to_shared_string();
+            match tagged.primary_tag() {
+                Some(tag) => {
+                    let song_name = tag.title();
+                    let song_name = song_name.as_deref().unwrap_or(file_stem);
+                    let singer_name = tag.artist();
+                    let singer_name = singer_name.as_deref().unwrap_or("unknown");
+
+                    let item = SongInfo {
+                        id: 0,
+                        song_path: path.display().to_shared_string(),
+                        song_name: song_name.into(),
+                        singer: singer_name.into(),
+                        duration: dura_str,
+                    };
+                    Ok(item)
+                }
+                None => {
+                    let item = SongInfo {
+                        id: 0,
+                        song_path: path.display().to_shared_string(),
+                        song_name: file_stem.into(),
+                        singer: "unknown".into(),
+                        duration: dura_str,
+                    };
+                    Ok(item)
+                }
+            }
         }
+        Err(e) => Err(e),
     }
-    None
 }
 
 /// Scan songs in Path `p` and return a list of SongInfo
@@ -65,8 +88,17 @@ pub fn read_song_list(
         .collect::<Vec<_>>();
     let mut songs = entries
         .into_par_iter()
-        .map(|entry| read_meta_info(entry.path()))
-        .flatten()
+        .map(|entry| entry.path())
+        .map(|entry| (read_meta_info(&entry), entry))
+        .filter_map(|(r, p)| {
+            r.map_or_else(
+                |e| {
+                    log::warn!("error when reading meta info from {} : {}", p.display(), e);
+                    None
+                },
+                Some,
+            )
+        })
         .collect::<Vec<_>>();
     match sort_key {
         SortKey::BySongName => {
@@ -106,9 +138,24 @@ pub fn read_song_list(
 /// Read lyrics from audio file `p`, return a list of LyricItem
 pub fn read_lyrics(path: impl AsRef<Path>) -> Vec<LyricItem> {
     let path = path.as_ref();
-    if let Ok(tagged) = lofty::read_from_path(path)
+
+    let probe = match Probe::open(path) {
+        Ok(p) => p,
+        Err(e) => {
+            log::warn!("{}: failed to open file ({})", path.display(), e);
+            return vec![];
+        }
+    };
+    let probe = match probe.guess_file_type() {
+        Ok(p) => p,
+        Err(e) => {
+            log::warn!("{}: failed to detect file type ({})", path.display(), e);
+            return vec![];
+        }
+    };
+    if let Ok(tagged) = probe.read()
         && let Some(tag) = tagged.primary_tag()
-        && let Some(lyric_item) = tag.get(&ItemKey::Lyrics)
+        && let Some(lyric_item) = tag.get(ItemKey::Lyrics)
     {
         let mut lyrics = lyric_item
             .value()

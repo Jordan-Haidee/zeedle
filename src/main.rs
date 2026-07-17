@@ -129,11 +129,34 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
 
     // Try saved path first, then iterate through songs as fallback
     let cur_song_info = saved_path
-        .and_then(utils::read_meta_info)
-        .or_else(|| utils::read_meta_info(song_list[0].song_path.as_str()))
+        .and_then(|p| {
+            utils::read_meta_info(p).map_or_else(
+                |e| {
+                    log::warn!("{}", e);
+                    None
+                },
+                Some,
+            )
+        })
         .or_else(|| {
-            log::warn!("first song unreadable, scanning for playable file...");
-            song_list.iter().find_map(|s| utils::read_meta_info(&s.song_path))
+            utils::read_meta_info(song_list[0].song_path.as_str()).map_or_else(
+                |e| {
+                    log::warn!("{}", e);
+                    None
+                },
+                Some,
+            )
+        })
+        .or_else(|| {
+            song_list.iter().find_map(|s| {
+                utils::read_meta_info(&s.song_path).map_or_else(
+                    |e| {
+                        log::warn!("{}", e);
+                        None
+                    },
+                    Some,
+                )
+            })
         });
 
     let mut cur_song_info = match cur_song_info {
