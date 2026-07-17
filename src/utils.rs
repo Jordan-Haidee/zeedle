@@ -13,12 +13,40 @@ use rayon::{
     slice::ParallelSliceMut,
 };
 use slint::{SharedString, ToSharedString};
+use symphonia::core::{
+    formats::FormatOptions, io::MediaSourceStream, meta::MetadataOptions, probe::Hint,
+};
 
 use crate::slint_types::{LyricItem, SongInfo, SortKey};
 
 /// Open an audio file and detect its type, returning a configured [`Probe`] ready to read.
 fn open_audio_probe(path: &Path) -> Result<Probe<BufReader<File>>, LoftyError> {
     Probe::open(path)?.guess_file_type().map_err(|e| e.into())
+}
+
+/// Fallback: get audio duration using Symphonia when Lofty can't parse tags.
+/// Symphonia is already a transitive dependency via rodio — no new compiled code.
+fn symphonia_duration(path: &Path) -> Option<f32> {
+    let file = File::open(path).ok()?;
+    let mss = MediaSourceStream::new(Box::new(file), Default::default());
+
+    let mut hint = Hint::new();
+    if let Some(ext) = path.extension().and_then(|s| s.to_str()) {
+        hint.with_extension(ext);
+    }
+
+    let probed = symphonia::default::get_probe()
+        .format(&hint, mss, &FormatOptions::default(), &MetadataOptions::default())
+        .ok()?;
+
+    for track in probed.format.tracks() {
+        let params = &track.codec_params;
+        if let (Some(n_frames), Some(time_base)) = (params.n_frames, params.time_base) {
+            // ponytail: whole seconds is enough for MM:SS display
+            return Some(time_base.calc_time(n_frames).seconds as f32);
+        }
+    }
+    None
 }
 
 /// Read meta info from audio file `fp`, return a SongInfo
@@ -60,7 +88,23 @@ pub fn read_meta_info(path: impl AsRef<Path>) -> Result<SongInfo, LoftyError> {
                 }
             }
         }
-        Err(e) => Err(e),
+        Err(e) => {
+            // Lofty failed (likely corrupt/no tags). Fall back to Symphonia for duration.
+            if let Some(dur) = symphonia_duration(path) {
+                let file_stem = path.file_stem().and_then(|x| x.to_str()).unwrap_or("unknown");
+                let dura_str = format!("{:02}:{:02}", (dur as u32) / 60, (dur as u32) % 60,)
+                    .to_shared_string();
+                Ok(SongInfo {
+                    id: 0,
+                    song_path: path.display().to_shared_string(),
+                    song_name: file_stem.into(),
+                    singer: "unknown".into(),
+                    duration: dura_str,
+                })
+            } else {
+                Err(e)
+            }
+        }
     }
 }
 
