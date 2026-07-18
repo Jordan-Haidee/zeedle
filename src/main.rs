@@ -713,12 +713,21 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
             ui.window().set_minimized(true);
         }
     });
+
+    // Position cache for fallback drag — defined before maximize
+    // so the handler can reset it when window state changes.
+    let init_pos = Rc::new(Cell::new(None::<(i32, i32)>));
+
     let ui_weak = ui.as_weak();
+    let init_pos_max = init_pos.clone();
     ui.on_window_maximize(move || {
         if let Some(ui) = ui_weak.upgrade() {
             let window = ui.window();
             window.set_maximized(!window.is_maximized());
         }
+        // Reset position cache — window position changed, so the
+        // cached fallback origin from a previous gesture is stale.
+        init_pos_max.set(None);
     });
     let ui_weak = ui.as_weak();
     ui.on_window_close(move || {
@@ -730,12 +739,6 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
     });
 
     // Window dragging — use native OS move via winit's drag_window()
-    // On each drag_delta event, try drag_window().
-    // - First call of a gesture: OS takes over window movement.
-    // - Subsequent calls during same OS drag: return error (safe to ignore).
-    // - Next gesture's first call: succeeds again.
-    // Falls back to manual set_position() when native is unavailable.
-    let init_pos = Rc::new(Cell::new(None::<(i32, i32)>));
     let ui_weak = ui.as_weak();
     ui.on_window_drag_delta(move |dx: f32, dy: f32| {
         if let Some(app) = ui_weak.upgrade() {
