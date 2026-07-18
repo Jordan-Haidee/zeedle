@@ -155,7 +155,8 @@ pub fn read_lyrics(path: impl AsRef<Path>) -> Vec<LyricItem> {
     };
     if let Ok(tagged) = probe.read()
         && let Some(tag) = tagged.primary_tag()
-        && let Some(lyric_item) = tag.get(ItemKey::Lyrics)
+        && let Some(lyric_item) =
+            tag.get(ItemKey::UnsyncLyrics).or_else(|| tag.get(ItemKey::Lyrics))
     {
         let mut lyrics = lyric_item
             .value()
