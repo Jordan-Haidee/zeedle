@@ -23,38 +23,46 @@ export {
     TriggerSource,
 }
 
-// ui state
-export global UIState {
+// === Group 1: Audio playback engine state ===
+export global PlaybackGlobal {
     in-out property <float> progress;
     in-out property <float> duration;
     in-out property <bool> paused;
     in-out property <bool> dragging;
-    in-out property <[SongInfo]> song_list;
-    in-out property <SongInfo> current_song;
     in-out property <PlayMode> play_mode;
-    in-out property <bool> user_listening;
+    in property <bool> user_listening;
+    in-out property <float> volume;
+    in-out property <[float]> spectrum;
+    in-out property <bool> show_spectrum: true;
+}
+
+// === Group 2: Now-playing song display data ===
+export global NowPlayingGlobal {
+    in-out property <SongInfo> current_song;
     in-out property <[LyricItem]> lyrics;
     in property <length> lyric_viewport_y;
     in-out property <length> lyric_line_height: 40px;
-    in-out property <string> song_dir;
-    in property <string> about_info;
     in property <image> album_image;
     in property <[SongInfo]> play_history;
     in property <int> history_index: 0;
+}
+
+// === Group 3: User settings & persistent config ===
+export global SettingsGlobal {
+    in-out property <string> song_dir;
+    in property <string> about_info;
     in-out property <SortKey> sort_key;
     in-out property <SortKey> last_sort_key;
     in-out property <bool> sort_ascending: true;
     in-out property <string> lang;
     in-out property <bool> light_ui;
     in-out property <bool> follow_system_theme;
-    in property <float> volume;
-    in-out property <[float]> spectrum;
-    in-out property <bool> show_spectrum: true;
+    in-out property <[SongInfo]> song_list;
     in-out property <string> app-font-family;
 }
 
 export component MainWindow inherits Window {
-    default-font-family <=> UIState.app-font-family;
+    default-font-family <=> SettingsGlobal.app-font-family;
     default-font-size: 14px;
     preferred-width: 850px;
     preferred-height: 500px;
@@ -87,7 +95,7 @@ export component MainWindow inherits Window {
     in-out property <int> current_page: 0;
     in-out property <bool> sidebar_expanded: false;
     public function set_light_theme(yes: bool) {
-        UIState.light_ui = yes;
+        SettingsGlobal.light_ui = yes;
         Theme.is-dark = !yes;
         if (yes) {
             Palette.color-scheme = ColorScheme.light;
@@ -108,14 +116,14 @@ export component MainWindow inherits Window {
         title-bar := TitleBar {
             y: 0;
             width: 100%;
-            is_light_theme <=> UIState.light_ui;
-            theme_toggle_enabled: !UIState.follow_system_theme;
+            is_light_theme <=> SettingsGlobal.light_ui;
+            theme_toggle_enabled: !SettingsGlobal.follow_system_theme;
             close => { root.window_close(); }
             minimize => { root.window_minimize(); }
             maximize => { root.window_maximize(); }
             toggle_theme => {
-                UIState.follow_system_theme = false;
-                root.set_light_theme(!UIState.light_ui);
+                SettingsGlobal.follow_system_theme = false;
+                root.set_light_theme(!SettingsGlobal.light_ui);
             }
             drag_delta(dx, dy) => {
                 root.window_drag_delta(dx, dy);
@@ -148,12 +156,12 @@ export component MainWindow inherits Window {
                     width: 100%;
                     height: 100%;
                     z: 5;
-                    visible: UIState.show_spectrum;
+                    visible: PlaybackGlobal.show_spectrum;
                     SpectrumView {
                         width: parent.width;
                         height: 60px;
                         y: parent.height - self.height;
-                        bins: UIState.spectrum;
+                        bins: PlaybackGlobal.spectrum;
                     }
                 }
 
@@ -161,11 +169,11 @@ export component MainWindow inherits Window {
                     width: 100%;
                     height: 100%;
                     SongListView {
-                        ascending <=> UIState.sort_ascending;
-                        sort-key <=> UIState.sort_key;
-                        last-sort-key <=> UIState.last_sort_key;
-                        song-list <=> UIState.song_list;
-                        current-song <=> UIState.current_song;
+                        ascending <=> SettingsGlobal.sort_ascending;
+                        sort-key <=> SettingsGlobal.sort_key;
+                        last-sort-key <=> SettingsGlobal.last_sort_key;
+                        song-list <=> SettingsGlobal.song_list;
+                        current-song <=> NowPlayingGlobal.current_song;
                         sort-songs(key, asc) => {
                             root.sort_song_list(key, asc);
                         }
@@ -178,14 +186,14 @@ export component MainWindow inherits Window {
                         max-height: 80px;
                         min-height: 50px;
                         preferred-height: 60px;
-                        progress <=> UIState.progress;
-                        duration <=> UIState.duration;
-                        paused <=> UIState.paused;
-                        dragging <=> UIState.dragging;
-                        play_mode <=> UIState.play_mode;
-                        current_song <=> UIState.current_song;
-                        album_image <=> UIState.album_image;
-                        volume <=> UIState.volume;
+                        progress <=> PlaybackGlobal.progress;
+                        duration <=> PlaybackGlobal.duration;
+                        paused <=> PlaybackGlobal.paused;
+                        dragging <=> PlaybackGlobal.dragging;
+                        play_mode <=> PlaybackGlobal.play_mode;
+                        current_song <=> NowPlayingGlobal.current_song;
+                        album_image <=> NowPlayingGlobal.album_image;
+                        volume <=> PlaybackGlobal.volume;
                         change-progress(p) => {
                             root.change_progress(p);
                             root.focus();
@@ -228,11 +236,11 @@ export component MainWindow inherits Window {
                     LyricsPanel {
                         width: 100%;
                         height: 100%;
-                        album_image <=> UIState.album_image;
-                        current_song <=> UIState.current_song;
-                        lyrics <=> UIState.lyrics;
-                        progress <=> UIState.progress;
-                        lyric_viewport_y <=> UIState.lyric_viewport_y;
+                        album_image <=> NowPlayingGlobal.album_image;
+                        current_song <=> NowPlayingGlobal.current_song;
+                        lyrics <=> NowPlayingGlobal.lyrics;
+                        progress <=> PlaybackGlobal.progress;
+                        lyric_viewport_y <=> NowPlayingGlobal.lyric_viewport_y;
                     }
                 }
 
@@ -249,10 +257,10 @@ export component MainWindow inherits Window {
                     SettingsPanel {
                         width: 100%;
                         height: 100%;
-                        song_dir <=> UIState.song_dir;
-                        lang <=> UIState.lang;
-                        follow_system_theme <=> UIState.follow_system_theme;
-                        show_spectrum <=> UIState.show_spectrum;
+                        song_dir <=> SettingsGlobal.song_dir;
+                        lang <=> SettingsGlobal.lang;
+                        follow_system_theme <=> SettingsGlobal.follow_system_theme;
+                        show_spectrum <=> PlaybackGlobal.show_spectrum;
                         refresh_song_list(p) => {
                             root.refresh_song_list(p);
                         }
@@ -291,7 +299,7 @@ export component MainWindow inherits Window {
                         }
 
                         Text {
-                            text: UIState.about_info;
+                            text: SettingsGlobal.about_info;
                             horizontal-alignment: center;
                         }
                     }
