@@ -7,6 +7,7 @@ import { LyricsPanel } from "lyrics_panel.slint";
 import { SongItem, SongListView } from "song_list.slint";
 import { TitleBar } from "title_bar.slint";
 import { SettingsPanel } from "settings_panel.slint";
+import { SearchPanel } from "search_panel.slint";
 import {
     PlayMode,
     LyricItem,
@@ -54,6 +55,8 @@ export global DisplayGlobal {
     in-out property <bool> light_ui;
     in-out property <bool> follow_system_theme;
     in-out property <[SongInfo]> song_list;
+    in-out property <[SongInfo]> search_results;
+    in-out property <string> search_query;
     in-out property <string> app-font-family;
 }
 
@@ -83,6 +86,7 @@ export component MainWindow inherits Window {
     callback set_show_spectrum(bool);
     callback set_follow_system_theme(bool);
     callback select_song_dir();
+    callback search_songs(string);
     pure callback format_duration(float) -> string;
     callback window_minimize();
     callback window_maximize();
@@ -300,6 +304,21 @@ export component MainWindow inherits Window {
                         }
                     }
                 }
+
+                if root.current_page == 4: SearchPanel {
+                    width: 100%;
+                    height: 100%;
+                    search-query <=> DisplayGlobal.search_query;
+                    all-songs <=> DisplayGlobal.song_list;
+                    search-results <=> DisplayGlobal.search_results;
+                    current-song <=> DisplayGlobal.current_song;
+                    search(query) => {
+                        root.search_songs(query);
+                    }
+                    play-song(info, src) => {
+                        root.play(info, src);
+                    }
+                }
             }
         }
 
@@ -326,6 +345,9 @@ export component MainWindow inherits Window {
                     return accept;
                 } else if event.text == Key.F4 {
                     root.current_page = 3;
+                    return accept;
+                } else if event.text == Key.F5 {
+                    root.current_page = 4;
                     return accept;
                 }
                 return reject;

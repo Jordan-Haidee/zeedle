@@ -259,6 +259,62 @@ fn is_chinese(c: char) -> bool {
     ('\u{4e00}'..='\u{9fff}').contains(&c)
 }
 
+/// Search songs by query text, returns results sorted by relevance.
+/// Matches against song_name and singer (case-insensitive).
+pub fn search_songs(query: &str, songs: &[SongInfo]) -> Vec<SongInfo> {
+    if query.is_empty() {
+        return Vec::new();
+    }
+    let query_lower = query.to_lowercase();
+
+    struct Scored {
+        song: SongInfo,
+        score: i32,
+    }
+
+    let mut scored: Vec<Scored> = songs
+        .iter()
+        .filter_map(|song| {
+            let name_lower = song.song_name.as_str().to_lowercase();
+            let singer_lower = song.singer.as_str().to_lowercase();
+
+            let mut score = 0i32;
+
+            // Score from song_name matching
+            if name_lower == query_lower {
+                score += 100;
+            } else if name_lower.starts_with(&query_lower) {
+                score += 80;
+            } else if name_lower.contains(&query_lower) {
+                score += 60;
+            }
+
+            // Score from singer matching
+            if singer_lower == query_lower {
+                score += 50;
+            } else if singer_lower.starts_with(&query_lower) {
+                score += 40;
+            } else if singer_lower.contains(&query_lower) {
+                score += 20;
+            }
+
+            if score > 0 {
+                Some(Scored {
+                    song: song.clone(),
+                    score,
+                })
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    // Sort by score descending
+    scored.par_sort_by_key(|s| std::cmp::Reverse(s.score));
+
+    scored.into_iter().map(|s| s.song).collect()
+}
+
 /// Get default font family for different platforms to ensure proper rendering of Chinese characters.
 pub fn get_default_font_family() -> &'static str {
     #[cfg(target_os = "windows")]

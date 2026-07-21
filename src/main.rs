@@ -666,6 +666,18 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
                 .expect("failed to send set show_spectrum command");
         });
     }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_search_songs(move |query| {
+            if let Some(ui) = ui_weak.upgrade() {
+                let display = ui.global::<DisplayGlobal>();
+                let all_songs: Vec<SongInfo> = display.get_song_list().iter().collect();
+                let results = utils::search_songs(query.as_str(), &all_songs);
+                display.set_search_results(results.as_slice().into());
+            }
+        });
+    }
+
     tx.send(PlayerCommand::SetShowSpectrum(ui.global::<PlaybackGlobal>().get_show_spectrum()))
         .expect("failed to send initial show_spectrum command");
 
