@@ -38,14 +38,18 @@ Tested in Windows 10/11:
 Tested in Ubuntu 24.04 LTS:
 
 ```shell
+# deb package
 ./packager/pack-deb.sh
+
+# or appimage package
+./packager/pack-appimage.sh
 ```
 
 Then the built installer can be found in `target/release`.
 
 ## Config
 Select your music directory:
-![p3](assets/p3.png)
+![settings](assets/p3.png)
 
 ## Enjoy
 ![p1](assets/p1.png)
@@ -53,6 +57,11 @@ Select your music directory:
 Lyrics Display:
 
 ![p1](assets/p2.png)
+
+Local search:
+
+![p4](assets/p4.png)
+
 
 ## Note
 Zeedle is also an ideal starter project for anyone new to Rust GUI development.

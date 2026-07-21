@@ -37,7 +37,11 @@
 在 Ubuntu 24.04 LTS 上测试通过：
 
 ```shell
+# deb包
 ./packager/pack-deb.sh
+
+# 或者appimage包
+./packager/pack-appimage.sh
 ```
 
 构建好的安装包可以在 `target/release` 目录中找到。
@@ -52,6 +56,12 @@
 歌词显示：
 
 ![p1](assets/p2-zh.png)
+
+本地音乐库搜索：
+
+![p4](assets/p4-zh.png)
+
+
 
 ## 备注
 Zeedle 也是 Rust GUI 初学者的理想入门项目。
