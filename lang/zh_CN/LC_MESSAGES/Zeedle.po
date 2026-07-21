@@ -72,10 +72,40 @@ msgctxt "SettingsPanel"
 msgid "Browse..."
 msgstr "浏览..."
 
+#: ui/app.slint:?line
+msgctxt "Sidebar"
+msgid "Search"
+msgstr "搜索"
+
 #: ui/app.slint:430
 msgctxt "Sidebar"
 msgid "About"
 msgstr "关于"
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "Search songs or artists..."
+msgstr "搜索歌曲或艺术家..."
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "No results found"
+msgstr "未找到结果"
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "%1 result(s) found"
+msgstr "找到 %1 个结果"
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "Type to search songs"
+msgstr "输入关键词搜索歌曲"
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "Press F5 to open search"
+msgstr "按 F5 打开搜索"
 
 #: ui/song_list.slint:81
 msgctxt "SortBar"
