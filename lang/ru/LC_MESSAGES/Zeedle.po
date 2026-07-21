@@ -71,15 +71,42 @@ msgctxt "SettingsPanel"
 msgid "Browse..."
 msgstr "Обзор..."
 
+#: ui/app.slint:?line
+msgctxt "Sidebar"
+msgid "Search"
+msgstr "Поиск"
+
 #: ui/app.slint:430
 msgctxt "Sidebar"
 msgid "About"
 msgstr "О программе"
 
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "Search songs or artists..."
+msgstr "Поиск песен или исполнителей..."
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "No results found"
+msgstr "Ничего не найдено"
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "%1 result(s) found"
+msgstr "Найдено: %1"
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "Type to search songs"
+msgstr "Введите для поиска песен"
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "Press F5 to open search"
+msgstr "Нажмите F5 для поиска"
+
 #: ui/song_list.slint:81
-msgctxt "SortBar"
-msgid "Title"
-msgstr "Название"
 
 #: ui/song_list.slint:91
 msgctxt "SortBar"

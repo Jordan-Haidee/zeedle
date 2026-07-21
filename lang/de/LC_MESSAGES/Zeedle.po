@@ -71,15 +71,42 @@ msgctxt "SettingsPanel"
 msgid "Browse..."
 msgstr "Durchsuchen..."
 
+#: ui/app.slint:?line
+msgctxt "Sidebar"
+msgid "Search"
+msgstr "Suche"
+
 #: ui/app.slint:430
 msgctxt "Sidebar"
 msgid "About"
 msgstr "Über"
 
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "Search songs or artists..."
+msgstr "Songs oder Künstler suchen..."
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "No results found"
+msgstr "Keine Ergebnisse gefunden"
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "%1 result(s) found"
+msgstr "%1 Ergebnis(se) gefunden"
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "Type to search songs"
+msgstr "Suchbegriff eingeben"
+
+#: ui/search_panel.slint:?line
+msgctxt "SearchPanel"
+msgid "Press F5 to open search"
+msgstr "Drücken Sie F5 zum Suchen"
+
 #: ui/song_list.slint:81
-msgctxt "SortBar"
-msgid "Title"
-msgstr "Titel"
 
 #: ui/song_list.slint:91
 msgctxt "SortBar"
