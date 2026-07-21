@@ -14,141 +14,169 @@ export component SearchPanel inherits Rectangle {
 
     background: Theme.surface;
 
-    VerticalLayout {
+    // Intercept global shortcuts when the search input has focus,
+    // so they don't bubble up to the parent FocusScope and trigger actions.
+    key-handler := FocusScope {
         width: 100%;
         height: 100%;
-        spacing: 0px;
+        forward-focus: search-input;
 
-        // Search bar
-        Rectangle {
-            height: 40px;
+        key-released(event) => {
+            if !search-input.has-focus {
+                return reject;
+            }
+            // Block all shortcut keys while typing
+            if event.text == Key.Space
+                || event.text == Key.RightArrow
+                || event.text == Key.LeftArrow
+                || event.text == Key.UpArrow
+                || event.text == Key.DownArrow
+                || event.text == Key.F1
+                || event.text == Key.F2
+                || event.text == Key.F3
+                || event.text == Key.F4
+                || event.text == Key.F5 {
+                return accept;
+            }
+            return reject;
+        }
+
+        VerticalLayout {
             width: 100%;
-            background: Theme.surface;
+            height: 100%;
+            spacing: 0px;
 
-            HorizontalLayout {
+            // Search bar
+        Rectangle {
+                height: 40px;
                 width: 100%;
-                height: 100%;
-                spacing: 8px;
-                padding-left: 12px;
-                padding-right: 12px;
-                padding-top: 8px;
-                padding-bottom: 8px;
+                background: Theme.surface;
 
-                search-input := LineEdit {
-                    horizontal-stretch: 1;
+                HorizontalLayout {
+                    width: 100%;
                     height: 100%;
-                    placeholder-text: @tr("Search songs or artists...");
-                    text <=> root.search-query;
-                    font-size: 13px;
+                    spacing: 8px;
+                    padding-left: 12px;
+                    padding-right: 12px;
+                    padding-top: 8px;
+                    padding-bottom: 8px;
 
-                    edited => {
-                        root.search(self.text);
+                    search-input := LineEdit {
+                        horizontal-stretch: 1;
+                        height: 100%;
+                        placeholder-text: @tr("Search songs or artists...");
+                        text <=> root.search-query;
+                        font-size: 13px;
+
+                        edited => {
+                            root.search(self.text);
+                        }
                     }
-                }
 
-                // Clear button
+                    // Clear button
                 clear-btn := Rectangle {
-                    width: 28px;
-                    height: 100%;
-                    border-radius: 4px;
-                    background: clear-touch.has-hover ? Theme.hover : transparent;
+                        width: 28px;
+                        height: 100%;
+                        border-radius: 4px;
+                        background: clear-touch.has-hover ? Theme.hover : transparent;
 
-                    Path {
-                        width: 16px;
-                        height: 16px;
-                        x: (parent.width - self.width) / 2;
-                        y: (parent.height - self.height) / 2;
-                        viewbox-width: 24;
-                        viewbox-height: 24;
-                        commands: "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
-                        fill: Theme.text-secondary;
-                    }
+                        Path {
+                            width: 16px;
+                            height: 16px;
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
+                            viewbox-width: 24;
+                            viewbox-height: 24;
+                            commands: "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
+                            fill: Theme.text-secondary;
+                        }
 
-                    clear-touch := TouchArea {
-                        mouse-cursor: pointer;
-                        clicked => {
-                            root.search-query = "";
-                            root.search("");
+                        clear-touch := TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => {
+                                root.search-query = "";
+                                root.search("");
+                            }
                         }
                     }
                 }
             }
-        }
 
-        // Divider
+            // Divider
         Rectangle {
-            height: 1px;
-            width: 100%;
-            background: Theme.divider;
-        }
-
-        // Results count label
-        Rectangle {
-            height: 26px;
-            width: 100%;
-            background: Theme.surface;
-            visible: root.search-query != "";
-
-            Text {
-                x: 12px;
-                y: (parent.height - self.height) / 2;
-                text: root.search-results.length == 0
-                    ? @tr("No results found")
-                    : @tr("%1 result(s) found", root.search-results.length);
-                color: Theme.text-tertiary;
-                font-size: 12px;
-                vertical-alignment: center;
-            }
-        }
-
-        // Results list
-        ListView {
-            horizontal-stretch: 1;
-            visible: root.search-query != "";
-
-            for item in root.search-results: SongItem {
-                info: item;
-                playing: item.song-path == root.current-song.song-path;
-                double_clicked => {
-                    root.play-song(item, TriggerSource.ClickItem);
-                }
-            }
-        }
-
-        // Empty state - show hint when no query
-        Rectangle {
-            horizontal-stretch: 1;
-            vertical-stretch: 1;
-            visible: root.search-query == "";
-
-            VerticalLayout {
+                height: 1px;
                 width: 100%;
-                height: 100%;
-                alignment: center;
-                spacing: 8px;
+                background: Theme.divider;
+            }
 
-                Path {
-                    width: 48px;
-                    height: 48px;
-                    x: (parent.width - self.width) / 2;
-                    viewbox-width: 24;
-                    viewbox-height: 24;
-                    commands: "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z";
-                    fill: Theme.text-tertiary;
-                }
+            // Results count label
+        Rectangle {
+                height: 26px;
+                width: 100%;
+                background: Theme.surface;
+                visible: root.search-query != "";
 
                 Text {
-                    text: @tr("Type to search songs");
-                    color: Theme.text-tertiary;
-                    font-size: 14px;
-                    horizontal-alignment: center;
-                }
-
-                Text {
-                    text: @tr("Press F5 to open search");
+                    x: 12px;
+                    y: (parent.height - self.height) / 2;
+                    text: root.search-results.length == 0
+                        ? @tr("No results found")
+                        : @tr("%1 result(s) found", root.search-results.length);
                     color: Theme.text-tertiary;
                     font-size: 12px;
-                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            // Results list
+        ListView {
+                horizontal-stretch: 1;
+                visible: root.search-query != "";
+
+                for item in root.search-results: SongItem {
+                    info: item;
+                    playing: item.song-path == root.current-song.song-path;
+                    double_clicked => {
+                        root.play-song(item, TriggerSource.ClickItem);
+                    }
+                }
+            }
+
+            // Empty state - show hint when no query
+        Rectangle {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+                visible: root.search-query == "";
+
+                VerticalLayout {
+                    width: 100%;
+                    height: 100%;
+                    alignment: center;
+                    spacing: 8px;
+
+                    Path {
+                        width: 48px;
+                        height: 48px;
+                        x: (parent.width - self.width) / 2;
+                        viewbox-width: 24;
+                        viewbox-height: 24;
+                        commands: "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z";
+                        fill: Theme.text-tertiary;
+                    }
+
+                    Text {
+                        text: @tr("Type to search songs");
+                        color: Theme.text-tertiary;
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                    }
+
+                    Text {
+                        text: @tr("Press F5 to open search");
+                        color: Theme.text-tertiary;
+                        font-size: 12px;
+                        horizontal-alignment: center;
+                    }
                 }
             }
         }
