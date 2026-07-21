@@ -328,30 +328,27 @@ export component MainWindow inherits Window {
                 key-released(event) => {
                     if event.text == Key.Space {
                         root.toggle_play();
-                        return accept;
                     } else if event.text == Key.RightArrow || event.text == Key.DownArrow {
                         root.play_next();
-                        return accept;
                     } else if event.text == Key.LeftArrow || event.text == Key.UpArrow {
                         root.play_prev();
-                        return accept;
                     } else if event.text == Key.F1 {
                         root.current_page = 0;
-                        return accept;
                     } else if event.text == Key.F2 {
                         root.current_page = 1;
-                        return accept;
                     } else if event.text == Key.F3 {
                         root.current_page = 2;
-                        return accept;
                     } else if event.text == Key.F4 {
                         root.current_page = 3;
-                        return accept;
                     } else if event.text == Key.F5 {
                         root.current_page = 4;
-                        return accept;
+                    } else {
+                        return reject;
                     }
-                    return reject;
+                    // Re-establish focus on this FocusScope after structural
+                    // page changes that may have invalidated the focus state.
+                    root.focus();
+                    return accept;
                 }
             }
         }
