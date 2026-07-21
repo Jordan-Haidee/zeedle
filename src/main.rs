@@ -781,6 +781,11 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
     ui.on_format_duration(|dura| {
         format!("{:02}:{:02}", (dura as u32) / 60, (dura as u32) % 60).to_shared_string()
     });
+
+    ui.on_open_url_in_browser(|url| match open::that(&url) {
+        Ok(()) => log::info!("Opened '{}' successfully.", url),
+        Err(err) => log::warn!("An error occurred when opening '{}': {}", url, err),
+    });
 }
 
 fn build_progress_timer(

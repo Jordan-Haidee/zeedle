@@ -12,7 +12,7 @@ use rayon::{
     iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator},
     slice::ParallelSliceMut,
 };
-use slint::{SharedString, ToSharedString};
+use slint::{StyledText, ToSharedString};
 
 use crate::slint_types::{LyricItem, SongInfo, SortKey};
 
@@ -214,15 +214,16 @@ pub fn get_default_album_cover() -> slint::Image {
 }
 
 /// Get about info string
-pub fn get_about_info() -> SharedString {
-    format!(
-        "{}\n{}\nAuthor: {}\nVersion: {}",
+pub fn get_about_info() -> StyledText {
+    let s = format!(
+        "{}\n{}\nAuthor: {}\nVersion: {}\n[Github]({})",
         env!("CARGO_PKG_NAME"),
         env!("CARGO_PKG_DESCRIPTION"),
         env!("CARGO_PKG_AUTHORS"),
-        env!("CARGO_PKG_VERSION")
-    )
-    .into()
+        env!("CARGO_PKG_VERSION"),
+        env!("CARGO_PKG_REPOSITORY"),
+    );
+    slint::StyledText::from_markdown(&s).unwrap()
 }
 
 /// obtain sort key

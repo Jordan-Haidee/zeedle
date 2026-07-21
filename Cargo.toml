@@ -3,7 +3,8 @@ name = "Zeedle"
 version = "0.4.1"
 edition = "2024"
 authors = ["Jordan Haidee"]
-description = "Music at the speed of a blink, designed for pure simplicity\nBuilt by Rodio and Slint UI"
+description = "Music at the speed of a blink, designed for pure simplicity\nBuilt by [Rodio](https://github.com/RustAudio/rodio) and [Slint UI](https://slint.dev)"
+repository = "https://github.com/Jordan-Haidee/Zeedle"
 
 [dependencies]
 dark-light = "2"
@@ -30,6 +31,7 @@ slint = { version = "=1.17.1", default-features = false, features = [
     "unstable-winit-030",
 ] }
 toml = "0.9.5"
+open = "5.4.0"
 
 [build-dependencies]
 slint-build = { version = "=1.17.1" }

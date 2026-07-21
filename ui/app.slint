@@ -47,7 +47,7 @@ export global DisplayGlobal {
     in property <[SongInfo]> play_history;
     in property <int> history_index: 0;
     in-out property <string> song_dir;
-    in property <string> about_info;
+    in property <styled-text> about_info;
     in-out property <SortKey> sort_key;
     in-out property <SortKey> last_sort_key;
     in-out property <bool> sort_ascending: true;
@@ -92,6 +92,7 @@ export component MainWindow inherits Window {
     callback window_maximize();
     callback window_close();
     callback window_drag_delta(float, float);
+    pure callback open_url_in_browser(string);
     in-out property <int> current_page: 0;
     in-out property <bool> sidebar_expanded: false;
     public function set_light_theme(yes: bool) {
@@ -317,9 +318,11 @@ export component MainWindow inherits Window {
                                 }
                             }
 
-                            Text {
+                            StyledText {
                                 text: DisplayGlobal.about_info;
+                                link-color: Theme.accent;
                                 horizontal-alignment: center;
+                                link-clicked(link) => { open_url_in_browser(link) }
                             }
                         }
                     }
