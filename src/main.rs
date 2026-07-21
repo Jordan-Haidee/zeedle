@@ -52,14 +52,14 @@ enum PlayerCommand {
 /// Apply config values that don't depend on a current song.
 /// Used for both empty-list startup and normal startup.
 fn apply_config_to_ui(ui: &MainWindow, cfg: &Config) {
-    let settings = ui.global::<SettingsGlobal>();
-    settings.set_sort_key(cfg.sort_key);
-    settings.set_sort_ascending(cfg.sort_ascending);
-    settings.set_last_sort_key(cfg.sort_key);
-    settings.set_lang(cfg.lang.clone().into());
-    settings.set_song_dir(cfg.song_dir.to_str().expect("failed to convert Path to String").into());
-    settings.set_about_info(utils::get_about_info());
-    settings.set_follow_system_theme(cfg.follow_system_theme);
+    let display = ui.global::<DisplayGlobal>();
+    display.set_sort_key(cfg.sort_key);
+    display.set_sort_ascending(cfg.sort_ascending);
+    display.set_last_sort_key(cfg.sort_key);
+    display.set_lang(cfg.lang.clone().into());
+    display.set_song_dir(cfg.song_dir.to_str().expect("failed to convert Path to String").into());
+    display.set_about_info(utils::get_about_info());
+    display.set_follow_system_theme(cfg.follow_system_theme);
 
     let playback = ui.global::<PlaybackGlobal>();
     playback.set_paused(true);
@@ -96,30 +96,28 @@ fn clear_song_state(ui: &MainWindow) {
     playback.set_dragging(false);
     playback.set_user_listening(false);
 
-    let now_playing = ui.global::<NowPlayingGlobal>();
-    now_playing.set_album_image(
+    let display = ui.global::<DisplayGlobal>();
+    display.set_album_image(
         slint::Image::load_from_svg_data(include_bytes!("../ui/cover.svg"))
             .expect("failed to load default image"),
     );
-    now_playing.set_current_song(SongInfo {
+    display.set_current_song(SongInfo {
         id: -1,
         song_path: "".into(),
         song_name: "No song".into(),
         singer: "unknown".into(),
         duration: "00:00".into(),
     });
-    now_playing.set_lyrics(Vec::new().as_slice().into());
-    now_playing.set_lyric_viewport_y(0.);
-
-    let settings = ui.global::<SettingsGlobal>();
-    settings.set_song_list(Vec::new().as_slice().into());
+    display.set_lyrics(Vec::new().as_slice().into());
+    display.set_lyric_viewport_y(0.);
+    display.set_song_list(Vec::new().as_slice().into());
 }
 
 /// Set UI state according to saved config
 fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f32, bool)> {
-    let settings = ui.global::<SettingsGlobal>();
+    let display = ui.global::<DisplayGlobal>();
     let app_font = utils::get_default_font_family();
-    settings.set_app_font_family(app_font.into());
+    display.set_app_font_family(app_font.into());
     let song_list = utils::read_song_list(&cfg.song_dir, cfg.sort_key, cfg.sort_ascending);
     if song_list.is_empty() {
         log::warn!("song list is empty in directory: {:?}, keeping saved config ...", cfg.song_dir);
@@ -131,9 +129,8 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
 
     let playback = ui.global::<PlaybackGlobal>();
     playback.set_progress(cfg.progress);
-    let now_playing = ui.global::<NowPlayingGlobal>();
 
-    settings.set_song_list(song_list.as_slice().into());
+    display.set_song_list(song_list.as_slice().into());
     // Use saved song path if valid, otherwise fall back to first song in list
     let saved_path =
         cfg.current_song_path.as_ref().filter(|p| !p.as_os_str().is_empty() && p.exists());
@@ -192,7 +189,7 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
         .reduce(|acc, x| acc + x * 60.)
         .unwrap_or(0.);
     playback.set_duration(dura);
-    now_playing.set_current_song(cur_song_info.clone());
+    display.set_current_song(cur_song_info.clone());
     let cover = utils::read_album_cover(&cur_song_info.song_path);
     let cover = match cover {
         Some((buffer, width, height)) => {
@@ -203,13 +200,13 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
         }
         None => utils::get_default_album_cover(),
     };
-    now_playing.set_album_image(cover);
-    now_playing.set_lyrics(utils::read_lyrics(&cur_song_info.song_path).as_slice().into());
+    display.set_album_image(cover);
+    display.set_lyrics(utils::read_lyrics(&cur_song_info.song_path).as_slice().into());
     playback.set_spectrum(default_spectrum().as_slice().into());
-    let mut history = now_playing.get_play_history().iter().collect::<Vec<_>>();
+    let mut history = display.get_play_history().iter().collect::<Vec<_>>();
     history.push(cur_song_info.clone());
-    now_playing.set_play_history(history.as_slice().into());
-    now_playing.set_history_index(0);
+    display.set_play_history(history.as_slice().into());
+    display.set_history_index(0);
     Some((cur_song_info, cfg.volume, cfg.progress, cfg.show_spectrum))
 }
 
@@ -258,45 +255,44 @@ fn start_player_backend_thread(
                     let ui_weak = ui_weak.clone();
                     slint::invoke_from_event_loop(move || {
                         if let Some(ui) = ui_weak.upgrade() {
-                            let now_playing = ui.global::<NowPlayingGlobal>();
+                            let display = ui.global::<DisplayGlobal>();
                             match trigger {
                                 TriggerSource::ClickItem => {
                                     let mut history =
-                                        now_playing.get_play_history().iter().collect::<Vec<_>>();
+                                        display.get_play_history().iter().collect::<Vec<_>>();
                                     history.push(song_info.clone());
-                                    now_playing.set_play_history(history.as_slice().into());
-                                    now_playing.set_history_index(0);
+                                    display.set_play_history(history.as_slice().into());
+                                    display.set_history_index(0);
                                 }
                                 TriggerSource::Prev => {
                                     let history =
-                                        now_playing.get_play_history().iter().collect::<Vec<_>>();
-                                    let new_index = now_playing.get_history_index() + 1;
-                                    now_playing
+                                        display.get_play_history().iter().collect::<Vec<_>>();
+                                    let new_index = display.get_history_index() + 1;
+                                    display
                                         .set_history_index(new_index.min(history.len() as i32 - 1));
                                 }
                                 TriggerSource::Next => {
-                                    if now_playing.get_history_index() > 0 {
-                                        now_playing
-                                            .set_history_index(now_playing.get_history_index() - 1);
+                                    if display.get_history_index() > 0 {
+                                        display.set_history_index(display.get_history_index() - 1);
                                     } else {
                                         if ui.global::<PlaybackGlobal>().get_play_mode()
                                             != PlayMode::Recursive
                                         {
-                                            let mut history = now_playing
+                                            let mut history = display
                                                 .get_play_history()
                                                 .iter()
                                                 .collect::<Vec<_>>();
                                             history.push(song_info.clone());
-                                            now_playing.set_play_history(history.as_slice().into());
+                                            display.set_play_history(history.as_slice().into());
                                         }
-                                        now_playing.set_history_index(0);
+                                        display.set_history_index(0);
                                     }
                                 }
                             }
 
-                            now_playing.set_current_song(song_info.clone());
-                            now_playing.set_lyrics(lyrics.as_slice().into());
-                            now_playing.set_lyric_viewport_y(0.);
+                            display.set_current_song(song_info.clone());
+                            display.set_lyrics(lyrics.as_slice().into());
+                            display.set_lyric_viewport_y(0.);
 
                             let playback = ui.global::<PlaybackGlobal>();
                             playback.set_paused(false);
@@ -314,16 +310,12 @@ fn start_player_backend_thread(
                                 }
                                 None => utils::get_default_album_cover(),
                             };
-                            now_playing.set_album_image(cover);
+                            display.set_album_image(cover);
 
                             log::debug!(
                                 "{:?} / {}",
-                                now_playing
-                                    .get_play_history()
-                                    .iter()
-                                    .map(|x| x.id)
-                                    .collect::<Vec<_>>(),
-                                now_playing.get_history_index()
+                                display.get_play_history().iter().map(|x| x.id).collect::<Vec<_>>(),
+                                display.get_history_index()
                             );
                         }
                     })
@@ -336,8 +328,8 @@ fn start_player_backend_thread(
                         log::info!("Queue is empty, playing the first song in the list");
                         slint::invoke_from_event_loop(move || {
                             if let Some(ui) = ui_weak.upgrade() {
-                                let settings = ui.global::<SettingsGlobal>();
-                                if let Some(song) = settings.get_song_list().iter().next() {
+                                let display = ui.global::<DisplayGlobal>();
+                                if let Some(song) = display.get_song_list().iter().next() {
                                     ui.invoke_play(song.clone(), TriggerSource::ClickItem);
                                     ui.global::<PlaybackGlobal>().set_paused(false);
                                 } else {
@@ -385,16 +377,15 @@ fn start_player_backend_thread(
                     let ui_weak = ui_weak.clone();
                     slint::invoke_from_event_loop(move || {
                         if let Some(ui) = ui_weak.upgrade() {
-                            let now_playing = ui.global::<NowPlayingGlobal>();
-                            if now_playing.get_history_index() > 0 {
+                            let display = ui.global::<DisplayGlobal>();
+                            if display.get_history_index() > 0 {
                                 // 如果处在历史播放模式，则先尝试从历史记录中获取下一首
                                 log::info!("playing next from history");
-                                let history =
-                                    now_playing.get_play_history().iter().collect::<Vec<_>>();
+                                let history = display.get_play_history().iter().collect::<Vec<_>>();
                                 if let Some(song) = history
                                     .iter()
                                     .rev()
-                                    .nth((now_playing.get_history_index() - 1) as usize)
+                                    .nth((display.get_history_index() - 1) as usize)
                                 {
                                     ui.invoke_play(song.clone(), TriggerSource::Next);
                                 } else {
@@ -403,16 +394,15 @@ fn start_player_backend_thread(
                             } else {
                                 // 否则根据播放模式获取下一首
                                 log::info!("playing next from play mode");
-                                let settings = ui.global::<SettingsGlobal>();
                                 let playback = ui.global::<PlaybackGlobal>();
-                                let song_list: Vec<_> = settings.get_song_list().iter().collect();
+                                let song_list: Vec<_> = display.get_song_list().iter().collect();
                                 if song_list.is_empty() {
                                     log::warn!("song list is empty, can't play next");
                                     return;
                                 }
                                 let mut rng = rand::rng();
                                 let next_id1 = rng.random_range(..song_list.len());
-                                let id = now_playing.get_current_song().id as usize;
+                                let id = display.get_current_song().id as usize;
                                 let mut next_id2 = if id + 1 >= song_list.len() {
                                     0
                                 } else {
@@ -439,19 +429,18 @@ fn start_player_backend_thread(
                     let ui_weak: slint::Weak<MainWindow> = ui_weak.clone();
                     slint::invoke_from_event_loop(move || {
                         if let Some(ui) = ui_weak.upgrade() {
-                            let now_playing = ui.global::<NowPlayingGlobal>();
-                            let settings = ui.global::<SettingsGlobal>();
-                            let cur_song = now_playing.get_current_song();
-                            let song_list: Vec<_> = settings.get_song_list().iter().collect();
+                            let display = ui.global::<DisplayGlobal>();
+                            let cur_song = display.get_current_song();
+                            let song_list: Vec<_> = display.get_song_list().iter().collect();
                             if song_list.is_empty() {
                                 log::warn!("song list is empty, can't play prev");
                                 return;
                             }
-                            let history = now_playing.get_play_history().iter().collect::<Vec<_>>();
+                            let history = display.get_play_history().iter().collect::<Vec<_>>();
                             if let Some(song) = history
                                 .iter()
                                 .rev()
-                                .nth((now_playing.get_history_index() + 1) as usize)
+                                .nth((display.get_history_index() + 1) as usize)
                             {
                                 ui.invoke_play(song.clone(), TriggerSource::Prev);
                                 log::info!("playing prev from history");
@@ -479,10 +468,10 @@ fn start_player_backend_thread(
                     let player_clone = player_clone.clone();
                     slint::invoke_from_event_loop(move || {
                         if let Some(ui) = ui_weak.upgrade() {
-                            let settings = ui.global::<SettingsGlobal>();
-                            settings.set_song_list(new_list.as_slice().into());
-                            settings.set_sort_key(SortKey::BySongName);
-                            settings.set_sort_ascending(true);
+                            let display = ui.global::<DisplayGlobal>();
+                            display.set_song_list(new_list.as_slice().into());
+                            display.set_sort_key(SortKey::BySongName);
+                            display.set_sort_ascending(true);
                             if let Some(first_song) = new_list.first() {
                                 ui.invoke_play(first_song.clone(), TriggerSource::ClickItem);
                             } else {
@@ -499,9 +488,8 @@ fn start_player_backend_thread(
                     let ui_weak = ui_weak.clone();
                     slint::invoke_from_event_loop(move || {
                         if let Some(ui) = ui_weak.upgrade() {
-                            let settings = ui.global::<SettingsGlobal>();
-                            let now_playing = ui.global::<NowPlayingGlobal>();
-                            let mut song_list: Vec<_> = settings.get_song_list().iter().collect();
+                            let display = ui.global::<DisplayGlobal>();
+                            let mut song_list: Vec<_> = display.get_song_list().iter().collect();
                             if song_list.is_empty() {
                                 log::warn!("song list is empty, can't sort");
                                 return;
@@ -540,13 +528,13 @@ fn start_player_backend_thread(
                             song_list.iter_mut().enumerate().for_each(|(i, x)| x.id = i as i32);
                             let new_cur_song = song_list
                                 .iter()
-                                .find(|x| x.song_path == now_playing.get_current_song().song_path)
+                                .find(|x| x.song_path == display.get_current_song().song_path)
                                 .unwrap();
-                            now_playing.set_current_song(new_cur_song.clone());
-                            settings.set_sort_key(key);
-                            settings.set_sort_ascending(ascending);
-                            settings.set_last_sort_key(key);
-                            settings.set_song_list(song_list.as_slice().into());
+                            display.set_current_song(new_cur_song.clone());
+                            display.set_sort_key(key);
+                            display.set_sort_ascending(ascending);
+                            display.set_last_sort_key(key);
+                            display.set_song_list(song_list.as_slice().into());
                             log::info!("song list sorted by <{:?}>, ascending: {}", key, ascending);
                         }
                     })
@@ -558,7 +546,7 @@ fn start_player_backend_thread(
                         if let Some(ui) = ui_weak.upgrade() {
                             slint::select_bundled_translation(&lang)
                                 .expect("failed to set language");
-                            ui.global::<SettingsGlobal>().set_lang(lang.into());
+                            ui.global::<DisplayGlobal>().set_lang(lang.into());
                         }
                     })
                     .unwrap()
@@ -691,7 +679,7 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
                 let path_str = path.display().to_string();
                 log::info!("music directory selected: {}", path_str);
                 if let Some(ui) = ui_weak.upgrade() {
-                    ui.global::<SettingsGlobal>().set_song_dir(path_str.as_str().into());
+                    ui.global::<DisplayGlobal>().set_song_dir(path_str.as_str().into());
                 }
                 tx.send(PlayerCommand::RefreshSongList(path))
                     .expect("failed to send refresh song list command");
@@ -704,7 +692,7 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
         ui.on_set_follow_system_theme(move |follow| {
             log::info!("request to set follow_system_theme to: {}", follow);
             if let Some(ui) = ui_weak.upgrade() {
-                ui.global::<SettingsGlobal>().set_follow_system_theme(follow);
+                ui.global::<DisplayGlobal>().set_follow_system_theme(follow);
                 if follow {
                     let is_light = is_system_light();
                     ui.invoke_set_light_theme(is_light);
@@ -791,7 +779,7 @@ fn build_progress_timer(
     timer.start(slint::TimerMode::Repeated, Duration::from_millis(200), move || {
         if let Some(ui) = ui_weak.upgrade() {
             let playback = ui.global::<PlaybackGlobal>();
-            let now_playing = ui.global::<NowPlayingGlobal>();
+            let display = ui.global::<DisplayGlobal>();
             if playback.get_paused() {
                 return;
             }
@@ -800,14 +788,14 @@ fn build_progress_timer(
             if !playback.get_dragging() {
                 playback.set_progress(player_guard.get_pos().as_secs_f32());
             }
-            for (idx, item) in now_playing.get_lyrics().iter().enumerate() {
+            for (idx, item) in display.get_lyrics().iter().enumerate() {
                 let delta = item.time - playback.get_progress();
                 if delta < 0. && delta > -0.20 {
                     if idx <= 5 {
-                        now_playing.set_lyric_viewport_y(0.)
+                        display.set_lyric_viewport_y(0.)
                     } else {
-                        now_playing.set_lyric_viewport_y(
-                            (5_f32 - idx as f32) * now_playing.get_lyric_line_height(),
+                        display.set_lyric_viewport_y(
+                            (5_f32 - idx as f32) * display.get_lyric_line_height(),
                         );
                     }
                     log::debug!("lyric changed to: <{:?}>", item);
@@ -848,19 +836,18 @@ fn build_spectrum_timer(
 }
 
 fn save_ui_state(ui: &MainWindow) {
-    let settings = ui.global::<SettingsGlobal>();
+    let display = ui.global::<DisplayGlobal>();
     let playback = ui.global::<PlaybackGlobal>();
-    let now_playing = ui.global::<NowPlayingGlobal>();
     Config::save(Config {
-        song_dir: settings.get_song_dir().as_str().into(),
-        current_song_path: Some(now_playing.get_current_song().song_path.as_str().into()),
+        song_dir: display.get_song_dir().as_str().into(),
+        current_song_path: Some(display.get_current_song().song_path.as_str().into()),
         progress: playback.get_progress(),
         play_mode: playback.get_play_mode(),
-        sort_key: settings.get_sort_key(),
-        sort_ascending: settings.get_sort_ascending(),
-        lang: settings.get_lang().into(),
-        light_ui: settings.get_light_ui(),
-        follow_system_theme: settings.get_follow_system_theme(),
+        sort_key: display.get_sort_key(),
+        sort_ascending: display.get_sort_ascending(),
+        lang: display.get_lang().into(),
+        light_ui: display.get_light_ui(),
+        follow_system_theme: display.get_follow_system_theme(),
         volume: playback.get_volume(),
         show_spectrum: playback.get_show_spectrum(),
     });
@@ -870,10 +857,10 @@ fn build_theme_timer(ui_weak: slint::Weak<MainWindow>) -> slint::Timer {
     let timer = slint::Timer::default();
     timer.start(slint::TimerMode::Repeated, Duration::from_secs(1), move || {
         if let Some(ui) = ui_weak.upgrade() {
-            let settings = ui.global::<SettingsGlobal>();
-            if settings.get_follow_system_theme() {
+            let display = ui.global::<DisplayGlobal>();
+            if display.get_follow_system_theme() {
                 let is_light = is_system_light();
-                let current = settings.get_light_ui();
+                let current = display.get_light_ui();
                 if current != is_light {
                     ui.invoke_set_light_theme(is_light);
                     log::info!(

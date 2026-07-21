@@ -36,8 +36,8 @@ export global PlaybackGlobal {
     in-out property <bool> show_spectrum: true;
 }
 
-// === Group 2: Now-playing song display data ===
-export global NowPlayingGlobal {
+// === Group 2: All display & settings state ===
+export global DisplayGlobal {
     in-out property <SongInfo> current_song;
     in-out property <[LyricItem]> lyrics;
     in property <length> lyric_viewport_y;
@@ -45,10 +45,6 @@ export global NowPlayingGlobal {
     in property <image> album_image;
     in property <[SongInfo]> play_history;
     in property <int> history_index: 0;
-}
-
-// === Group 3: User settings & persistent config ===
-export global SettingsGlobal {
     in-out property <string> song_dir;
     in property <string> about_info;
     in-out property <SortKey> sort_key;
@@ -62,7 +58,7 @@ export global SettingsGlobal {
 }
 
 export component MainWindow inherits Window {
-    default-font-family <=> SettingsGlobal.app-font-family;
+    default-font-family <=> DisplayGlobal.app-font-family;
     default-font-size: 14px;
     preferred-width: 850px;
     preferred-height: 500px;
@@ -95,7 +91,7 @@ export component MainWindow inherits Window {
     in-out property <int> current_page: 0;
     in-out property <bool> sidebar_expanded: false;
     public function set_light_theme(yes: bool) {
-        SettingsGlobal.light_ui = yes;
+        DisplayGlobal.light_ui = yes;
         Theme.is-dark = !yes;
         if (yes) {
             Palette.color-scheme = ColorScheme.light;
@@ -116,14 +112,14 @@ export component MainWindow inherits Window {
         title-bar := TitleBar {
             y: 0;
             width: 100%;
-            is_light_theme <=> SettingsGlobal.light_ui;
-            theme_toggle_enabled: !SettingsGlobal.follow_system_theme;
+            is_light_theme <=> DisplayGlobal.light_ui;
+            theme_toggle_enabled: !DisplayGlobal.follow_system_theme;
             close => { root.window_close(); }
             minimize => { root.window_minimize(); }
             maximize => { root.window_maximize(); }
             toggle_theme => {
-                SettingsGlobal.follow_system_theme = false;
-                root.set_light_theme(!SettingsGlobal.light_ui);
+                DisplayGlobal.follow_system_theme = false;
+                root.set_light_theme(!DisplayGlobal.light_ui);
             }
             drag_delta(dx, dy) => {
                 root.window_drag_delta(dx, dy);
@@ -169,11 +165,11 @@ export component MainWindow inherits Window {
                     width: 100%;
                     height: 100%;
                     SongListView {
-                        ascending <=> SettingsGlobal.sort_ascending;
-                        sort-key <=> SettingsGlobal.sort_key;
-                        last-sort-key <=> SettingsGlobal.last_sort_key;
-                        song-list <=> SettingsGlobal.song_list;
-                        current-song <=> NowPlayingGlobal.current_song;
+                        ascending <=> DisplayGlobal.sort_ascending;
+                        sort-key <=> DisplayGlobal.sort_key;
+                        last-sort-key <=> DisplayGlobal.last_sort_key;
+                        song-list <=> DisplayGlobal.song_list;
+                        current-song <=> DisplayGlobal.current_song;
                         sort-songs(key, asc) => {
                             root.sort_song_list(key, asc);
                         }
@@ -191,8 +187,8 @@ export component MainWindow inherits Window {
                         paused <=> PlaybackGlobal.paused;
                         dragging <=> PlaybackGlobal.dragging;
                         play_mode <=> PlaybackGlobal.play_mode;
-                        current_song <=> NowPlayingGlobal.current_song;
-                        album_image <=> NowPlayingGlobal.album_image;
+                        current_song <=> DisplayGlobal.current_song;
+                        album_image <=> DisplayGlobal.album_image;
                         volume <=> PlaybackGlobal.volume;
                         change-progress(p) => {
                             root.change_progress(p);
@@ -236,11 +232,11 @@ export component MainWindow inherits Window {
                     LyricsPanel {
                         width: 100%;
                         height: 100%;
-                        album_image <=> NowPlayingGlobal.album_image;
-                        current_song <=> NowPlayingGlobal.current_song;
-                        lyrics <=> NowPlayingGlobal.lyrics;
+                        album_image <=> DisplayGlobal.album_image;
+                        current_song <=> DisplayGlobal.current_song;
+                        lyrics <=> DisplayGlobal.lyrics;
                         progress <=> PlaybackGlobal.progress;
-                        lyric_viewport_y <=> NowPlayingGlobal.lyric_viewport_y;
+                        lyric_viewport_y <=> DisplayGlobal.lyric_viewport_y;
                     }
                 }
 
@@ -257,9 +253,9 @@ export component MainWindow inherits Window {
                     SettingsPanel {
                         width: 100%;
                         height: 100%;
-                        song_dir <=> SettingsGlobal.song_dir;
-                        lang <=> SettingsGlobal.lang;
-                        follow_system_theme <=> SettingsGlobal.follow_system_theme;
+                        song_dir <=> DisplayGlobal.song_dir;
+                        lang <=> DisplayGlobal.lang;
+                        follow_system_theme <=> DisplayGlobal.follow_system_theme;
                         show_spectrum <=> PlaybackGlobal.show_spectrum;
                         refresh_song_list(p) => {
                             root.refresh_song_list(p);
@@ -299,7 +295,7 @@ export component MainWindow inherits Window {
                         }
 
                         Text {
-                            text: SettingsGlobal.about_info;
+                            text: DisplayGlobal.about_info;
                             horizontal-alignment: center;
                         }
                     }
