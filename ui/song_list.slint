@@ -114,7 +114,7 @@ export component SongItem inherits Rectangle {
     in property <SongInfo> info:{ id:0, song_name:"xxx", singer:"xxx", duration:"xxx", song_path:"xxx" };
     in property <bool> playing:false;
     callback double_clicked();
-    background: playing ? Theme.hover : (area.has-hover ? Theme.hover : Theme.surface);
+    background: playing ? Theme.hover : (area.has-hover ? Theme.song-hover : Theme.surface);
     VerticalLayout {
         area := TouchArea {
             double-clicked => {
