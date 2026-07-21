@@ -93,18 +93,13 @@ msgstr "Sin resultados"
 
 #: ui/search_panel.slint:?line
 msgctxt "SearchPanel"
-msgid "%1 result(s) found"
-msgstr "%1 resultado(s) encontrado(s)"
+msgid "{} result(s) found"
+msgstr "{} resultado(s) encontrado(s)"
 
 #: ui/search_panel.slint:?line
 msgctxt "SearchPanel"
 msgid "Type to search songs"
 msgstr "Escriba para buscar canciones"
-
-#: ui/search_panel.slint:?line
-msgctxt "SearchPanel"
-msgid "Press F5 to open search"
-msgstr "Presione F5 para buscar"
 
 #: ui/song_list.slint:81
 

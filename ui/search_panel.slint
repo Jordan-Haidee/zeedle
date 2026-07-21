@@ -72,41 +72,7 @@ export component SearchPanel inherits Rectangle {
                             root.search(self.text);
                         }
                     }
-
-                    // Clear button
-                clear-btn := Rectangle {
-                        width: 28px;
-                        height: 100%;
-                        border-radius: 4px;
-                        background: clear-touch.has-hover ? Theme.hover : transparent;
-
-                        Path {
-                            width: 16px;
-                            height: 16px;
-                            x: (parent.width - self.width) / 2;
-                            y: (parent.height - self.height) / 2;
-                            viewbox-width: 24;
-                            viewbox-height: 24;
-                            commands: "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
-                            fill: Theme.text-secondary;
-                        }
-
-                        clear-touch := TouchArea {
-                            mouse-cursor: pointer;
-                            clicked => {
-                                root.search-query = "";
-                                root.search("");
-                            }
-                        }
-                    }
                 }
-            }
-
-            // Divider
-        Rectangle {
-                height: 1px;
-                width: 100%;
-                background: Theme.divider;
             }
 
             // Results count label
@@ -121,7 +87,7 @@ export component SearchPanel inherits Rectangle {
                     y: (parent.height - self.height) / 2;
                     text: root.search-results.length == 0
                         ? @tr("No results found")
-                        : @tr("%1 result(s) found", root.search-results.length);
+                        : @tr("{} result(s) found", root.search-results.length);
                     color: Theme.text-tertiary;
                     font-size: 12px;
                     vertical-alignment: center;
@@ -168,13 +134,6 @@ export component SearchPanel inherits Rectangle {
                         text: @tr("Type to search songs");
                         color: Theme.text-tertiary;
                         font-size: 14px;
-                        horizontal-alignment: center;
-                    }
-
-                    Text {
-                        text: @tr("Press F5 to open search");
-                        color: Theme.text-tertiary;
-                        font-size: 12px;
                         horizontal-alignment: center;
                     }
                 }

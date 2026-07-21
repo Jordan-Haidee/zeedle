@@ -94,17 +94,12 @@ msgstr ""
 
 #: ui/search_panel.slint:?line
 msgctxt "SearchPanel"
-msgid "%1 result(s) found"
+msgid "{} result(s) found"
 msgstr ""
 
 #: ui/search_panel.slint:?line
 msgctxt "SearchPanel"
 msgid "Type to search songs"
-msgstr ""
-
-#: ui/search_panel.slint:?line
-msgctxt "SearchPanel"
-msgid "Press F5 to open search"
 msgstr ""
 
 #: ui/song_list.slint:81
