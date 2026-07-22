@@ -895,6 +895,34 @@ fn build_theme_timer(ui_weak: slint::Weak<MainWindow>) -> slint::Timer {
     timer
 }
 
+/// Center the window on the current monitor's work area (avoids taskbar/dock).
+/// Returns `true` if centering was applied, `false` if the window wasn't ready yet.
+fn center_window(ui: &MainWindow) -> bool {
+    let result = ui.window().with_winit_window(|w| {
+        let window_size = w.inner_size();
+        if window_size.width == 0 || window_size.height == 0 {
+            return None;
+        }
+        let monitor = match w.current_monitor() {
+            Some(m) => m,
+            None => return None,
+        };
+        let monitor_size = monitor.size();
+        let monitor_pos = monitor.position();
+        let x = monitor_pos.x + (monitor_size.width as i32 - window_size.width as i32) / 2;
+        let y = monitor_pos.y + (monitor_size.height as i32 - window_size.height as i32) / 2;
+        Some((x, y))
+    });
+
+    if let Some(Some((x, y))) = result {
+        ui.window().set_position(slint::PhysicalPosition::new(x, y));
+        log::info!("window centered at ({}, {})", x, y);
+        true
+    } else {
+        false
+    }
+}
+
 fn main() {
     let app_start = Instant::now();
 
@@ -969,6 +997,26 @@ fn main() {
 
     // UI 定时检测系统主题
     let _theme_timer = build_theme_timer(ui.as_weak());
+
+    // Center window at startup — retry until the window has a non-zero size
+    let centered = Rc::new(Cell::new(false));
+    let _center_timer = {
+        let ui_weak = ui.as_weak();
+        let centered_clone = centered.clone();
+        let timer = slint::Timer::default();
+        timer.start(slint::TimerMode::Repeated, Duration::from_millis(50), move || {
+            if centered_clone.get() {
+                return;
+            }
+            let Some(ui) = ui_weak.upgrade() else {
+                return;
+            };
+            if center_window(&ui) {
+                centered_clone.set(true);
+            }
+        });
+        timer
+    };
 
     // 设置 XDG app_id，让 dock 正确关联窗口图标
     #[cfg(target_os = "linux")]
