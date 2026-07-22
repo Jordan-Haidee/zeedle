@@ -95,9 +95,9 @@ export component SearchPanel inherits Rectangle {
             }
 
             // Results list
-        ListView {
+        if root.search-query != "":
+            ListView {
                 horizontal-stretch: 1;
-                visible: root.search-query != "";
 
                 for item in root.search-results: SongItem {
                     info: item;
@@ -109,10 +109,10 @@ export component SearchPanel inherits Rectangle {
             }
 
             // Empty state - show hint when no query
-        Rectangle {
+        if root.search-query == "":
+            Rectangle {
                 horizontal-stretch: 1;
                 vertical-stretch: 1;
-                visible: root.search-query == "";
 
                 VerticalLayout {
                     width: 100%;
