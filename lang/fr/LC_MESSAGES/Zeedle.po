@@ -112,3 +112,8 @@ msgstr "Artiste"
 msgctxt "SortBar"
 msgid "Duration"
 msgstr "Durée"
+
+#: ui/song_list.slint:163
+msgctxt "SongItem"
+msgid "Title: {}\nArtist: {}\nDuration: {}"
+msgstr "Titre : {}\nArtiste : {}\nDurée : {}"

@@ -1,5 +1,5 @@
 import { Theme } from "theme.slint";
-import { ListView } from "std-widgets.slint";
+import { ListView, VerticalBox } from "std-widgets.slint";
 import { TriggerSource, SongInfo, SortKey } from "types.slint";
 
 component SortIcon inherits Rectangle {
@@ -151,6 +151,18 @@ export component SongItem inherits Rectangle {
                         x: parent.width * 0.4;
                         text: info.duration;
                         color: root.playing ? Theme.accent : Theme.text;
+                    }
+                }
+            }
+
+            Tooltip {
+                Rectangle {
+                    border-color: Theme.text;
+                    VerticalLayout {
+                        padding: 5px;
+                        Text {
+                            text: @tr("Title: {}\nArtist: {}\nDuration: {}", info.song-name, info.singer, info.duration);
+                        }
                     }
                 }
             }

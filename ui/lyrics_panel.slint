@@ -15,6 +15,9 @@ export component LyricLine inherits Rectangle {
         text: content;
         font-size: playing ? 20px : 17px;
         overflow: TextOverflow.elide;
+        Tooltip {
+            text: @markdown("\{content}");
+        }
     }
 
     background: transparent;

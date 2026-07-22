@@ -471,13 +471,16 @@ export component ControlPanel inherits Rectangle {
                     Rectangle {
                         width: 80%;
                         height: 100%;
-                        Text {
+                        cur_song_text := Text {
                             width: 100%;
                             x: parent.width / 2 - self.width / 2;
                             text: root.current_song.song_name + " - " + root.current_song.singer;
                             vertical-alignment: center;
                             horizontal-alignment: center;
                             overflow: TextOverflow.elide;
+                            Tooltip {
+                                text: @markdown("\{cur_song_text.text}");
+                            }
                         }
                     }
                 }
