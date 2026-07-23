@@ -16,6 +16,7 @@ Enjoy your music in less than 0.5s:
 - 🦜 Multiple language support — English/Chinese/Spanish/French/German/Russian.
 - ⌨️ Hotkey support — total freedom, no mouse needed.
 - 🎵 Spectrum visualization — real-time audio spectrum display.
+- 📃 Lyric seek — snap to previous/next/any lyric line.
 
 <a href="README-zh.md">中文介绍</a> can be seen here.
 
