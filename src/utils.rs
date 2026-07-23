@@ -9,7 +9,9 @@ use lofty::{
 };
 use pinyin::ToPinyin;
 use rayon::{
-    iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator},
+    iter::{
+        IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
+    },
     slice::ParallelSliceMut,
 };
 use slint::{StyledText, ToSharedString};
@@ -268,7 +270,7 @@ pub fn search_songs(query: &str, songs: &[SongInfo]) -> Vec<SongInfo> {
     }
 
     let mut scored: Vec<Scored> = songs
-        .iter()
+        .par_iter()
         .filter_map(|song| {
             let name_lower = song.song_name.as_str().to_lowercase();
             let singer_lower = song.singer.as_str().to_lowercase();
@@ -306,7 +308,6 @@ pub fn search_songs(query: &str, songs: &[SongInfo]) -> Vec<SongInfo> {
 
     // Sort by score descending
     scored.par_sort_by_key(|s| std::cmp::Reverse(s.score));
-
     scored.into_iter().map(|s| s.song).collect()
 }
 
