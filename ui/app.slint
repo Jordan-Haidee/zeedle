@@ -70,7 +70,7 @@ export component MainWindow inherits Window {
     title: "Zeedle";
     icon: @image-url("cover.svg");
     no-frame: true;
-    resize-border-width: 5px;
+    resize-border-width: root.maximized ? 0px : 5px;
     background: transparent;
     forward-focus: content-pane;
     callback toggle_play();
