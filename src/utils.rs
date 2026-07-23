@@ -139,17 +139,10 @@ pub fn read_song_list(
 pub fn read_lyrics(path: impl AsRef<Path>) -> Vec<LyricItem> {
     let path = path.as_ref();
 
-    let probe = match Probe::open(path) {
+    let probe = match open_audio_probe(path) {
         Ok(p) => p,
         Err(e) => {
-            log::warn!("{}: failed to open file ({})", path.display(), e);
-            return vec![];
-        }
-    };
-    let probe = match probe.guess_file_type() {
-        Ok(p) => p,
-        Err(e) => {
-            log::warn!("{}: failed to detect file type ({})", path.display(), e);
+            log::warn!("{}: failed to open or detect file type ({})", path.display(), e);
             return vec![];
         }
     };
@@ -194,7 +187,8 @@ pub fn read_lyrics(path: impl AsRef<Path>) -> Vec<LyricItem> {
 /// Read album cover from audio file `p`, return a slint::Image
 pub fn read_album_cover(path: impl AsRef<Path>) -> Option<(Vec<u8>, u32, u32)> {
     let path = path.as_ref();
-    if let Ok(tagged) = lofty::read_from_path(path)
+    if let Ok(probe) = open_audio_probe(path)
+        && let Ok(tagged) = probe.read()
         && let Some(tag) = tagged.primary_tag()
         && let Some(picture) = tag.pictures().iter().find(|pic| {
             pic.pic_type() == PictureType::CoverFront || pic.pic_type() == PictureType::CoverBack
