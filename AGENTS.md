@@ -36,14 +36,16 @@ Instructions for AI coding agents working in this repository.
 - Audio playback lives in the worker thread via `rodio::Player` (wrapped in `Arc<Mutex<...>>`).
 - Spectrum: `TapSource` taps audio samples in the playback thread, sends chunks to a separate FFT worker thread via `mpsc::sync_channel`, results polled by a Slint `Timer`.
 - Window is `no-frame: true` — custom `TitleBar` with native OS drag via `winit::window().drag_window()`, with manual `set_position()` fallback.
-- 4-page navigation: 0=song list, 1=lyrics, 2=settings, 3=about.
+- 5-page navigation: 0=Gallery (song list), 1=Search, 2=Lyrics, 3=Settings, 4=About.
 - Two-phase init: (1) `set_start_ui_state` restores UI from config, (2) `set_start_player_state` starts playback.
 
 ## Hotkeys (defined in `ui/app.slint` FocusScope)
 - `Space` — play/pause
-- `←` / `↑` — previous song
-- `→` / `↓` — next song
-- `F1` — song list, `F2` — lyrics, `F3` — settings, `F4` — about
+- `←` — seek backward 15s
+- `→` — seek forward 15s
+- `↑` — previous song
+- `↓` — next song
+- `F1` — Gallery (song list), `F2` — Search, `F3` — Lyrics, `F4` — Settings, `F5` — About
 
 ## Theme
 - Custom `Theme` global in [ui/theme.slint](ui/theme.slint) with 11 fully opaque color tokens (panel, surface, text, accent, etc.).
