@@ -38,11 +38,11 @@ export component LyricsPanel inherits Rectangle {
         width: 100%;
         height: 100%;
         VerticalLayout {
-            width: 30%;
+            width: lyrics.length != 0 ? 30% : 100%;
             alignment: center;
             lyric-image := Rectangle {
                 x: parent.width / 2 - self.width / 2;
-                width: 180px;
+                width: root.height * 0.40;
                 height: self.width;
                 clip: true;
                 border-radius: 8px;
@@ -55,20 +55,36 @@ export component LyricsPanel inherits Rectangle {
             }
 
             Text {
+                states [
+                    has-lyrics when lyrics.length != 0: {
+                        x: lyric-image.x;
+                    }
+                    no-lyrics when lyrics.length == 0: {
+                        horizontal-alignment: center;
+                    }
+                ]
+
                 width: 100%;
                 height: 25px;
-                // font-size: 13px;
-                x: lyric-image.x;
+
                 vertical-alignment: bottom;
                 text: @tr("Artist: {}", current_song.singer);
                 overflow: elide;
             }
 
             Text {
+                states [
+                    has-lyrics when lyrics.length != 0: {
+                        x: lyric-image.x;
+                    }
+                    no-lyrics when lyrics.length == 0: {
+                        horizontal-alignment: center;
+                    }
+                ]
+
                 width: 100%;
                 height: 25px;
-                // font-size: 13px;
-                x: lyric-image.x;
+
                 vertical-alignment: bottom;
                 text: @tr("Title: {}", current_song.song_name);
                 overflow: elide;
@@ -76,7 +92,7 @@ export component LyricsPanel inherits Rectangle {
         }
 
         VerticalLayout {
-            width: 70%;
+            width: lyrics.length != 0 ? 70% : 0%;
             alignment: center;
             ListView {
                 height: 100%;
