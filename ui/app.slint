@@ -329,30 +329,54 @@ export component MainWindow inherits Window {
                     }
                 }
 
-                key-released(event) => {
-                    if event.text == Key.Space {
-                        root.toggle_play();
-                    } else if event.text == Key.RightArrow || event.text == Key.DownArrow {
-                        root.play_next();
-                    } else if event.text == Key.LeftArrow || event.text == Key.UpArrow {
-                        root.play_prev();
-                    } else if event.text == Key.F1 {
-                        root.current_page = 0;
-                    } else if event.text == Key.F2 {
-                        root.current_page = 1;
-                    } else if event.text == Key.F3 {
-                        root.current_page = 2;
-                    } else if event.text == Key.F4 {
-                        root.current_page = 3;
-                    } else if event.text == Key.F5 {
-                        root.current_page = 4;
-                    } else {
-                        return reject;
-                    }
-                    // Re-establish focus on this FocusScope after structural
-                    // page changes that may have invalidated the focus state.
-                    root.focus();
-                    return accept;
+                KeyBinding {
+                    keys: @keys(Space);
+                    activated => { root.toggle_play(); root.focus(); }
+                }
+
+                KeyBinding {
+                    keys: @keys(RightArrow);
+                    activated => { root.play_next(); root.focus(); }
+                }
+
+                KeyBinding {
+                    keys: @keys(DownArrow);
+                    activated => { root.play_next(); root.focus(); }
+                }
+
+                KeyBinding {
+                    keys: @keys(LeftArrow);
+                    activated => { root.play_prev(); root.focus(); }
+                }
+
+                KeyBinding {
+                    keys: @keys(UpArrow);
+                    activated => { root.play_prev(); root.focus(); }
+                }
+
+                KeyBinding {
+                    keys: @keys(F1);
+                    activated => { root.current_page = 0; root.focus(); }
+                }
+
+                KeyBinding {
+                    keys: @keys(F2);
+                    activated => { root.current_page = 1; root.focus(); }
+                }
+
+                KeyBinding {
+                    keys: @keys(F3);
+                    activated => { root.current_page = 2; root.focus(); }
+                }
+
+                KeyBinding {
+                    keys: @keys(F4);
+                    activated => { root.current_page = 3; root.focus(); }
+                }
+
+                KeyBinding {
+                    keys: @keys(F5);
+                    activated => { root.current_page = 4; root.focus(); }
                 }
             }
         }

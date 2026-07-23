@@ -16,6 +16,9 @@ export component SearchPanel inherits Rectangle {
 
     // Intercept global shortcuts when the search input has focus,
     // so they don't bubble up to the parent FocusScope and trigger actions.
+    // Space/arrows are naturally consumed by LineEdit; only F1-F5 need blocking.
+    // Must use key-released (not KeyBinding) to conditionally intercept only
+    // when search-input has focus, so shortcuts reach the parent otherwise.
     key-handler := FocusScope {
         width: 100%;
         height: 100%;
@@ -25,13 +28,7 @@ export component SearchPanel inherits Rectangle {
             if !search-input.has-focus {
                 return reject;
             }
-            // Block all shortcut keys while typing
-            if event.text == Key.Space
-                || event.text == Key.RightArrow
-                || event.text == Key.LeftArrow
-                || event.text == Key.UpArrow
-                || event.text == Key.DownArrow
-                || event.text == Key.F1
+            if event.text == Key.F1
                 || event.text == Key.F2
                 || event.text == Key.F3
                 || event.text == Key.F4
