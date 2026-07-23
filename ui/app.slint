@@ -93,6 +93,8 @@ export component MainWindow inherits Window {
     callback window_close();
     callback window_drag_delta(float, float);
     pure callback open_url_in_browser(string);
+    pure callback prev-lyric-time(float, [LyricItem]) -> float;
+    pure callback next-lyric-time(float, [LyricItem]) -> float;
     in-out property <int> current_page: 0;
     in-out property <bool> sidebar_expanded: false;
     public function set_light_theme(yes: bool) {
@@ -336,7 +338,14 @@ export component MainWindow inherits Window {
 
                 KeyBinding {
                     keys: @keys(RightArrow);
-                    activated => { root.change_progress(min(PlaybackGlobal.progress + 15, PlaybackGlobal.duration)); root.focus(); }
+                    activated => {
+                        if (root.current_page == 2 && DisplayGlobal.lyrics.length > 0) {
+                            root.change_progress(root.next-lyric-time(PlaybackGlobal.progress, DisplayGlobal.lyrics));
+                        } else {
+                            root.change_progress(min(PlaybackGlobal.progress + 15, PlaybackGlobal.duration));
+                        }
+                        root.focus();
+                    }
                 }
 
                 KeyBinding {
@@ -346,7 +355,14 @@ export component MainWindow inherits Window {
 
                 KeyBinding {
                     keys: @keys(LeftArrow);
-                    activated => { root.change_progress(max(PlaybackGlobal.progress - 15, 0)); root.focus(); }
+                    activated => {
+                        if (root.current_page == 2 && DisplayGlobal.lyrics.length > 0) {
+                            root.change_progress(root.prev-lyric-time(PlaybackGlobal.progress, DisplayGlobal.lyrics));
+                        } else {
+                            root.change_progress(max(PlaybackGlobal.progress - 15, 0));
+                        }
+                        root.focus();
+                    }
                 }
 
                 KeyBinding {

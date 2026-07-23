@@ -606,6 +606,38 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
         });
     }
     {
+        ui.on_prev_lyric_time(|progress: f32, lyrics: slint::ModelRc<LyricItem>| -> f32 {
+            let mut best = 0.0f32;
+            for i in 0..lyrics.row_count() {
+                if let Some(item) = lyrics.row_data(i)
+                    && item.time < progress - 0.5
+                    && item.time > best
+                {
+                    best = item.time;
+                }
+            }
+            best
+        });
+    }
+    {
+        ui.on_next_lyric_time(|progress: f32, lyrics: slint::ModelRc<LyricItem>| -> f32 {
+            let mut best = 1_000_000_000.0f32;
+            for i in 0..lyrics.row_count() {
+                if let Some(item) = lyrics.row_data(i)
+                    && item.time > progress + 0.5
+                    && item.time < best
+                {
+                    best = item.time;
+                }
+            }
+            if best == 1_000_000_000.0f32 {
+                progress
+            } else {
+                best
+            }
+        });
+    }
+    {
         let tx = tx.clone();
         ui.on_play_next(move || {
             log::info!("request to play next");
