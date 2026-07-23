@@ -4,9 +4,14 @@ import { SongInfo, LyricItem } from "types.slint";
 
 export component LyricLine inherits Rectangle {
     height: 40px;
+    background: area.has-hover ? Theme.song-hover : transparent;
+    border-radius: 5px;
     in-out property <string> content;
     in-out property <bool> playing;
+    area := TouchArea { }
+
     Text {
+        width: 100%;
         horizontal-alignment: center;
         vertical-alignment: center;
         color: playing ? Theme.accent : Theme.text;
@@ -22,8 +27,6 @@ export component LyricLine inherits Rectangle {
             }
         }
     }
-
-    background: transparent;
 }
 
 export component LyricsPanel inherits Rectangle {
