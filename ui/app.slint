@@ -261,6 +261,7 @@ export component MainWindow inherits Window {
                             lyrics <=> DisplayGlobal.lyrics;
                             progress <=> PlaybackGlobal.progress;
                             lyric_viewport_y <=> DisplayGlobal.lyric_viewport_y;
+                            jump-to(t) => { root.change_progress(t); }
                         }
                     }
 

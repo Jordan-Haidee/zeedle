@@ -8,7 +8,12 @@ export component LyricLine inherits Rectangle {
     border-radius: 5px;
     in-out property <string> content;
     in-out property <bool> playing;
-    area := TouchArea { }
+    in property <float> time;
+    callback jump-to(float);
+
+    area := TouchArea {
+        clicked => { jump-to(root.time) }
+    }
 
     Text {
         width: 100%;
@@ -35,6 +40,7 @@ export component LyricsPanel inherits Rectangle {
     in property <[LyricItem]> lyrics;
     in property <float> progress;
     in-out property <length> lyric_viewport_y;
+    callback jump-to(float);
     background: Theme.surface;
     HorizontalLayout {
         width: 100%;
@@ -102,8 +108,10 @@ export component LyricsPanel inherits Rectangle {
                 mouse-drag-pan-enabled: false;
                 viewport-y <=> root.lyric_viewport_y;
                 for item in root.lyrics: LyricLine {
+                    time: item.time;
                     content: item.text;
                     playing: (root.progress >= item.time) && (root.progress < item.time + item.duration);
+                    jump-to(t) => { root.jump-to(t) }
                 }
             }
         }
