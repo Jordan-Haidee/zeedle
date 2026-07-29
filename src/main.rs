@@ -825,6 +825,9 @@ fn build_progress_timer(
     player_clone: Arc<Mutex<rodio::Player>>,
 ) -> slint::Timer {
     let timer = slint::Timer::default();
+    // ponytail: local state, no new Slint properties needed
+    let mut last_viewport_y = 0f32;
+    let mut scroll_cooldown = 0i32;
     timer.start(slint::TimerMode::Repeated, Duration::from_millis(200), move || {
         if let Some(ui) = ui_weak.upgrade() {
             let playback = ui.global::<PlaybackGlobal>();
@@ -837,18 +840,30 @@ fn build_progress_timer(
             if !playback.get_dragging() {
                 playback.set_progress(player_guard.get_pos().as_secs_f32());
             }
-            for (idx, item) in display.get_lyrics().iter().enumerate() {
-                let delta = item.time - playback.get_progress();
-                if delta < 0. && delta > -0.20 {
-                    if idx <= 5 {
-                        display.set_lyric_viewport_y(0.)
-                    } else {
-                        display.set_lyric_viewport_y(
-                            (5_f32 - idx as f32) * display.get_lyric_line_height(),
-                        );
+
+            // If user scrolled lyrics view, block auto-scroll for 5 seconds
+            let current_y = display.get_lyric_viewport_y();
+            if current_y != last_viewport_y && scroll_cooldown == 0 {
+                scroll_cooldown = 25; // 25 ticks × 200ms = 5s
+            }
+            if scroll_cooldown > 0 {
+                scroll_cooldown -= 1;
+                last_viewport_y = current_y;
+                // Skip auto-scroll, let user read at their position
+            } else {
+                for (idx, item) in display.get_lyrics().iter().enumerate() {
+                    let delta = item.time - playback.get_progress();
+                    if delta < 0. && delta > -0.20 {
+                        let new_y = if idx <= 5 {
+                            0.
+                        } else {
+                            (5_f32 - idx as f32) * display.get_lyric_line_height()
+                        };
+                        display.set_lyric_viewport_y(new_y);
+                        last_viewport_y = new_y;
+                        log::debug!("lyric changed to: <{:?}>", item);
+                        break;
                     }
-                    log::debug!("lyric changed to: <{:?}>", item);
-                    break;
                 }
             }
             // 如果播放完毕，且之前是在播放状态，则自动播放下一首
