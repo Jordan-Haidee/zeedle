@@ -141,7 +141,7 @@ export component PlayModeButton inherits Rectangle {
         }
     }
 
-    Path {
+    if !root.recursive: Path {
         MoveTo {
             x: 90;
             y: 50;
@@ -178,23 +178,48 @@ export component PlayModeButton inherits Rectangle {
 
     if root.recursive: Path {
         MoveTo {
+            x: 90;
+            y: 50;
+        }
+
+        ArcTo {
             x: 50;
-            y: 40;
+            y: 10;
+            radius-x: 40;
+            radius-y: 40;
+            x-rotation: 0;
+            large-arc: true;
+            sweep: true;
         }
 
         LineTo {
-            x: 50;
-            y: 60;
+            x: 40;
+            y: 4;
         }
 
         MoveTo {
             x: 50;
-            y: 40;
+            y: 10;
         }
 
         LineTo {
-            x: 44;
-            y: 44;
+            x: 42;
+            y: 18;
+        }
+
+        MoveTo {
+            x: 77;
+            y: 17;
+        }
+
+        LineTo {
+            x: 82;
+            y: 7;
+        }
+
+        LineTo {
+            x: 82;
+            y: 37;
         }
 
         stroke-width: 1px;
