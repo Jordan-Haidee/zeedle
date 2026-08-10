@@ -143,6 +143,7 @@ export component MainWindow inherits Window {
                 current_page: root.current_page;
                 change_page(p) => {
                     root.current_page = p;
+                    root.focus();
                 }
                 request_focus => {
                     root.focus();
