@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 
 # Get version from Cargo.toml
 VERSION=$(grep -m1 '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
-APPIMAGE_FILE="target/release/Zeedle_${VERSION}_x86_64.AppImage"
+APPIMAGE_FILE="target/release/zeedle_${VERSION}_x86_64.AppImage"
 
 echo "Building AppImage package..."
 # Unset all_proxy to avoid SOCKS proxy issues (cargo-packager doesn't support SOCKS)
@@ -27,6 +27,7 @@ done
 # Rebuild AppImage with the patched .desktop file
 cd target/release/.cargo-packager/appimage
 bash build_appimage.sh
+mv APPIMAGE_FILE "target/release/Zeedle_${VERSION}_x86_64.AppImage"
 cd "$OLDPWD"
 
-echo "✓ Package ready: $APPIMAGE_FILE"
+echo "✓ Package ready: target/release/Zeedle_${VERSION}_x86_64.AppImage"
