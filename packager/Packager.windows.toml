@@ -1,6 +1,6 @@
 product-name = "Zeedle"
 name = "Zeedle"
-version = "0.6.1"
+version = "0.6.2"
 before-packaging-command = "cargo build --release --manifest-path ../Cargo.toml"
 formats = ["nsis"]
 out-dir = "../target/release"
@@ -11,7 +11,7 @@ identifier = "dev.zeedle"
 copyright = "Copyright © 2025 Zeedle Dev. All rights reserved."
 
 [[binaries]]
-path = "Zeedle"
+path = "zeedle"
 main = true
 
 [nsis]

@@ -1,6 +1,6 @@
 product-name = "Zeedle"
 name = "Zeedle"
-version = "0.6.1"
+version = "0.6.2"
 before-packaging-command = "cargo build --release --manifest-path ../Cargo.toml"
 formats = ["deb"]
 out-dir = "../target/release"
@@ -12,5 +12,5 @@ copyright = "Copyright © 2025 Zeedle Dev. All rights reserved."
 category = "Music"
 
 [[binaries]]
-path = "Zeedle"
+path = "zeedle"
 main = true
