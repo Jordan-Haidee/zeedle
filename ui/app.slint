@@ -58,6 +58,7 @@ export global DisplayGlobal {
     in-out property <[SongInfo]> search_results;
     in-out property <string> search_query;
     in-out property <string> app-font-family;
+    in-out property <length> gallery_viewport_y: 0px;
 }
 
 export component MainWindow inherits Window {
@@ -181,6 +182,7 @@ export component MainWindow inherits Window {
                             sort-key <=> DisplayGlobal.sort_key;
                             last-sort-key <=> DisplayGlobal.last_sort_key;
                             song-list <=> DisplayGlobal.song_list;
+                            scroll-y <=> DisplayGlobal.gallery_viewport_y;
                             current-song <=> DisplayGlobal.current_song;
                             sort-songs(key, asc) => {
                                 root.sort_song_list(key, asc);

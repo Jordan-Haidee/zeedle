@@ -52,6 +52,10 @@ enum PlayerCommand {
 /// Apply config values that don't depend on a current song.
 /// Used for both empty-list startup and normal startup.
 fn apply_config_to_ui(ui: &MainWindow, cfg: &Config) {
+    // Restore active sidebar page and its expanded state
+    ui.set_current_page(cfg.current_page.clamp(0, 4));
+    ui.set_sidebar_expanded(cfg.sidebar_expanded);
+
     let display = ui.global::<DisplayGlobal>();
     display.set_sort_key(cfg.sort_key);
     display.set_sort_ascending(cfg.sort_ascending);
@@ -131,6 +135,9 @@ fn set_start_ui_state(ui: &MainWindow, cfg: &Config) -> Option<(SongInfo, f32, f
     playback.set_progress(cfg.progress);
 
     display.set_song_list(song_list.as_slice().into());
+    // Restore the Gallery scroll offset after the list is in place, otherwise the
+    // empty-model layout pass would reset the viewport to 0.
+    display.set_gallery_viewport_y(cfg.gallery_viewport_y);
     // Use saved song path if valid, otherwise fall back to first song in list
     let saved_path =
         cfg.current_song_path.as_ref().filter(|p| !p.as_os_str().is_empty() && p.exists());
@@ -914,6 +921,9 @@ fn save_ui_state(ui: &MainWindow) {
         follow_system_theme: display.get_follow_system_theme(),
         volume: playback.get_volume(),
         show_spectrum: playback.get_show_spectrum(),
+        current_page: ui.get_current_page(),
+        sidebar_expanded: ui.get_sidebar_expanded(),
+        gallery_viewport_y: display.get_gallery_viewport_y(),
     });
 }
 

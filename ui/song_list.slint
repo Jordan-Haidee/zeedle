@@ -175,6 +175,7 @@ export component SongListView inherits Rectangle {
     in-out property <SortKey> sort-key;
     in-out property <SortKey> last-sort-key;
     in-out property <[SongInfo]> song-list;
+    in-out property <length> scroll-y;
     in property <SongInfo> current-song;
     callback sort-songs(SortKey, bool);
     callback play-song(SongInfo, TriggerSource);
@@ -195,6 +196,7 @@ export component SongListView inherits Rectangle {
         }
 
         ListView {
+            viewport-y <=> root.scroll-y;
             for item in root.song-list: SongItem {
                 info: item;
                 playing: item.song-path == root.current-song.song-path;

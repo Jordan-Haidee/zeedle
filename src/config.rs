@@ -23,6 +23,15 @@ pub struct Config {
     pub volume: f32,
     #[serde(default)]
     pub show_spectrum: bool,
+    /// Currently active sidebar page (0=Gallery, 1=Search, 2=Lyrics, 3=Settings, 4=About)
+    #[serde(default)]
+    pub current_page: i32,
+    /// Whether the sidebar is expanded (labels visible)
+    #[serde(default)]
+    pub sidebar_expanded: bool,
+    /// Scroll offset of the Gallery song list viewport
+    #[serde(default)]
+    pub gallery_viewport_y: f32,
 }
 impl Default for Config {
     fn default() -> Self {
@@ -38,6 +47,9 @@ impl Default for Config {
             follow_system_theme: true,
             volume: 1f32,
             show_spectrum: true,
+            current_page: 0,
+            sidebar_expanded: false,
+            gallery_viewport_y: 0.0,
         }
     }
 }
