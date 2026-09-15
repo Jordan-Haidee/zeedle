@@ -27,8 +27,7 @@ done
 # Rebuild AppImage with the patched .desktop file
 cd target/release/.cargo-packager/appimage
 bash build_appimage.sh
-cd ../..
+cd "$OLDPWD"
 mv $APPIMAGE_FILE "target/release/Zeedle_${VERSION}_x86_64.AppImage"
-cd ../..
 
 echo "✓ Package ready: target/release/Zeedle_${VERSION}_x86_64.AppImage"
