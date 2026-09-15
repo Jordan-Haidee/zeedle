@@ -175,7 +175,8 @@ pub fn read_lyrics(path: impl AsRef<Path>) -> Vec<LyricItem> {
             })
             .filter(|ins| ins.time > 0. && !ins.text.is_empty())
             .collect::<Vec<_>>();
-        for i in 0..lyrics.len() - 1 {
+        let n = lyrics.len();
+        for i in 0..n.saturating_sub(1) {
             lyrics[i].duration = lyrics[i + 1].time - lyrics[i].time;
         }
         if let Some(ins) = lyrics.last_mut() {
