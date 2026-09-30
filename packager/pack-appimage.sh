@@ -1,33 +1,68 @@
-#!/bin/bash
-# Build AppImage package
-set -e
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-cd "$(dirname "$0")/.."
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+RELEASE_DIR="$PROJECT_ROOT/target/release"
+CONFIG="$SCRIPT_DIR/Packager.linux.toml"
+APPIMAGE_DIR="$RELEASE_DIR/.cargo-packager/appimage"
+cd "$PROJECT_ROOT"
 
-# Get version from Cargo.toml
-VERSION=$(grep -m1 '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
-APPIMAGE_FILE="target/release/zeedle_${VERSION}_x86_64.AppImage"
+VERSION="$(awk -F= '
+    /^\[package\][[:space:]]*$/ { in_package = 1; next }
+    /^\[/ { in_package = 0 }
+    in_package && $1 ~ /^[[:space:]]*version[[:space:]]*$/ {
+        gsub(/[[:space:]\"]/, "", $2)
+        print $2
+        exit
+    }
+' Cargo.toml)"
+if [[ -z "$VERSION" ]]; then
+    printf 'Could not read the package version from Cargo.toml\n' >&2
+    exit 1
+fi
 
-echo "Building AppImage package..."
-# Unset all_proxy to avoid SOCKS proxy issues (cargo-packager doesn't support SOCKS)
+VERSIONED_CONFIG="$(mktemp --suffix=.toml "$SCRIPT_DIR/.Packager.linux.XXXXXX")"
+trap 'rm -f -- "$VERSIONED_CONFIG"' EXIT
+{
+    printf 'version = "%s"\n' "$VERSION"
+    cat "$CONFIG"
+} > "$VERSIONED_CONFIG"
+
+GENERATED_APPIMAGE="$RELEASE_DIR/zeedle_${VERSION}_x86_64.AppImage"
+OUTPUT_APPIMAGE="$RELEASE_DIR/Zeedle_${VERSION}_amd64.AppImage"
+DESKTOP_FILES=(
+    "$RELEASE_DIR/.cargo-packager/appimage_deb/data/usr/share/applications/zeedle.desktop"
+    "$APPIMAGE_DIR/zeedle.AppDir/usr/share/applications/zeedle.desktop"
+)
+
+printf 'Building Zeedle %s AppImage...\n' "$VERSION"
 unset all_proxy ALL_PROXY
-cargo packager --config packager/Packager.linux.toml --release --formats appimage
+cargo packager --config "$VERSIONED_CONFIG" --formats appimage
 
-# Patch .desktop file: add StartupNotify and StartupWMClass so the taskbar
-# icon appears (without StartupWMClass the desktop environment can't link the
-# running window to its .desktop entry).
-DESKTOP_STAGING="target/release/.cargo-packager/appimage_deb/data/usr/share/applications/Zeedle.desktop"
-DESKTOP_APPDIR="target/release/.cargo-packager/appimage/Zeedle.AppDir/usr/share/applications/Zeedle.desktop"
-for f in "$DESKTOP_STAGING" "$DESKTOP_APPDIR"; do
-    if [ -f "$f" ] && ! grep -q "StartupWMClass" "$f"; then
-        printf "StartupNotify=true\nStartupWMClass=Zeedle\n" >> "$f"
+for desktop_file in "${DESKTOP_FILES[@]}"; do
+    [[ -f "$desktop_file" ]] || continue
+
+    if grep -q '^StartupNotify=' "$desktop_file"; then
+        sed -i 's/^StartupNotify=.*/StartupNotify=true/' "$desktop_file"
+    else
+        printf 'StartupNotify=true\n' >> "$desktop_file"
+    fi
+    if ! grep -q '^StartupWMClass=' "$desktop_file"; then
+        printf 'StartupWMClass=Zeedle\n' >> "$desktop_file"
     fi
 done
 
-# Rebuild AppImage with the patched .desktop file
-cd target/release/.cargo-packager/appimage
-bash build_appimage.sh
-cd "$OLDPWD"
-mv $APPIMAGE_FILE "target/release/Zeedle_${VERSION}_x86_64.AppImage"
+if [[ ! -f "$APPIMAGE_DIR/build_appimage.sh" ]]; then
+    printf 'AppImage build script was not created: %s\n' "$APPIMAGE_DIR/build_appimage.sh" >&2
+    exit 1
+fi
+(cd "$APPIMAGE_DIR" && bash build_appimage.sh)
 
-echo "✓ Package ready: target/release/Zeedle_${VERSION}_x86_64.AppImage"
+if [[ ! -f "$GENERATED_APPIMAGE" ]]; then
+    printf 'Expected AppImage was not created: %s\n' "$GENERATED_APPIMAGE" >&2
+    exit 1
+fi
+mv -f -- "$GENERATED_APPIMAGE" "$OUTPUT_APPIMAGE"
+
+printf 'Package ready: %s\n' "$OUTPUT_APPIMAGE"
