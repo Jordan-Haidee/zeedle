@@ -1,0 +1,132 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Validate tag version
+        shell: pwsh
+        run: |
+          $metadata = cargo metadata --no-deps --format-version 1 | ConvertFrom-Json
+          $version = ($metadata.packages | Where-Object { $_.name -eq "zeedle" } | Select-Object -First 1).version
+          if (-not $version) {
+            throw "Could not read zeedle package version from Cargo.toml."
+          }
+
+          $tag = $env:GITHUB_REF_NAME
+          if ($tag.StartsWith("v")) {
+            $tag = $tag.Substring(1)
+          }
+          if ($tag -cne $version) {
+            throw "Tag '$($env:GITHUB_REF_NAME)' does not match Cargo.toml version '$version'."
+          }
+
+      - name: Install cargo-packager
+        run: cargo install cargo-packager --locked --version 0.11.8
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            libasound2-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libfuse2 \
+            libgl1-mesa-dev \
+            libwayland-dev \
+            libx11-dev \
+            libx11-xcb-dev \
+            libxcursor-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            pkg-config \
+            xinput
+
+      - name: Build Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./packager/pack-nsis.ps1
+
+      - name: Build Linux installers
+        if: runner.os == 'Linux'
+        run: |
+          bash packager/pack-deb.sh
+          bash packager/pack-appimage.sh
+
+      - name: Upload Windows installer
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-installer
+          path: target/release/Zeedle_*_x64-setup.exe
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Upload Linux installers
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-installers
+          path: |
+            target/release/Zeedle_*_amd64.deb
+            target/release/Zeedle_*_amd64.AppImage
+          if-no-files-found: error
+          compression-level: 0
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Windows installer
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-installer
+          path: dist
+
+      - name: Download Linux installers
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-installers
+          path: dist
+
+      - name: Verify all installers are present
+        shell: bash
+        run: |
+          count=$(find dist -maxdepth 1 -type f | wc -l)
+          if [[ "$count" -ne 3 ]]; then
+            echo "Expected 3 installers, found $count" >&2
+            find dist -maxdepth 1 -type f -print >&2
+            exit 1
+          fi
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME" dist/*
+          --repo "$GITHUB_REPOSITORY"
+          --verify-tag
+          --title "$GITHUB_REF_NAME"
+          --generate-notes
