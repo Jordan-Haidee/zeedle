@@ -12,6 +12,7 @@ Instructions for AI coding agents working in this repository.
 
 ## Distribution
 - Windows NSIS: `./packager/pack-nsis.ps1`
+- Windows MSI: `./packager/pack-msi.ps1`
 - Linux deb: `./packager/pack-deb.sh`
 - Linux AppImage: `./packager/pack-appimage.sh`
 - All use `cargo packager` under the hood — see `packager/` for configs.

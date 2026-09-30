@@ -14,7 +14,7 @@ Add a Windows MSI installer for Zeedle using the existing `cargo-packager` setup
 
 ## Packaging workflow
 
-Add `packager/pack-msi.ps1` following the existing NSIS script's version and staging behavior. Reuse `Packager.windows.toml` and pass `--formats wix` to `cargo packager`, keeping the NSIS script and its selected format unchanged. Require exactly one generated `.msi`, then move it to `target/release/Zeedle_<version>_x64.msi`; fail clearly if packaging fails or the artifact is absent or ambiguous. Remove transient config and staging files in a `finally` block.
+Add `packager/pack-msi.ps1` following the existing NSIS script's version and staging behavior. Reuse `Packager.windows.toml` and pass `--formats wix` to `cargo packager`, keeping the NSIS script and its selected format unchanged. WiX requires numeric MSI versions, so map `alpha.N`, `beta.N`, and `rc.N` prereleases in the temporary config to separate numeric prerelease ranges; pass stable and already numeric versions through. Keep the original Cargo version in the output filename. Require exactly one generated `.msi`, then move it to `target/release/Zeedle_<version>_x64.msi`; fail clearly if packaging fails or the artifact is absent or ambiguous. Remove transient config and staging files in a `finally` block.
 
 ## Release workflow and documentation
 
@@ -23,10 +23,10 @@ Run both Windows packaging scripts in the Windows release job. Upload both Windo
 ## Validation
 
 - Parse the PowerShell script and confirm its failure/cleanup paths.
-- Run the MSI packaging command on Windows and confirm it creates exactly one valid `.msi` at the stable release path.
+- Run the MSI packaging command on Windows using the repository's current `0.6.3-alpha.1` version and confirm it creates exactly one valid `.msi` at the stable release path.
 - Check that the release workflow's build steps, artifact globs, and file-count check agree with the four published files.
 - Review the updated build instructions and packaging configuration for consistency.
 
 ## Scope
 
-This adds MSI packaging and release distribution while preserving the existing NSIS installer and Linux package workflows. It does not change application code or add MSI-specific installer customization unless the cargo-packager defaults require a setting for a successful package.
+This adds MSI packaging and release distribution while preserving the existing NSIS installer and Linux package workflows. It does not change application code or add a custom WiX installer template; numeric version mapping is limited to the temporary config required by WiX.

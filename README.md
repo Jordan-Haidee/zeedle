@@ -34,6 +34,7 @@ Tested in Windows 10/11:
 
 ```shell
 ./packager/pack-nsis.ps1
+./packager/pack-msi.ps1
 ```
 
 Tested in Ubuntu 24.04 LTS:
@@ -46,7 +47,7 @@ Tested in Ubuntu 24.04 LTS:
 ./packager/pack-appimage.sh
 ```
 
-Then the built installer can be found in `target/release`.
+The built installer packages can be found in `target/release`.
 
 ## Config
 Select your music directory:

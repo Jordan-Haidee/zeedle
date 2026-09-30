@@ -31,6 +31,9 @@ jobs:
           }
 
           $tag = $env:GITHUB_REF_NAME
+          if ($tag.EndsWith("-test", [System.StringComparison]::Ordinal)) {
+            $tag = $tag.Substring(0, $tag.Length - "-test".Length)
+          }
           if ($tag.StartsWith("v")) {
             $tag = $tag.Substring(1)
           }
@@ -60,10 +63,12 @@ jobs:
             pkg-config \
             xinput
 
-      - name: Build Windows installer
+      - name: Build Windows installers
         if: runner.os == 'Windows'
         shell: pwsh
-        run: ./packager/pack-nsis.ps1
+        run: |
+          ./packager/pack-nsis.ps1
+          ./packager/pack-msi.ps1
 
       - name: Build Linux installers
         if: runner.os == 'Linux'
@@ -71,12 +76,14 @@ jobs:
           bash packager/pack-deb.sh
           bash packager/pack-appimage.sh
 
-      - name: Upload Windows installer
+      - name: Upload Windows installers
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v7
         with:
-          name: windows-installer
-          path: target/release/Zeedle_*_x64-setup.exe
+          name: windows-installers
+          path: |
+            target/release/Zeedle_*_x64-setup.exe
+            target/release/Zeedle_*_x64.msi
           if-no-files-found: error
           compression-level: 0
 
@@ -93,16 +100,17 @@ jobs:
 
   release:
     name: Publish GitHub Release
+    if: ${{ !endsWith(github.ref_name, '-test') }}
     needs: build
     runs-on: ubuntu-22.04
     permissions:
       contents: write
 
     steps:
-      - name: Download Windows installer
+      - name: Download Windows installers
         uses: actions/download-artifact@v8
         with:
-          name: windows-installer
+          name: windows-installers
           path: dist
 
       - name: Download Linux installers
@@ -115,8 +123,8 @@ jobs:
         shell: bash
         run: |
           count=$(find dist -maxdepth 1 -type f | wc -l)
-          if [[ "$count" -ne 3 ]]; then
-            echo "Expected 3 installers, found $count" >&2
+          if [[ "$count" -ne 4 ]]; then
+            echo "Expected 4 installers, found $count" >&2
             find dist -maxdepth 1 -type f -print >&2
             exit 1
           fi

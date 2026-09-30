@@ -33,6 +33,7 @@
 
 ```shell
 ./packager/pack-nsis.ps1
+./packager/pack-msi.ps1
 ```
 
 在 Ubuntu 24.04 LTS 上测试通过：

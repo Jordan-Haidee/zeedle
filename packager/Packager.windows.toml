@@ -1,4 +1,4 @@
-# pack-nsis.ps1 supplies this package version from Cargo.toml at runtime.
+# The Windows packaging scripts supply this package version from Cargo.toml at runtime.
 product-name = "Zeedle"
 name = "Zeedle"
 before-packaging-command = "cargo build --release --manifest-path ../Cargo.toml"
