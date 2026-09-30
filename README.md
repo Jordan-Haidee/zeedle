@@ -22,7 +22,7 @@ Enjoy your music in less than 0.5s:
 
 ## Installation
 
-### Windows and Linux
+### Windows, macOS, and Linux
 
 Download prebuilt releases.
 
@@ -35,6 +35,12 @@ Tested in Windows 10/11:
 ```shell
 ./packager/pack-nsis.ps1
 ./packager/pack-msi.ps1
+```
+
+On macOS, build the DMG package with:
+
+```shell
+./packager/pack-dmg.sh
 ```
 
 Tested in Ubuntu 24.04 LTS:

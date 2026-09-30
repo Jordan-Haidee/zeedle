@@ -36,6 +36,12 @@
 ./packager/pack-msi.ps1
 ```
 
+在 macOS 上构建 DMG 安装包：
+
+```shell
+./packager/pack-dmg.sh
+```
+
 在 Ubuntu 24.04 LTS 上测试通过：
 
 ```shell

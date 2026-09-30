@@ -15,7 +15,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-latest]
+        include:
+          - os: ubuntu-22.04
+          - os: windows-latest
+          - os: macos-15
+            artifact_name: macos-arm64-installer
+          - os: macos-15-intel
+            artifact_name: macos-x64-installer
 
     steps:
       - uses: actions/checkout@v7
@@ -76,6 +82,10 @@ jobs:
           bash packager/pack-deb.sh
           bash packager/pack-appimage.sh
 
+      - name: Build macOS DMG
+        if: runner.os == 'macOS'
+        run: bash packager/pack-dmg.sh
+
       - name: Upload Windows installers
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v7
@@ -95,6 +105,15 @@ jobs:
           path: |
             target/release/Zeedle_*_amd64.deb
             target/release/Zeedle_*_amd64.AppImage
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Upload macOS installer
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: target/release/Zeedle_*.dmg
           if-no-files-found: error
           compression-level: 0
 
@@ -119,12 +138,24 @@ jobs:
           name: linux-installers
           path: dist
 
+      - name: Download macOS ARM64 installer
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-arm64-installer
+          path: dist
+
+      - name: Download macOS x64 installer
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-x64-installer
+          path: dist
+
       - name: Verify all installers are present
         shell: bash
         run: |
           count=$(find dist -maxdepth 1 -type f | wc -l)
-          if [[ "$count" -ne 4 ]]; then
-            echo "Expected 4 installers, found $count" >&2
+          if [[ "$count" -ne 6 ]]; then
+            echo "Expected 6 installers, found $count" >&2
             find dist -maxdepth 1 -type f -print >&2
             exit 1
           fi
