@@ -212,9 +212,10 @@ pub fn get_default_album_cover() -> slint::Image {
 
 /// Get about info string
 pub fn get_about_info() -> StyledText {
+    let name = env!("CARGO_PKG_NAME");
     let s = format!(
         "{}\n{}\nAuthor: {}\nVersion: {}\n[Github]({})",
-        env!("CARGO_PKG_NAME"),
+        name.get(..1).map(|c| c.to_uppercase() + &name[1..]).unwrap_or_default(),
         env!("CARGO_PKG_DESCRIPTION"),
         env!("CARGO_PKG_AUTHORS"),
         env!("CARGO_PKG_VERSION"),
