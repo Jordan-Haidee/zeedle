@@ -31,6 +31,9 @@ jobs:
           }
 
           $tag = $env:GITHUB_REF_NAME
+          if ($tag.StartsWith("ci-test-")) {
+            $tag = $tag.Substring("ci-test-".Length)
+          }
           if ($tag.StartsWith("v")) {
             $tag = $tag.Substring(1)
           }
@@ -121,7 +124,36 @@ jobs:
             exit 1
           fi
 
+      - name: Publish draft test release
+        if: startsWith(github.ref_name, 'ci-test-')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --draft \
+            --title "CI test $GITHUB_REF_NAME" \
+            --notes "Temporary draft used to verify tagged packaging; removed automatically."
+          asset_count=$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets | length')
+          if [[ "$asset_count" -ne 3 ]]; then
+            echo "Expected 3 release assets, found $asset_count" >&2
+            exit 1
+          fi
+
+      - name: Clean up draft test release and tag
+        if: ${{ always() && startsWith(github.ref_name, 'ci-test-') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release delete "$GITHUB_REF_NAME" --yes --cleanup-tag --repo "$GITHUB_REPOSITORY"
+          else
+            gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/tags/$GITHUB_REF_NAME" || true
+          fi
+
       - name: Publish GitHub Release
+        if: ${{ !startsWith(github.ref_name, 'ci-test-') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >-
