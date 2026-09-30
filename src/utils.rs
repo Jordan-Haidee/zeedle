@@ -217,7 +217,7 @@ pub fn get_about_info() -> StyledText {
         "{}\n{}\nAuthor: {}\nVersion: {}\n[Github]({})",
         name.get(..1).map(|c| c.to_uppercase() + &name[1..]).unwrap_or_default(),
         env!("CARGO_PKG_DESCRIPTION"),
-        env!("CARGO_PKG_AUTHORS"),
+        "Jordan Haidee",
         env!("CARGO_PKG_VERSION"),
         env!("CARGO_PKG_REPOSITORY"),
     );
