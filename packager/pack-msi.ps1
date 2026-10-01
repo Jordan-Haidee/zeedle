@@ -73,18 +73,14 @@ try {
     $ConfigContent = [regex]::Replace($ConfigContent, '(?m)^resources\s*=\s*\[[^\r\n]*\]', "resources = [`"$ResourceGlob`"]")
     $ConfigPrefix = "version = `"$MsiVersion`"`r`n"
     if ($PackageArch -eq "arm64") {
-        $ConfigPrefix += "log-level = `"debug`"`r`n"
+        $ConfigContent += "`r`n[wix]`r`ntemplate = `"Packager.windows.arm64.wxs`"`r`n"
     }
     $ConfigWithVersion = "$ConfigPrefix$ConfigContent"
     [IO.File]::WriteAllText($VersionedConfigPath, $ConfigWithVersion, [Text.UTF8Encoding]::new($false))
     New-Item -ItemType Directory -Path $StagingDir -Force | Out-Null
 
     Write-Host "Building Zeedle $Version MSI installer..."
-    $PackagerArguments = @("--config", $VersionedConfigPath, "--out-dir", $StagingDir, "--formats", "wix")
-    if ($PackageArch -eq "arm64") {
-        $PackagerArguments += "--verbose"
-    }
-    & cargo packager @PackagerArguments
+    & cargo packager --config $VersionedConfigPath --out-dir $StagingDir --formats wix
     if ($LASTEXITCODE -ne 0) {
         throw "cargo packager failed with exit code $LASTEXITCODE"
     }
