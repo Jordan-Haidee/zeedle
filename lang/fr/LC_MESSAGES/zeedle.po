@@ -153,6 +153,41 @@ msgctxt "SongEditPopup"
 msgid "Artist"
 msgstr "Artiste"
 
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Album"
+msgstr "Album"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "No embedded cover"
+msgstr "Aucune pochette intégrée"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Select cover image"
+msgstr "Choisir une image de pochette"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Existing cover will be kept"
+msgstr "La pochette actuelle sera conservée"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Select LRC file"
+msgstr "Choisir un fichier LRC"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Existing lyrics will be kept"
+msgstr "Les paroles actuelles seront conservées"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "No embedded lyrics"
+msgstr "Aucune parole intégrée"
+
 #: ui/song_list.slint:257
 msgctxt "SongEditPopup"
 msgid "Title and artist are required."

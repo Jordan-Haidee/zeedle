@@ -42,7 +42,8 @@ enum PlayerCommand {
     SwitchMode(PlayMode),          // 切换播放模式
     RefreshSongList(PathBuf),      // 刷新歌曲列表
     SortSongList(SortKey, bool),   // 刷新歌曲列表
-    UpdateSongMetadata(PathBuf, String, String),
+    LoadSongEditMetadata(SongInfo),
+    UpdateSongMetadata(PathBuf, String, String, String, Option<PathBuf>, Option<PathBuf>),
     DeleteSong(PathBuf),
     SetLang(String),       // 设置语言
     ChangeVolume(f32),     // 改变音量
@@ -115,6 +116,12 @@ fn clear_song_state(ui: &MainWindow) {
     display.set_lyrics(Vec::new().as_slice().into());
     display.set_lyric_viewport_y(0.);
     display.set_song_list(Vec::new().as_slice().into());
+}
+
+fn rgba_to_slint_image(rgba: Vec<u8>, width: u32, height: u32) -> slint::Image {
+    let mut buffer = slint::SharedPixelBuffer::new(width, height);
+    buffer.make_mut_bytes().copy_from_slice(&rgba);
+    slint::Image::from_rgba8(buffer)
 }
 
 /// Set UI state according to saved config
@@ -491,12 +498,74 @@ fn start_player_backend_thread(
                     })
                     .unwrap();
                 }
-                PlayerCommand::UpdateSongMetadata(path, title, artist) => {
-                    let result = utils::write_song_metadata(&path, &title, &artist)
-                        .and_then(|()| utils::read_meta_info(&path));
+                PlayerCommand::LoadSongEditMetadata(song) => {
+                    let result = utils::read_song_edit_metadata(&song.song_path);
                     let ui_weak = ui_weak.clone();
                     match result {
-                        Ok(song) => {
+                        Ok(metadata) => {
+                            slint::invoke_from_event_loop(move || {
+                                if let Some(ui) = ui_weak.upgrade() {
+                                    let has_cover = metadata.cover.is_some();
+                                    let cover = metadata.cover.map_or_else(
+                                        utils::get_default_album_cover,
+                                        |cover| {
+                                            rgba_to_slint_image(
+                                                cover.rgba,
+                                                cover.width,
+                                                cover.height,
+                                            )
+                                        },
+                                    );
+                                    ui.set_editing_song(song);
+                                    ui.set_edit_album(metadata.album.into());
+                                    ui.set_edit_cover_preview(cover);
+                                    ui.set_edit_has_cover(has_cover);
+                                    ui.set_edit_cover_path("".into());
+                                    ui.set_edit_cover_name("".into());
+                                    ui.set_edit_lyrics_preview(
+                                        utils::lyrics_preview(&metadata.lyrics).into(),
+                                    );
+                                    ui.set_edit_has_lyrics(!metadata.lyrics.trim().is_empty());
+                                    ui.set_edit_lyrics_path("".into());
+                                    ui.set_edit_lyrics_name("".into());
+                                    ui.set_edit_popup_saving(false);
+                                    ui.set_edit_popup_error("".into());
+                                    ui.set_edit_popup_invalid_input(false);
+                                    ui.set_edit_popup_song_missing(false);
+                                    ui.invoke_show_song_edit_popup();
+                                }
+                            })
+                            .unwrap();
+                        }
+                        Err(error) => {
+                            let message = error.to_string();
+                            slint::invoke_from_event_loop(move || {
+                                if let Some(ui) = ui_weak.upgrade() {
+                                    ui.set_operation_error_message(message.into());
+                                    ui.invoke_show_operation_error();
+                                }
+                            })
+                            .unwrap();
+                        }
+                    }
+                }
+                PlayerCommand::UpdateSongMetadata(path, title, artist, album, cover, lyrics) => {
+                    let result = utils::write_song_metadata(
+                        &path,
+                        &title,
+                        &artist,
+                        &album,
+                        cover.as_deref(),
+                        lyrics.as_deref(),
+                    )
+                    .and_then(|()| {
+                        let song = utils::read_meta_info(&path)?;
+                        let metadata = utils::read_song_edit_metadata(&path)?;
+                        Ok((song, metadata))
+                    });
+                    let ui_weak = ui_weak.clone();
+                    match result {
+                        Ok((song, metadata)) => {
                             slint::invoke_from_event_loop(move || {
                                 if let Some(ui) = ui_weak.upgrade() {
                                     let display = ui.global::<DisplayGlobal>();
@@ -523,6 +592,19 @@ fn start_player_backend_thread(
                                         songs.iter().find(|item| item.song_path == current_path)
                                     {
                                         display.set_current_song(current.clone());
+                                        display.set_lyrics(
+                                            utils::parse_lyrics(&metadata.lyrics).as_slice().into(),
+                                        );
+                                        display.set_album_image(metadata.cover.map_or_else(
+                                            utils::get_default_album_cover,
+                                            |cover| {
+                                                rgba_to_slint_image(
+                                                    cover.rgba,
+                                                    cover.width,
+                                                    cover.height,
+                                                )
+                                            },
+                                        ));
                                     }
                                     display.set_song_list(songs.as_slice().into());
                                     let results = utils::search_songs(
@@ -812,8 +894,15 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
     }
     {
         let tx = tx.clone();
+        ui.on_load_song_edit_metadata(move |song| {
+            tx.send(PlayerCommand::LoadSongEditMetadata(song))
+                .expect("failed to send song metadata load command");
+        });
+    }
+    {
+        let tx = tx.clone();
         let ui_weak = ui.as_weak();
-        ui.on_save_song_metadata(move |song, title, artist| {
+        ui.on_save_song_metadata(move |song, title, artist, album, cover_path, lyrics_path| {
             if title.trim().is_empty() || artist.trim().is_empty() {
                 if let Some(ui) = ui_weak.upgrade() {
                     ui.set_edit_popup_saving(false);
@@ -826,8 +915,77 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
                 PathBuf::from(song.song_path.as_str()),
                 title.to_string(),
                 artist.to_string(),
+                album.to_string(),
+                (!cover_path.is_empty()).then(|| PathBuf::from(cover_path.as_str())),
+                (!lyrics_path.is_empty()).then(|| PathBuf::from(lyrics_path.as_str())),
             ))
             .expect("failed to send metadata update command");
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_select_song_cover(move || {
+            let Some(path) = rfd::FileDialog::new()
+                .add_filter("Cover images", &["png", "jpg", "jpeg"])
+                .pick_file()
+            else {
+                return;
+            };
+            match utils::load_uploaded_cover(&path) {
+                Ok(cover) => {
+                    if let Some(ui) = ui_weak.upgrade() {
+                        let preview = cover.preview;
+                        ui.set_edit_cover_preview(rgba_to_slint_image(
+                            preview.rgba,
+                            preview.width,
+                            preview.height,
+                        ));
+                        ui.set_edit_has_cover(true);
+                        ui.set_edit_cover_path(path.display().to_string().into());
+                        ui.set_edit_cover_name(
+                            path.file_name()
+                                .and_then(|name| name.to_str())
+                                .unwrap_or_default()
+                                .into(),
+                        );
+                        ui.set_edit_popup_error("".into());
+                    }
+                }
+                Err(error) => {
+                    if let Some(ui) = ui_weak.upgrade() {
+                        ui.set_edit_popup_error(error.to_string().into());
+                    }
+                }
+            }
+        });
+    }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_select_song_lyrics(move || {
+            let Some(path) = rfd::FileDialog::new().add_filter("LRC", &["lrc"]).pick_file() else {
+                return;
+            };
+            match utils::read_uploaded_lyrics(&path) {
+                Ok(lyrics) => {
+                    if let Some(ui) = ui_weak.upgrade() {
+                        ui.set_edit_lyrics_preview(utils::lyrics_preview(&lyrics).into());
+                        ui.set_edit_has_lyrics(true);
+                        ui.set_edit_lyrics_path(path.display().to_string().into());
+                        ui.set_edit_lyrics_name(
+                            path.file_name()
+                                .and_then(|name| name.to_str())
+                                .unwrap_or_default()
+                                .into(),
+                        );
+                        ui.set_edit_popup_error("".into());
+                    }
+                }
+                Err(error) => {
+                    if let Some(ui) = ui_weak.upgrade() {
+                        ui.set_edit_popup_error(error.to_string().into());
+                    }
+                }
+            }
         });
     }
     {

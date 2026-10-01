@@ -94,7 +94,10 @@ export component MainWindow inherits Window {
     callback select_song_dir();
     callback search_songs(string);
     callback delete_song(SongInfo);
-    callback save_song_metadata(SongInfo, string, string);
+    callback load_song_edit_metadata(SongInfo);
+    callback save_song_metadata(SongInfo, string, string, string, string, string);
+    callback select_song_cover();
+    callback select_song_lyrics();
     pure callback format_duration(float) -> string;
     callback window_minimize();
     callback window_maximize();
@@ -110,6 +113,15 @@ export component MainWindow inherits Window {
     in-out property <string> edit_popup_error: "";
     in-out property <bool> edit_popup_invalid_input: false;
     in-out property <bool> edit_popup_song_missing: false;
+    in-out property <string> edit_album: "";
+    in-out property <image> edit_cover_preview;
+    in-out property <bool> edit_has_cover: false;
+    in-out property <string> edit_cover_name: "";
+    in-out property <string> edit_cover_path: "";
+    in-out property <bool> edit_has_lyrics: false;
+    in-out property <string> edit_lyrics_name: "";
+    in-out property <string> edit_lyrics_path: "";
+    in-out property <string> edit_lyrics_preview: "";
     in-out property <string> operation_error_message: "";
     public function set_light_theme(yes: bool) {
         DisplayGlobal.light_ui = yes;
@@ -129,6 +141,9 @@ export component MainWindow inherits Window {
         root.edit_popup_error = "";
         root.edit_popup_invalid_input = false;
         root.edit_popup_song_missing = false;
+    }
+    public function show_song_edit_popup() {
+        edit-popup.show();
     }
 
     window-frame := Rectangle {
@@ -219,7 +234,15 @@ export component MainWindow inherits Window {
                                 root.edit_popup_error = "";
                                 root.edit_popup_invalid_input = false;
                                 root.edit_popup_song_missing = false;
-                                edit-popup.show();
+                                root.edit_album = "";
+                                root.edit_cover_name = "";
+                                root.edit_cover_path = "";
+                                root.edit_has_cover = false;
+                                root.edit_lyrics_name = "";
+                                root.edit_lyrics_path = "";
+                                root.edit_has_lyrics = false;
+                                root.edit_lyrics_preview = "";
+                                root.load_song_edit_metadata(info);
                             }
                             delete-song(info) => { root.delete_song(info); }
                         }
@@ -284,7 +307,15 @@ export component MainWindow inherits Window {
                             root.edit_popup_error = "";
                             root.edit_popup_invalid_input = false;
                             root.edit_popup_song_missing = false;
-                            edit-popup.show();
+                            root.edit_album = "";
+                            root.edit_cover_name = "";
+                            root.edit_cover_path = "";
+                            root.edit_has_cover = false;
+                            root.edit_lyrics_name = "";
+                            root.edit_lyrics_path = "";
+                            root.edit_has_lyrics = false;
+                            root.edit_lyrics_preview = "";
+                            root.load_song_edit_metadata(info);
                         }
                         delete-song(info) => { root.delete_song(info); }
                     }
@@ -442,27 +473,45 @@ export component MainWindow inherits Window {
         }
 
         edit-popup-anchor := Rectangle {
-            x: (root.width - 430px) / 2;
-            y: (root.height - 330px) / 2;
+            x: (root.width - 520px) / 2;
+            y: (root.height - 510px) / 2;
             width: 1px;
             height: 1px;
             edit-popup := PopupWindow {
-                width: 430px;
-                height: 330px;
-                close-policy: close-on-click-outside;
+                width: 520px;
+                height: 510px;
+                close-policy: no-auto-close;
                 SongEditPopup {
                     song: root.editing_song;
                     saving: root.edit_popup_saving;
                     error-message: root.edit_popup_error;
                     invalid-input: root.edit_popup_invalid_input;
                     song-missing: root.edit_popup_song_missing;
-                    save(title, artist) => {
+                    album: root.edit_album;
+                    cover-preview: root.edit_cover_preview;
+                    has-cover: root.edit_has_cover;
+                    cover-name: root.edit_cover_name;
+                    cover-path: root.edit_cover_path;
+                    has-lyrics: root.edit_has_lyrics;
+                    lyrics-name: root.edit_lyrics_name;
+                    lyrics-path: root.edit_lyrics_path;
+                    lyrics-preview: root.edit_lyrics_preview;
+                    save(title, artist, album, cover_path, lyrics_path) => {
                         root.edit_popup_saving = true;
                         root.edit_popup_error = "";
                         root.edit_popup_invalid_input = false;
                         root.edit_popup_song_missing = false;
-                        root.save_song_metadata(root.editing_song, title, artist);
+                        root.save_song_metadata(
+                            root.editing_song,
+                            title,
+                            artist,
+                            album,
+                            cover_path,
+                            lyrics_path,
+                        );
                     }
+                    select-cover => { root.select_song_cover(); }
+                    select-lyrics => { root.select_song_lyrics(); }
                     cancel => {
                         edit-popup.close();
                         root.edit_popup_error = "";

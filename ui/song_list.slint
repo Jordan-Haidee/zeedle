@@ -268,7 +268,18 @@ export component SongEditPopup inherits Rectangle {
     in-out property <bool> invalid-input: false;
     in-out property <string> edited-title: song.song-name;
     in-out property <string> edited-artist: song.singer;
-    callback save(string, string);
+    in-out property <string> album;
+    in property <image> cover-preview;
+    in property <bool> has-cover: false;
+    in property <string> cover-name;
+    in-out property <string> cover-path;
+    in property <bool> has-lyrics: false;
+    in property <string> lyrics-name;
+    in-out property <string> lyrics-path;
+    in property <string> lyrics-preview;
+    callback save(string, string, string, string, string);
+    callback select-cover();
+    callback select-lyrics();
     callback cancel();
 
     width: 100%;
@@ -281,8 +292,8 @@ export component SongEditPopup inherits Rectangle {
     VerticalLayout {
         width: 100%;
         height: 100%;
-        padding: 20px;
-        spacing: 10px;
+        padding: 16px;
+        spacing: 4px;
 
         Text {
             text: @tr("Edit song metadata");
@@ -313,6 +324,94 @@ export component SongEditPopup inherits Rectangle {
             text <=> root.edited-artist;
             enabled: !root.saving;
             placeholder-text: @tr("Artist");
+        }
+
+        Text {
+            text: @tr("Album");
+            color: Theme.text-secondary;
+        }
+
+        LineEdit {
+            horizontal-stretch: 1;
+            text <=> root.album;
+            enabled: !root.saving;
+            placeholder-text: @tr("Album");
+        }
+
+        HorizontalLayout {
+            spacing: 10px;
+            Image {
+                width: 64px;
+                height: 64px;
+                source: root.cover-preview;
+                image-fit: contain;
+                visible: root.has-cover;
+            }
+
+            Rectangle {
+                width: 64px;
+                height: 64px;
+                background: Theme.panel;
+                border-color: Theme.border;
+                border-width: 1px;
+                border-radius: 4px;
+                visible: !root.has-cover;
+                Text {
+                    x: 4px;
+                    y: 4px;
+                    width: parent.width - 8px;
+                    height: parent.height - 8px;
+                    text: @tr("No embedded cover");
+                    color: Theme.text-secondary;
+                    font-size: 11px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    wrap: word-wrap;
+                }
+            }
+
+            VerticalLayout {
+                alignment: center;
+                spacing: 4px;
+                Button {
+                    text: @tr("Select cover image");
+                    enabled: !root.saving;
+                    clicked => { root.select-cover(); }
+                }
+
+                Text {
+                    text: root.cover-name != "" ? root.cover-name : (root.has-cover ? @tr("Existing cover will be kept") : "");
+                    color: Theme.text-secondary;
+                    font-size: 11px;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 10px;
+            Button {
+                text: @tr("Select LRC file");
+                enabled: !root.saving;
+                clicked => { root.select-lyrics(); }
+            }
+
+            Text {
+                text: root.lyrics-name != "" ? root.lyrics-name : (root.has-lyrics ? @tr("Existing lyrics will be kept") : @tr("No embedded lyrics"));
+                color: Theme.text-secondary;
+                font-size: 11px;
+                vertical-alignment: center;
+                wrap: word-wrap;
+            }
+        }
+
+        Text {
+            text: root.lyrics-preview;
+            color: Theme.text-secondary;
+            font-size: 11px;
+            max-height: 32px;
+            wrap: word-wrap;
+            visible: root.lyrics-preview != "";
         }
 
         Text {
@@ -353,7 +452,7 @@ export component SongEditPopup inherits Rectangle {
                     if root.edited-title == "" || root.edited-artist == "" {
                         root.invalid-input = true;
                     } else {
-                        root.save(root.edited-title, root.edited-artist);
+                        root.save(root.edited-title, root.edited-artist, root.album, root.cover-path, root.lyrics-path);
                     }
                 }
             }
