@@ -17,6 +17,9 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
+            artifact_name: linux-amd64-installers
+          - os: ubuntu-22.04-arm
+            artifact_name: linux-arm64-installers
           - os: windows-latest
           - os: macos-15
             artifact_name: macos-arm64-installer
@@ -101,10 +104,10 @@ jobs:
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v7
         with:
-          name: linux-installers
+          name: ${{ matrix.artifact_name }}
           path: |
-            target/release/Zeedle_*_amd64.deb
-            target/release/Zeedle_*_amd64.AppImage
+            target/release/Zeedle_*.deb
+            target/release/Zeedle_*.AppImage
           if-no-files-found: error
           compression-level: 0
 
@@ -132,10 +135,16 @@ jobs:
           name: windows-installers
           path: dist
 
-      - name: Download Linux installers
+      - name: Download Linux x64 installers
         uses: actions/download-artifact@v8
         with:
-          name: linux-installers
+          name: linux-amd64-installers
+          path: dist
+
+      - name: Download Linux ARM64 installers
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-arm64-installers
           path: dist
 
       - name: Download macOS ARM64 installer
@@ -154,8 +163,8 @@ jobs:
         shell: bash
         run: |
           count=$(find dist -maxdepth 1 -type f | wc -l)
-          if [[ "$count" -ne 6 ]]; then
-            echo "Expected 6 installers, found $count" >&2
+          if [[ "$count" -ne 8 ]]; then
+            echo "Expected 8 installers, found $count" >&2
             find dist -maxdepth 1 -type f -print >&2
             exit 1
           fi

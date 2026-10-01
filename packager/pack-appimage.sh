@@ -22,6 +22,16 @@ if [[ -z "$VERSION" ]]; then
     exit 1
 fi
 
+MACHINE_ARCH="$(uname -m)"
+case "$MACHINE_ARCH" in
+    x86_64) APPIMAGE_ARCH="x86_64"; OUTPUT_ARCH="amd64" ;;
+    aarch64|arm64) APPIMAGE_ARCH="aarch64"; OUTPUT_ARCH="arm64" ;;
+    *)
+        printf 'Unsupported AppImage architecture: %s\n' "$MACHINE_ARCH" >&2
+        exit 1
+        ;;
+esac
+
 VERSIONED_CONFIG="$(mktemp --suffix=.toml "$SCRIPT_DIR/.Packager.linux.XXXXXX")"
 trap 'rm -f -- "$VERSIONED_CONFIG"' EXIT
 {
@@ -29,14 +39,14 @@ trap 'rm -f -- "$VERSIONED_CONFIG"' EXIT
     cat "$CONFIG"
 } > "$VERSIONED_CONFIG"
 
-GENERATED_APPIMAGE="$RELEASE_DIR/zeedle_${VERSION}_x86_64.AppImage"
-OUTPUT_APPIMAGE="$RELEASE_DIR/Zeedle_${VERSION}_amd64.AppImage"
+GENERATED_APPIMAGE="$RELEASE_DIR/zeedle_${VERSION}_${APPIMAGE_ARCH}.AppImage"
+OUTPUT_APPIMAGE="$RELEASE_DIR/Zeedle_${VERSION}_${OUTPUT_ARCH}.AppImage"
 DESKTOP_FILES=(
     "$RELEASE_DIR/.cargo-packager/appimage_deb/data/usr/share/applications/zeedle.desktop"
     "$APPIMAGE_DIR/zeedle.AppDir/usr/share/applications/zeedle.desktop"
 )
 
-printf 'Building Zeedle %s AppImage...\n' "$VERSION"
+printf 'Building Zeedle %s AppImage (%s)...\n' "$VERSION" "$OUTPUT_ARCH"
 unset all_proxy ALL_PROXY
 cargo packager --config "$VERSIONED_CONFIG" --formats appimage
 

@@ -53,6 +53,8 @@ Tested in Ubuntu 24.04 LTS:
 ./packager/pack-appimage.sh
 ```
 
+On x64 and ARM64 Linux hosts, these scripts build packages for the current architecture.
+
 The built installer packages can be found in `target/release`.
 
 ## Config

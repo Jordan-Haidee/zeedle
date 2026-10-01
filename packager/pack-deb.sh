@@ -21,6 +21,15 @@ if [[ -z "$VERSION" ]]; then
     exit 1
 fi
 
+DEBIAN_ARCH="$(dpkg --print-architecture)"
+case "$DEBIAN_ARCH" in
+    amd64|arm64) ;;
+    *)
+        printf 'Unsupported Debian architecture: %s\n' "$DEBIAN_ARCH" >&2
+        exit 1
+        ;;
+esac
+
 VERSIONED_CONFIG="$(mktemp --suffix=.toml "$SCRIPT_DIR/.Packager.linux.XXXXXX")"
 WORK_DIR=""
 cleanup() {
@@ -35,10 +44,10 @@ trap cleanup EXIT
     cat "$CONFIG"
 } > "$VERSIONED_CONFIG"
 
-DEB_FILE="$RELEASE_DIR/zeedle_${VERSION}_amd64.deb"
-OUTPUT_FILE="$RELEASE_DIR/Zeedle_${VERSION}_amd64.deb"
+DEB_FILE="$RELEASE_DIR/zeedle_${VERSION}_${DEBIAN_ARCH}.deb"
+OUTPUT_FILE="$RELEASE_DIR/Zeedle_${VERSION}_${DEBIAN_ARCH}.deb"
 
-printf 'Building Zeedle %s Debian package...\n' "$VERSION"
+printf 'Building Zeedle %s Debian package (%s)...\n' "$VERSION" "$DEBIAN_ARCH"
 cargo packager --config "$VERSIONED_CONFIG" --formats deb
 
 if [[ ! -f "$DEB_FILE" ]]; then

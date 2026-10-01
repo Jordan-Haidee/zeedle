@@ -14,8 +14,8 @@ Instructions for AI coding agents working in this repository.
 - Windows NSIS: `./packager/pack-nsis.ps1`
 - Windows MSI: `./packager/pack-msi.ps1`
 - macOS DMG: `./packager/pack-dmg.sh`
-- Linux deb: `./packager/pack-deb.sh`
-- Linux AppImage: `./packager/pack-appimage.sh`
+- Linux deb (amd64/arm64): `./packager/pack-deb.sh`
+- Linux AppImage (amd64/arm64): `./packager/pack-appimage.sh`
 - All use `cargo packager` under the hood — see `packager/` for configs.
 
 ## Project Map

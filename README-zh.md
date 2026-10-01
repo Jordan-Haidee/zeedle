@@ -21,7 +21,7 @@
 
 ## 安装
 
-### Windows 和 Linux
+### Windows、macOS 和 Linux
 
 下载预编译的发行版。
 
@@ -51,6 +51,8 @@
 # 或者appimage包
 ./packager/pack-appimage.sh
 ```
+
+在 x64 或 ARM64 Linux 环境中运行时，会为当前架构生成对应安装包。
 
 构建好的安装包可以在 `target/release` 目录中找到。
 
