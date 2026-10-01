@@ -4,7 +4,12 @@ import { ControlPanel } from "control_panel.slint";
 import { Sidebar } from "sidebar.slint";
 import { SpectrumView } from "spectrum.slint";
 import { LyricsPanel } from "lyrics_panel.slint";
-import { SongItem, SongListView } from "song_list.slint";
+import {
+    SongItem,
+    SongListView,
+    SongEditPopup,
+    MessagePopup,
+} from "song_list.slint";
 import { TitleBar } from "title_bar.slint";
 import { SettingsPanel } from "settings_panel.slint";
 import { SearchPanel } from "search_panel.slint";
@@ -88,6 +93,8 @@ export component MainWindow inherits Window {
     callback set_follow_system_theme(bool);
     callback select_song_dir();
     callback search_songs(string);
+    callback delete_song(SongInfo);
+    callback save_song_metadata(SongInfo, string, string);
     pure callback format_duration(float) -> string;
     callback window_minimize();
     callback window_maximize();
@@ -98,6 +105,12 @@ export component MainWindow inherits Window {
     pure callback next-lyric-time(float, [LyricItem]) -> float;
     in-out property <int> current_page: 0;
     in-out property <bool> sidebar_expanded: false;
+    in-out property <SongInfo> editing_song: { id: -1, song_name: "", singer: "", duration: "", song_path: "" };
+    in-out property <bool> edit_popup_saving: false;
+    in-out property <string> edit_popup_error: "";
+    in-out property <bool> edit_popup_invalid_input: false;
+    in-out property <bool> edit_popup_song_missing: false;
+    in-out property <string> operation_error_message: "";
     public function set_light_theme(yes: bool) {
         DisplayGlobal.light_ui = yes;
         Theme.is-dark = !yes;
@@ -106,6 +119,16 @@ export component MainWindow inherits Window {
         } else {
             Palette.color-scheme = ColorScheme.dark;
         }
+    }
+    public function show_operation_error() {
+        operation-popup.show();
+    }
+    public function metadata_saved() {
+        edit-popup.close();
+        root.edit_popup_saving = false;
+        root.edit_popup_error = "";
+        root.edit_popup_invalid_input = false;
+        root.edit_popup_song_missing = false;
     }
 
     window-frame := Rectangle {
@@ -190,6 +213,15 @@ export component MainWindow inherits Window {
                             play-song(info, src) => {
                                 root.play(info, src);
                             }
+                            edit-song(info) => {
+                                root.editing_song = info;
+                                root.edit_popup_saving = false;
+                                root.edit_popup_error = "";
+                                root.edit_popup_invalid_input = false;
+                                root.edit_popup_song_missing = false;
+                                edit-popup.show();
+                            }
+                            delete-song(info) => { root.delete_song(info); }
                         }
 
                         ControlPanel {
@@ -246,6 +278,15 @@ export component MainWindow inherits Window {
                         play-song(info, src) => {
                             root.play(info, src);
                         }
+                        edit-song(info) => {
+                            root.editing_song = info;
+                            root.edit_popup_saving = false;
+                            root.edit_popup_error = "";
+                            root.edit_popup_invalid_input = false;
+                            root.edit_popup_song_missing = false;
+                            edit-popup.show();
+                        }
+                        delete-song(info) => { root.delete_song(info); }
                     }
 
                     if root.current_page == 2: Rectangle {
@@ -396,6 +437,54 @@ export component MainWindow inherits Window {
                 KeyBinding {
                     keys: @keys(F5);
                     activated => { root.current_page = 4; root.focus(); }
+                }
+            }
+        }
+
+        edit-popup-anchor := Rectangle {
+            x: (root.width - 430px) / 2;
+            y: (root.height - 330px) / 2;
+            width: 1px;
+            height: 1px;
+            edit-popup := PopupWindow {
+                width: 430px;
+                height: 330px;
+                close-policy: close-on-click-outside;
+                SongEditPopup {
+                    song: root.editing_song;
+                    saving: root.edit_popup_saving;
+                    error-message: root.edit_popup_error;
+                    invalid-input: root.edit_popup_invalid_input;
+                    song-missing: root.edit_popup_song_missing;
+                    save(title, artist) => {
+                        root.edit_popup_saving = true;
+                        root.edit_popup_error = "";
+                        root.edit_popup_invalid_input = false;
+                        root.edit_popup_song_missing = false;
+                        root.save_song_metadata(root.editing_song, title, artist);
+                    }
+                    cancel => {
+                        edit-popup.close();
+                        root.edit_popup_error = "";
+                        root.edit_popup_invalid_input = false;
+                        root.edit_popup_song_missing = false;
+                    }
+                }
+            }
+        }
+
+        operation-popup-anchor := Rectangle {
+            x: (root.width - 380px) / 2;
+            y: (root.height - 190px) / 2;
+            width: 1px;
+            height: 1px;
+            operation-popup := PopupWindow {
+                width: 380px;
+                height: 190px;
+                close-policy: close-on-click-outside;
+                MessagePopup {
+                    message: root.operation_error_message;
+                    dismissed => { operation-popup.close(); }
                 }
             }
         }

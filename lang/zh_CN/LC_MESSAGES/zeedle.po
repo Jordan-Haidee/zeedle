@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2025-09-28 15:04+0000\n"
+"POT-Creation-Date: 2026-10-01 13:38+0000\n"
 "PO-Revision-Date: 2025-09-28 23:07+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -119,5 +119,71 @@ msgstr "时长"
 
 #: ui/song_list.slint:163
 msgctxt "SongItem"
-msgid "Title: {}\nArtist: {}\nDuration: {}"
-msgstr "标题：{}\n艺术家：{}\n时长：{}"
+msgid ""
+"Title: {}\n"
+"Artist: {}\n"
+"Duration: {}"
+msgstr ""
+"标题：{}\n"
+"艺术家：{}\n"
+"时长：{}"
+
+#: ui/song_list.slint:126
+msgctxt "SongItem"
+msgid "Edit metadata"
+msgstr "编辑元信息"
+
+#: ui/song_list.slint:130
+msgctxt "SongItem"
+msgid "Delete song"
+msgstr "删除歌曲"
+
+#: ui/song_list.slint:230
+msgctxt "SongEditPopup"
+msgid "Edit song metadata"
+msgstr "编辑歌曲元信息"
+
+#: ui/song_list.slint:236 ui/song_list.slint:241
+msgctxt "SongEditPopup"
+msgid "Song title"
+msgstr "歌曲名"
+
+#: ui/song_list.slint:243 ui/song_list.slint:248
+msgctxt "SongEditPopup"
+msgid "Artist"
+msgstr "艺术家"
+
+#: ui/song_list.slint:257
+msgctxt "SongEditPopup"
+msgid "Title and artist are required."
+msgstr "歌曲名和艺术家不能为空。"
+
+#: ui/song_list.slint:251
+msgctxt "SongEditPopup"
+msgid "The selected song is no longer in the library."
+msgstr "所选歌曲已不在曲库中。"
+
+#: ui/song_list.slint:273
+msgctxt "SongEditPopup"
+msgid "Cancel"
+msgstr "取消"
+
+#: ui/song_list.slint:278
+msgctxt "SongEditPopup"
+msgid "Saving..."
+msgstr "保存中..."
+
+#: ui/song_list.slint:278
+msgctxt "SongEditPopup"
+msgid "Save"
+msgstr "保存"
+
+#: ui/song_list.slint:321
+msgctxt "MessagePopup"
+msgid "Operation failed"
+msgstr "操作失败"
+
+#: ui/song_list.slint:335
+msgctxt "MessagePopup"
+msgid "Close"
+msgstr "关闭"

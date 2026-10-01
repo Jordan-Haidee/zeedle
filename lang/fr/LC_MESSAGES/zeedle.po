@@ -1,14 +1,14 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2025-09-28 15:04+0000\n"
+"POT-Creation-Date: 2026-10-01 13:38+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: French <LL@li.org>\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: ui/app.slint:96
@@ -102,6 +102,10 @@ msgid "Type to search songs"
 msgstr "Tapez pour rechercher"
 
 #: ui/song_list.slint:81
+#, fuzzy
+msgctxt "SortBar"
+msgid "Title"
+msgstr "Titre: {}"
 
 #: ui/song_list.slint:91
 msgctxt "SortBar"
@@ -115,5 +119,71 @@ msgstr "Durée"
 
 #: ui/song_list.slint:163
 msgctxt "SongItem"
-msgid "Title: {}\nArtist: {}\nDuration: {}"
-msgstr "Titre : {}\nArtiste : {}\nDurée : {}"
+msgid ""
+"Title: {}\n"
+"Artist: {}\n"
+"Duration: {}"
+msgstr ""
+"Titre : {}\n"
+"Artiste : {}\n"
+"Durée : {}"
+
+#: ui/song_list.slint:126
+msgctxt "SongItem"
+msgid "Edit metadata"
+msgstr "Modifier les métadonnées"
+
+#: ui/song_list.slint:130
+msgctxt "SongItem"
+msgid "Delete song"
+msgstr "Supprimer le morceau"
+
+#: ui/song_list.slint:230
+msgctxt "SongEditPopup"
+msgid "Edit song metadata"
+msgstr "Modifier les métadonnées du morceau"
+
+#: ui/song_list.slint:236 ui/song_list.slint:241
+msgctxt "SongEditPopup"
+msgid "Song title"
+msgstr "Titre du morceau"
+
+#: ui/song_list.slint:243 ui/song_list.slint:248
+msgctxt "SongEditPopup"
+msgid "Artist"
+msgstr "Artiste"
+
+#: ui/song_list.slint:257
+msgctxt "SongEditPopup"
+msgid "Title and artist are required."
+msgstr "Le titre et l'artiste sont obligatoires."
+
+#: ui/song_list.slint:251
+msgctxt "SongEditPopup"
+msgid "The selected song is no longer in the library."
+msgstr "Le morceau sélectionné ne figure plus dans la bibliothèque."
+
+#: ui/song_list.slint:273
+msgctxt "SongEditPopup"
+msgid "Cancel"
+msgstr "Annuler"
+
+#: ui/song_list.slint:278
+msgctxt "SongEditPopup"
+msgid "Saving..."
+msgstr "Enregistrement..."
+
+#: ui/song_list.slint:278
+msgctxt "SongEditPopup"
+msgid "Save"
+msgstr "Enregistrer"
+
+#: ui/song_list.slint:321
+msgctxt "MessagePopup"
+msgid "Operation failed"
+msgstr "Échec de l’opération"
+
+#: ui/song_list.slint:335
+msgctxt "MessagePopup"
+msgid "Close"
+msgstr "Fermer"

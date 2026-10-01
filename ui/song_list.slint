@@ -1,5 +1,5 @@
 import { Theme } from "theme.slint";
-import { ListView, VerticalBox } from "std-widgets.slint";
+import { Button, LineEdit, ListView, VerticalBox } from "std-widgets.slint";
 import { TriggerSource, SongInfo, SortKey } from "types.slint";
 
 component SortIcon inherits Rectangle {
@@ -109,14 +109,79 @@ component SortBar inherits Rectangle {
     }
 }
 
+component SongContextMenu inherits Rectangle {
+    in property <string> edit-label;
+    in property <string> delete-label;
+    callback edit();
+    callback delete();
+
+    width: 100%;
+    height: 100%;
+    background: Theme.surface;
+    border-color: Theme.border;
+    border-width: 1px;
+    border-radius: 6px;
+
+    VerticalLayout {
+        width: 100%;
+        height: 100%;
+        padding: 4px;
+        spacing: 2px;
+
+        edit-area := TouchArea {
+            width: 100%;
+            height: 34px;
+            clicked => { root.edit(); }
+            Rectangle {
+                width: 100%;
+                height: 100%;
+                border-radius: 4px;
+                background: edit-area.has-hover ? Theme.hover : transparent;
+                Text {
+                    x: 10px;
+                    y: (parent.height - self.height) / 2;
+                    text: root.edit-label;
+                    color: Theme.text;
+                }
+            }
+        }
+
+        delete-area := TouchArea {
+            width: 100%;
+            height: 34px;
+            clicked => { root.delete(); }
+            Rectangle {
+                width: 100%;
+                height: 100%;
+                border-radius: 4px;
+                background: delete-area.has-hover ? Theme.hover : transparent;
+                Text {
+                    x: 10px;
+                    y: (parent.height - self.height) / 2;
+                    text: root.delete-label;
+                    color: Theme.text;
+                }
+            }
+        }
+    }
+}
+
 export component SongItem inherits Rectangle {
     height: 30px;
     in property <SongInfo> info:{ id:0, song_name:"xxx", singer:"xxx", duration:"xxx", song_path:"xxx" };
     in property <bool> playing:false;
     callback double_clicked();
+    callback edit-requested(SongInfo);
+    callback delete-requested(SongInfo);
     background: playing ? Theme.hover : (area.has-hover ? Theme.song-hover : Theme.surface);
     VerticalLayout {
         area := TouchArea {
+            pointer-event(event) => {
+                if event.kind == PointerEventKind.down
+                    && event.button == PointerEventButton.right {
+                    context-popup.show();
+                }
+            }
             double-clicked => {
                 double_clicked();
             }
@@ -168,6 +233,171 @@ export component SongItem inherits Rectangle {
             }
         }
     }
+
+    context-popup-anchor := Rectangle {
+        x: area.mouse-x;
+        y: area.mouse-y;
+        width: 1px;
+        height: 1px;
+
+        context-popup := PopupWindow {
+            width: 190px;
+            height: 80px;
+            close-policy: close-on-click-outside;
+            SongContextMenu {
+                edit-label: @tr("Edit metadata");
+                delete-label: @tr("Delete song");
+                edit => {
+                    context-popup.close();
+                    root.edit-requested(root.info);
+                }
+                delete => {
+                    context-popup.close();
+                    root.delete-requested(root.info);
+                }
+            }
+        }
+    }
+}
+
+export component SongEditPopup inherits Rectangle {
+    in property <SongInfo> song;
+    in property <bool> saving: false;
+    in property <string> error-message: "";
+    in property <bool> song-missing: false;
+    in-out property <bool> invalid-input: false;
+    in-out property <string> edited-title: song.song-name;
+    in-out property <string> edited-artist: song.singer;
+    callback save(string, string);
+    callback cancel();
+
+    width: 100%;
+    height: 100%;
+    background: Theme.surface;
+    border-color: Theme.border;
+    border-width: 1px;
+    border-radius: 8px;
+
+    VerticalLayout {
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        spacing: 10px;
+
+        Text {
+            text: @tr("Edit song metadata");
+            color: Theme.text;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        Text {
+            text: @tr("Song title");
+            color: Theme.text-secondary;
+        }
+
+        LineEdit {
+            horizontal-stretch: 1;
+            text <=> root.edited-title;
+            enabled: !root.saving;
+            placeholder-text: @tr("Song title");
+        }
+
+        Text {
+            text: @tr("Artist");
+            color: Theme.text-secondary;
+        }
+
+        LineEdit {
+            horizontal-stretch: 1;
+            text <=> root.edited-artist;
+            enabled: !root.saving;
+            placeholder-text: @tr("Artist");
+        }
+
+        Text {
+            text: @tr("The selected song is no longer in the library.");
+            color: #D13438;
+            font-size: 12px;
+            visible: root.song-missing;
+        }
+
+        Text {
+            text: @tr("Title and artist are required.");
+            color: #D13438;
+            font-size: 12px;
+            visible: root.invalid-input;
+        }
+
+        Text {
+            text: root.error-message;
+            color: #D13438;
+            font-size: 12px;
+            visible: root.error-message != "";
+            wrap: word-wrap;
+        }
+
+        HorizontalLayout {
+            alignment: end;
+            spacing: 8px;
+            Button {
+                text: @tr("Cancel");
+                enabled: !root.saving;
+                clicked => { root.cancel(); }
+            }
+
+            Button {
+                text: root.saving ? @tr("Saving...") : @tr("Save");
+                enabled: !root.saving;
+                clicked => {
+                    if root.edited-title == "" || root.edited-artist == "" {
+                        root.invalid-input = true;
+                    } else {
+                        root.save(root.edited-title, root.edited-artist);
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component MessagePopup inherits Rectangle {
+    in property <string> message;
+    callback dismissed();
+    width: 100%;
+    height: 100%;
+    background: Theme.surface;
+    border-color: Theme.border;
+    border-width: 1px;
+    border-radius: 8px;
+
+    VerticalLayout {
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        spacing: 12px;
+        Text {
+            text: @tr("Operation failed");
+            color: Theme.text;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        Text {
+            text: root.message;
+            color: Theme.text-secondary;
+            font-size: 12px;
+            wrap: word-wrap;
+        }
+
+        HorizontalLayout {
+            alignment: end;
+            Button {
+                text: @tr("Close");
+                clicked => { root.dismissed(); }
+            }
+        }
+    }
 }
 
 export component SongListView inherits Rectangle {
@@ -179,6 +409,8 @@ export component SongListView inherits Rectangle {
     in property <SongInfo> current-song;
     callback sort-songs(SortKey, bool);
     callback play-song(SongInfo, TriggerSource);
+    callback edit-song(SongInfo);
+    callback delete-song(SongInfo);
     background: Theme.surface;
     VerticalLayout {
         width: 100%;
@@ -203,6 +435,8 @@ export component SongListView inherits Rectangle {
                 double_clicked => {
                     root.play-song(item, TriggerSource.ClickItem);
                 }
+                edit-requested(info) => { root.edit-song(info); }
+                delete-requested(info) => { root.delete-song(info); }
             }
         }
     }

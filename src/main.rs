@@ -1,7 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use std::{
     cell::Cell,
-    cmp::Reverse,
     path::PathBuf,
     rc::Rc,
     sync::{
@@ -14,7 +13,6 @@ use std::{
 };
 
 use rand::Rng;
-use rayon::slice::ParallelSliceMut;
 use rodio::{Decoder, Source};
 use slint::{Model, ToSharedString, winit_030::WinitWindowAccessor};
 
@@ -44,9 +42,11 @@ enum PlayerCommand {
     SwitchMode(PlayMode),          // 切换播放模式
     RefreshSongList(PathBuf),      // 刷新歌曲列表
     SortSongList(SortKey, bool),   // 刷新歌曲列表
-    SetLang(String),               // 设置语言
-    ChangeVolume(f32),             // 改变音量
-    SetShowSpectrum(bool),         // 设置是否显示频谱
+    UpdateSongMetadata(PathBuf, String, String),
+    DeleteSong(PathBuf),
+    SetLang(String),       // 设置语言
+    ChangeVolume(f32),     // 改变音量
+    SetShowSpectrum(bool), // 设置是否显示频谱
 }
 
 /// Apply config values that don't depend on a current song.
@@ -491,6 +491,131 @@ fn start_player_backend_thread(
                     })
                     .unwrap();
                 }
+                PlayerCommand::UpdateSongMetadata(path, title, artist) => {
+                    let result = utils::write_song_metadata(&path, &title, &artist)
+                        .and_then(|()| utils::read_meta_info(&path));
+                    let ui_weak = ui_weak.clone();
+                    match result {
+                        Ok(song) => {
+                            slint::invoke_from_event_loop(move || {
+                                if let Some(ui) = ui_weak.upgrade() {
+                                    let display = ui.global::<DisplayGlobal>();
+                                    let path = song.song_path.clone();
+                                    let mut songs: Vec<_> =
+                                        display.get_song_list().iter().collect();
+                                    let Some(existing) =
+                                        songs.iter_mut().find(|item| item.song_path == path)
+                                    else {
+                                        ui.set_edit_popup_saving(false);
+                                        ui.set_edit_popup_song_missing(true);
+                                        return;
+                                    };
+                                    let mut updated_song = song;
+                                    updated_song.id = existing.id;
+                                    *existing = updated_song.clone();
+                                    utils::sort_song_infos(
+                                        &mut songs,
+                                        display.get_sort_key(),
+                                        display.get_sort_ascending(),
+                                    );
+                                    let current_path = display.get_current_song().song_path;
+                                    if let Some(current) =
+                                        songs.iter().find(|item| item.song_path == current_path)
+                                    {
+                                        display.set_current_song(current.clone());
+                                    }
+                                    display.set_song_list(songs.as_slice().into());
+                                    let results = utils::search_songs(
+                                        display.get_search_query().as_str(),
+                                        &songs,
+                                    );
+                                    display.set_search_results(results.as_slice().into());
+                                    ui.invoke_metadata_saved();
+                                }
+                            })
+                            .unwrap();
+                        }
+                        Err(error) => {
+                            let message = error.to_string();
+                            slint::invoke_from_event_loop(move || {
+                                if let Some(ui) = ui_weak.upgrade() {
+                                    ui.set_edit_popup_saving(false);
+                                    ui.set_edit_popup_error(message.into());
+                                }
+                            })
+                            .unwrap();
+                        }
+                    }
+                }
+                PlayerCommand::DeleteSong(path) => match std::fs::remove_file(&path) {
+                    Ok(()) => {
+                        let path_string = path.display().to_string();
+                        let ui_weak = ui_weak.clone();
+                        let player_clone = player_clone.clone();
+                        slint::invoke_from_event_loop(move || {
+                            if let Some(ui) = ui_weak.upgrade() {
+                                let display = ui.global::<DisplayGlobal>();
+                                let current_song = display.get_current_song();
+                                let deleting_current = current_song.song_path == path_string;
+                                let mut songs: Vec<_> = display.get_song_list().iter().collect();
+                                let Some(removed_index) =
+                                    songs.iter().position(|song| song.song_path == path_string)
+                                else {
+                                    return;
+                                };
+                                songs.remove(removed_index);
+                                utils::sort_song_infos(
+                                    &mut songs,
+                                    display.get_sort_key(),
+                                    display.get_sort_ascending(),
+                                );
+                                display.set_song_list(songs.as_slice().into());
+                                let results = utils::search_songs(
+                                    display.get_search_query().as_str(),
+                                    &songs,
+                                );
+                                display.set_search_results(results.as_slice().into());
+
+                                let mut history: Vec<_> =
+                                    display.get_play_history().iter().collect();
+                                history.retain(|song| song.song_path != path_string);
+                                display.set_play_history(history.as_slice().into());
+                                let max_history_index = history.len().saturating_sub(1) as i32;
+                                display.set_history_index(
+                                    display.get_history_index().clamp(0, max_history_index),
+                                );
+
+                                if deleting_current {
+                                    player_clone.lock().unwrap().clear();
+                                    if let Some(next_song) =
+                                        songs.get(removed_index.min(songs.len().saturating_sub(1)))
+                                    {
+                                        ui.invoke_play(next_song.clone(), TriggerSource::ClickItem);
+                                    } else {
+                                        clear_song_state(&ui);
+                                    }
+                                } else if let Some(current) = songs
+                                    .iter()
+                                    .find(|song| song.song_path == current_song.song_path)
+                                {
+                                    display.set_current_song(current.clone());
+                                }
+                            }
+                        })
+                        .unwrap();
+                    }
+                    Err(error) => {
+                        let message = error.to_string();
+                        let ui_weak = ui_weak.clone();
+                        slint::invoke_from_event_loop(move || {
+                            if let Some(ui) = ui_weak.upgrade() {
+                                ui.set_operation_error_message(message.into());
+                                ui.invoke_show_operation_error();
+                            }
+                        })
+                        .unwrap();
+                    }
+                },
                 PlayerCommand::SortSongList(key, ascending) => {
                     let ui_weak = ui_weak.clone();
                     slint::invoke_from_event_loop(move || {
@@ -501,38 +626,7 @@ fn start_player_backend_thread(
                                 log::warn!("song list is empty, can't sort");
                                 return;
                             }
-                            match key {
-                                SortKey::BySongName => {
-                                    if ascending {
-                                        song_list.par_sort_by_key(|a| {
-                                            utils::get_chars(a.song_name.as_str())
-                                        })
-                                    } else {
-                                        song_list.par_sort_by_key(|a| {
-                                            Reverse(utils::get_chars(a.song_name.as_str()))
-                                        })
-                                    }
-                                }
-                                SortKey::BySinger => {
-                                    if ascending {
-                                        song_list.par_sort_by_key(|a| {
-                                            utils::get_chars(a.singer.as_str())
-                                        })
-                                    } else {
-                                        song_list.par_sort_by_key(|a| {
-                                            Reverse(utils::get_chars(a.singer.as_str()))
-                                        })
-                                    }
-                                }
-                                SortKey::ByDuration => {
-                                    if ascending {
-                                        song_list.par_sort_by_key(|a| a.duration.clone());
-                                    } else {
-                                        song_list.par_sort_by_key(|a| Reverse(a.duration.clone()));
-                                    }
-                                }
-                            }
-                            song_list.iter_mut().enumerate().for_each(|(i, x)| x.id = i as i32);
+                            utils::sort_song_infos(&mut song_list, key, ascending);
                             let new_cur_song = song_list
                                 .iter()
                                 .find(|x| x.song_path == display.get_current_song().song_path)
@@ -714,6 +808,34 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
                 let results = utils::search_songs(query.as_str(), &all_songs);
                 display.set_search_results(results.as_slice().into());
             }
+        });
+    }
+    {
+        let tx = tx.clone();
+        let ui_weak = ui.as_weak();
+        ui.on_save_song_metadata(move |song, title, artist| {
+            if title.trim().is_empty() || artist.trim().is_empty() {
+                if let Some(ui) = ui_weak.upgrade() {
+                    ui.set_edit_popup_saving(false);
+                    ui.set_edit_popup_invalid_input(true);
+                }
+                return;
+            }
+            log::info!("updating metadata for: {}", song.song_path);
+            tx.send(PlayerCommand::UpdateSongMetadata(
+                PathBuf::from(song.song_path.as_str()),
+                title.to_string(),
+                artist.to_string(),
+            ))
+            .expect("failed to send metadata update command");
+        });
+    }
+    {
+        let tx = tx.clone();
+        ui.on_delete_song(move |song| {
+            log::info!("deleting song file: {}", song.song_path);
+            tx.send(PlayerCommand::DeleteSong(PathBuf::from(song.song_path.as_str())))
+                .expect("failed to send delete song command");
         });
     }
 

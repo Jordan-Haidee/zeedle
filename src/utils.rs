@@ -1,11 +1,12 @@
 use std::{fs::File, io::BufReader, path::Path};
 
 use lofty::{
+    config::WriteOptions,
     error::LoftyError,
     file::{AudioFile, TaggedFileExt},
     picture::PictureType,
     probe::Probe,
-    tag::{Accessor, ItemKey},
+    tag::{Accessor, ItemKey, Tag, TagExt},
 };
 use pinyin::ToPinyin;
 use rayon::{
@@ -64,6 +65,25 @@ pub fn read_meta_info(path: impl AsRef<Path>) -> Result<SongInfo, LoftyError> {
         }
         Err(e) => Err(e),
     }
+}
+
+/// Write the title and artist to the audio file's primary tag.
+pub fn write_song_metadata(
+    path: impl AsRef<Path>,
+    title: &str,
+    artist: &str,
+) -> Result<(), LoftyError> {
+    let path = path.as_ref();
+    let mut tagged_file = lofty::read_from_path(path)?;
+    let tag_type = tagged_file.primary_tag_type();
+    if tagged_file.primary_tag_mut().is_none() {
+        tagged_file.insert_tag(Tag::new(tag_type));
+    }
+
+    let tag = tagged_file.primary_tag_mut().expect("primary tag was inserted");
+    tag.set_title(title.to_owned());
+    tag.set_artist(artist.to_owned());
+    tag.save_to_path(path, WriteOptions::default())
 }
 
 /// Scan songs in Path `p` and return a list of SongInfo
@@ -135,6 +155,36 @@ pub fn read_song_list(
             x
         })
         .collect::<Vec<_>>()
+}
+
+/// Sort a song list using the selected key and refresh each row's index.
+pub fn sort_song_infos(songs: &mut [SongInfo], sort_key: SortKey, ascending: bool) {
+    match sort_key {
+        SortKey::BySongName => {
+            let key_fn = |song: &SongInfo| get_chars(song.song_name.as_str());
+            if ascending {
+                songs.par_sort_by_key(key_fn);
+            } else {
+                songs.par_sort_by_key(|song| std::cmp::Reverse(key_fn(song)));
+            }
+        }
+        SortKey::BySinger => {
+            let key_fn = |song: &SongInfo| get_chars(song.singer.as_str());
+            if ascending {
+                songs.par_sort_by_key(key_fn);
+            } else {
+                songs.par_sort_by_key(|song| std::cmp::Reverse(key_fn(song)));
+            }
+        }
+        SortKey::ByDuration => {
+            if ascending {
+                songs.par_sort_by_key(|song| song.duration.clone());
+            } else {
+                songs.par_sort_by_key(|song| std::cmp::Reverse(song.duration.clone()));
+            }
+        }
+    }
+    songs.iter_mut().enumerate().for_each(|(index, song)| song.id = index as i32);
 }
 
 /// Read lyrics from audio file `p`, return a list of LyricItem

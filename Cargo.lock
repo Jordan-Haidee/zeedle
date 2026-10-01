@@ -7301,7 +7301,7 @@ dependencies = [
 
 [[package]]
 name = "zeedle"
-version = "0.6.3-alpha.1"
+version = "0.6.3-alpha.2"
 dependencies = [
  "chrono",
  "dark-light",

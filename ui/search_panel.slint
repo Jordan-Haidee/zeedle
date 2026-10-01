@@ -11,6 +11,8 @@ export component SearchPanel inherits Rectangle {
     in property <SongInfo> current-song;
     callback search(string);
     callback play-song(SongInfo, TriggerSource);
+    callback edit-song(SongInfo);
+    callback delete-song(SongInfo);
 
     background: Theme.surface;
 
@@ -102,6 +104,8 @@ export component SearchPanel inherits Rectangle {
                     double_clicked => {
                         root.play-song(item, TriggerSource.ClickItem);
                     }
+                    edit-requested(info) => { root.edit-song(info); }
+                    delete-requested(info) => { root.delete-song(info); }
                 }
             }
 
