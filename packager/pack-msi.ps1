@@ -14,6 +14,7 @@ if ($PackageArch -notin @("x64", "arm64")) {
 }
 if ($PackageArch -eq "arm64") {
     & (Join-Path $PSScriptRoot "prepare-windows-arm64-runtime.ps1")
+    & (Join-Path $PSScriptRoot "prepare-wix-arm64.ps1")
 }
 $ResourceGlob = if ($PackageArch -eq "arm64") { "../target/windows-arm64-runtime/*.dll" } else { "DLLs/*.dll" }
 
