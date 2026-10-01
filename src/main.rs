@@ -980,7 +980,16 @@ fn center_window(ui: &MainWindow) -> bool {
     }
 }
 
+fn is_runtime_check_argument(mut args: impl Iterator<Item = std::ffi::OsString>) -> bool {
+    args.next();
+    args.next().is_some_and(|arg| arg == "--check-runtime")
+}
+
 fn main() {
+    if is_runtime_check_argument(std::env::args_os()) {
+        return;
+    }
+
     let app_start = Instant::now();
 
     // when panics happen, auto port errors to log
@@ -1087,4 +1096,23 @@ fn main() {
     log::info!("saving config...");
     save_ui_state(&ui);
     log::info!("app exited");
+}
+
+#[cfg(test)]
+mod runtime_check_argument_tests {
+    use std::ffi::OsString;
+
+    #[test]
+    fn recognizes_the_runtime_check_argument() {
+        let args = ["zeedle", "--check-runtime"].into_iter().map(OsString::from);
+
+        assert!(super::is_runtime_check_argument(args));
+    }
+
+    #[test]
+    fn ignores_other_arguments() {
+        let args = ["zeedle", "--help"].into_iter().map(OsString::from);
+
+        assert!(!super::is_runtime_check_argument(args));
+    }
 }

@@ -91,62 +91,51 @@ jobs:
             libxkbcommon-dev \
             libxkbcommon-x11-dev \
             pkg-config \
-            xvfb \
             xinput
 
       - name: Build release executable
         run: cargo build --release
 
+      - name: Stage Windows app-local runtime
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          ZEEDLE_PACKAGE_ARCH: ${{ matrix.package_arch }}
+        run: |
+          if ($env:ZEEDLE_PACKAGE_ARCH -eq "arm64") {
+            ./packager/prepare-windows-arm64-runtime.ps1
+            $runtimeDir = Join-Path $PWD "target/windows-arm64-runtime"
+          }
+          else {
+            $runtimeDir = Join-Path $PWD "packager/DLLs"
+          }
+          $requiredDlls = @("msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll")
+          $missingDlls = @($requiredDlls | Where-Object { -not (Test-Path -LiteralPath (Join-Path $runtimeDir $_) -PathType Leaf) })
+          if ($missingDlls.Count -gt 0) {
+            throw "The $env:ZEEDLE_PACKAGE_ARCH runtime bundle is missing: $($missingDlls -join ', ')"
+          }
+          Copy-Item -Path (Join-Path $runtimeDir "*.dll") -Destination (Join-Path $PWD "target/release") -Force
+
       - name: Smoke test release executable
         if: runner.os != 'Windows'
         shell: bash
-        run: |
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            cat > "$RUNNER_TEMP/alsa-null.conf" <<'ALSA'
-          pcm.!default {
-              type null
-          }
-          ALSA
-            ALSA_CONFIG_PATH="$RUNNER_TEMP/alsa-null.conf" xvfb-run -a python3 - <<'PY'
-          import subprocess
-          import time
-
-          process = subprocess.Popen(["target/release/zeedle"])
-          time.sleep(5)
-          exit_code = process.poll()
-          if exit_code is not None:
-              raise SystemExit(f"zeedle exited during startup with code {exit_code}")
-          process.terminate()
-          process.wait(timeout=10)
-          PY
-          else
-            python3 - <<'PY'
-          import subprocess
-          import time
-
-          process = subprocess.Popen(["target/release/zeedle"])
-          time.sleep(5)
-          exit_code = process.poll()
-          if exit_code is not None:
-              raise SystemExit(f"zeedle exited during startup with code {exit_code}")
-          process.terminate()
-          process.wait(timeout=10)
-          PY
-          fi
+        run: ./target/release/zeedle --check-runtime
 
       - name: Smoke test release executable
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $executable = Join-Path $PWD "target/release/zeedle.exe"
-          $process = Start-Process -FilePath $executable -PassThru -WindowStyle Hidden
-          Start-Sleep -Seconds 5
-          $process.Refresh()
-          if ($process.HasExited) {
-            throw "zeedle exited during startup with code $($process.ExitCode)"
+          $oldPath = $env:PATH
+          try {
+            $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot"
+            $process = Start-Process -FilePath (Join-Path $PWD "target/release/zeedle.exe") -ArgumentList "--check-runtime" -PassThru -Wait -WindowStyle Hidden
+            if ($process.ExitCode -ne 0) {
+              throw "zeedle runtime check exited with code $($process.ExitCode)"
+            }
           }
-          $process.Kill()
-          $process.WaitForExit()
+          finally {
+            $env:PATH = $oldPath
+          }
 
       - name: Build Windows installers
         if: runner.os == 'Windows'
