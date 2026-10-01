@@ -71,7 +71,11 @@ Push-Location $ProjectRoot
 try {
     $ConfigContent = [IO.File]::ReadAllText($ConfigPath)
     $ConfigContent = [regex]::Replace($ConfigContent, '(?m)^resources\s*=\s*\[[^\r\n]*\]', "resources = [`"$ResourceGlob`"]")
-    $ConfigWithVersion = "version = `"$MsiVersion`"`r`n$ConfigContent"
+    $ConfigPrefix = "version = `"$MsiVersion`"`r`n"
+    if ($PackageArch -eq "arm64") {
+        $ConfigPrefix += "log-level = `"debug`"`r`n"
+    }
+    $ConfigWithVersion = "$ConfigPrefix$ConfigContent"
     [IO.File]::WriteAllText($VersionedConfigPath, $ConfigWithVersion, [Text.UTF8Encoding]::new($false))
     New-Item -ItemType Directory -Path $StagingDir -Force | Out-Null
 
