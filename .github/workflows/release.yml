@@ -102,7 +102,12 @@ jobs:
         shell: bash
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-          xvfb-run -a python3 - <<'PY'
+            cat > "$RUNNER_TEMP/alsa-null.conf" <<'ALSA'
+          pcm.!default {
+              type null
+          }
+          ALSA
+            ALSA_CONFIG_PATH="$RUNNER_TEMP/alsa-null.conf" xvfb-run -a python3 - <<'PY'
           import subprocess
           import time
 
