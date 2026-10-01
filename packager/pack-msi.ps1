@@ -5,6 +5,17 @@ $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $ReleaseDir = Join-Path $ProjectRoot "target\release"
 $ManifestPath = Join-Path $ProjectRoot "Cargo.toml"
 $ConfigPath = Join-Path $PSScriptRoot "Packager.windows.toml"
+$PackageArch = $env:ZEEDLE_PACKAGE_ARCH
+if (-not $PackageArch) {
+    $PackageArch = if ([Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [Runtime.InteropServices.Architecture]::Arm64) { "arm64" } else { "x64" }
+}
+if ($PackageArch -notin @("x64", "arm64")) {
+    throw "Unsupported Windows package architecture: $PackageArch"
+}
+if ($PackageArch -eq "arm64") {
+    & (Join-Path $PSScriptRoot "prepare-windows-arm64-runtime.ps1")
+}
+$ResourceGlob = if ($PackageArch -eq "arm64") { "../target/windows-arm64-runtime/*.dll" } else { "DLLs/*.dll" }
 
 $InPackageSection = $false
 $Version = $null
@@ -49,15 +60,16 @@ elseif ($Version -notmatch '^\d+\.\d+\.\d+(?:-\d+)?(?:\+\d+)?$') {
     throw "MSI packaging supports numeric versions and alpha.N, beta.N, or rc.N prerelease versions; got '$Version'."
 }
 
-$Installer = Join-Path $ReleaseDir "Zeedle_${Version}_x64.msi"
+$Installer = Join-Path $ReleaseDir "Zeedle_${Version}_${PackageArch}.msi"
 $StagingDir = Join-Path $ReleaseDir ".msi-staging-$([guid]::NewGuid().ToString('N'))"
-$StagedInstaller = Join-Path $StagingDir "Zeedle_${Version}_x64.msi"
+$StagedInstaller = Join-Path $StagingDir "Zeedle_${Version}_${PackageArch}.msi"
 $VersionedConfigPath = Join-Path $PSScriptRoot ".Packager.windows.$([guid]::NewGuid().ToString('N')).toml"
 $BuildCompleted = $false
 
 Push-Location $ProjectRoot
 try {
     $ConfigContent = [IO.File]::ReadAllText($ConfigPath)
+    $ConfigContent = [regex]::Replace($ConfigContent, '(?m)^resources\s*=\s*\[[^\r\n]*\]', "resources = [`"$ResourceGlob`"]")
     $ConfigWithVersion = "version = `"$MsiVersion`"`r`n$ConfigContent"
     [IO.File]::WriteAllText($VersionedConfigPath, $ConfigWithVersion, [Text.UTF8Encoding]::new($false))
     New-Item -ItemType Directory -Path $StagingDir -Force | Out-Null

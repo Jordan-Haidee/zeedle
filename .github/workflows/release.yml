@@ -10,20 +10,41 @@ permissions:
 
 jobs:
   build:
-    name: Build (${{ matrix.os }})
+    name: Build ${{ matrix.platform }} (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-22.04
+            platform: Linux
+            arch: x64
+            package_arch: amd64
             artifact_name: linux-amd64-installers
           - os: ubuntu-22.04-arm
+            platform: Linux
+            arch: ARM64
+            package_arch: arm64
             artifact_name: linux-arm64-installers
           - os: windows-latest
+            platform: Windows
+            arch: x64
+            package_arch: x64
+            artifact_name: windows-x64-installers
+          - os: windows-11-arm
+            platform: Windows
+            arch: ARM64
+            package_arch: arm64
+            artifact_name: windows-arm64-installers
           - os: macos-15
+            platform: macOS
+            arch: ARM64
+            package_arch: arm64
             artifact_name: macos-arm64-installer
           - os: macos-15-intel
+            platform: macOS
+            arch: x64
+            package_arch: x64
             artifact_name: macos-x64-installer
 
     steps:
@@ -70,11 +91,63 @@ jobs:
             libxkbcommon-dev \
             libxkbcommon-x11-dev \
             pkg-config \
+            xvfb \
             xinput
+
+      - name: Build release executable
+        run: cargo build --release
+
+      - name: Smoke test release executable
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+          xvfb-run -a python3 - <<'PY'
+          import subprocess
+          import time
+
+          process = subprocess.Popen(["target/release/zeedle"])
+          time.sleep(5)
+          exit_code = process.poll()
+          if exit_code is not None:
+              raise SystemExit(f"zeedle exited during startup with code {exit_code}")
+          process.terminate()
+          process.wait(timeout=10)
+          PY
+          else
+            python3 - <<'PY'
+          import subprocess
+          import time
+
+          process = subprocess.Popen(["target/release/zeedle"])
+          time.sleep(5)
+          exit_code = process.poll()
+          if exit_code is not None:
+              raise SystemExit(f"zeedle exited during startup with code {exit_code}")
+          process.terminate()
+          process.wait(timeout=10)
+          PY
+          fi
+
+      - name: Smoke test release executable
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $executable = Join-Path $PWD "target/release/zeedle.exe"
+          $process = Start-Process -FilePath $executable -PassThru -WindowStyle Hidden
+          Start-Sleep -Seconds 5
+          $process.Refresh()
+          if ($process.HasExited) {
+            throw "zeedle exited during startup with code $($process.ExitCode)"
+          }
+          $process.Kill()
+          $process.WaitForExit()
 
       - name: Build Windows installers
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          ZEEDLE_PACKAGE_ARCH: ${{ matrix.package_arch }}
         run: |
           ./packager/pack-nsis.ps1
           ./packager/pack-msi.ps1
@@ -93,10 +166,10 @@ jobs:
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v7
         with:
-          name: windows-installers
+          name: ${{ matrix.artifact_name }}
           path: |
-            target/release/Zeedle_*_x64-setup.exe
-            target/release/Zeedle_*_x64.msi
+            target/release/Zeedle_*_${{ matrix.package_arch }}-setup.exe
+            target/release/Zeedle_*_${{ matrix.package_arch }}.msi
           if-no-files-found: error
           compression-level: 0
 
@@ -129,10 +202,16 @@ jobs:
       contents: write
 
     steps:
-      - name: Download Windows installers
+      - name: Download Windows x64 installers
         uses: actions/download-artifact@v8
         with:
-          name: windows-installers
+          name: windows-x64-installers
+          path: dist
+
+      - name: Download Windows ARM64 installers
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-arm64-installers
           path: dist
 
       - name: Download Linux x64 installers
@@ -163,8 +242,8 @@ jobs:
         shell: bash
         run: |
           count=$(find dist -maxdepth 1 -type f | wc -l)
-          if [[ "$count" -ne 8 ]]; then
-            echo "Expected 8 installers, found $count" >&2
+          if [[ "$count" -ne 10 ]]; then
+            echo "Expected 10 installers, found $count" >&2
             find dist -maxdepth 1 -type f -print >&2
             exit 1
           fi
