@@ -11,7 +11,7 @@ Add right-click actions to song rows in both the Gallery list and Search results
 
 Use Slint's built-in `ContextMenuArea` on each `SongItem` so right-click and the keyboard menu key open the same accessible menu. The menu contains Edit metadata and Delete actions. Both `SongListView` and `SearchPanel` forward the selected `SongInfo` through callbacks to the app root.
 
-The metadata popup is an app-level dialog with title and artist `LineEdit` fields, plus Save and Cancel. Save is disabled or ignored when both values are blank. Cancel and clicking outside close the popup without changing the file. The dialog reports file-write errors in the dialog rather than closing as though the save succeeded.
+The metadata popup is an app-level dialog with title and artist `LineEdit` fields, plus Save and Cancel. Save requires both title and artist to contain non-whitespace text. Cancel and clicking outside close the popup without changing the file. The dialog reports file-write errors in the dialog rather than closing as though the save succeeded. Keep both popup components in the existing `ui/song_list.slint` file.
 
 ## Data and file operations
 
