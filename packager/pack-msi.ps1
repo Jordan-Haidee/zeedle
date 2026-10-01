@@ -80,7 +80,11 @@ try {
     New-Item -ItemType Directory -Path $StagingDir -Force | Out-Null
 
     Write-Host "Building Zeedle $Version MSI installer..."
-    & cargo packager --config $VersionedConfigPath --out-dir $StagingDir --formats wix
+    $PackagerArguments = @("--config", $VersionedConfigPath, "--out-dir", $StagingDir, "--formats", "wix")
+    if ($PackageArch -eq "arm64") {
+        $PackagerArguments += "--verbose"
+    }
+    & cargo packager @PackagerArguments
     if ($LASTEXITCODE -ne 0) {
         throw "cargo packager failed with exit code $LASTEXITCODE"
     }
