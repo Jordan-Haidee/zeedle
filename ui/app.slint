@@ -474,12 +474,12 @@ export component MainWindow inherits Window {
 
         edit-popup-anchor := Rectangle {
             x: (root.width - 520px) / 2;
-            y: (root.height - 510px) / 2;
+            y: (root.height - 450px) / 2;
             width: 1px;
             height: 1px;
             edit-popup := PopupWindow {
                 width: 520px;
-                height: 510px;
+                height: 450px;
                 close-policy: no-auto-close;
                 SongEditPopup {
                     song: root.editing_song;

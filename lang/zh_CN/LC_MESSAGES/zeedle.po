@@ -160,6 +160,21 @@ msgstr "专辑"
 
 #: ui/song_list.slint
 msgctxt "SongEditPopup"
+msgid "Update the selected song's metadata."
+msgstr "更新所选歌曲的元信息。"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Album cover"
+msgstr "专辑封面"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Lyrics"
+msgstr "歌词"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
 msgid "No embedded cover"
 msgstr "没有内嵌封面"
 

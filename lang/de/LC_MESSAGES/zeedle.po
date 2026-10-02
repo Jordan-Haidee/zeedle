@@ -160,6 +160,21 @@ msgstr "Album"
 
 #: ui/song_list.slint
 msgctxt "SongEditPopup"
+msgid "Update the selected song's metadata."
+msgstr "Metadaten des ausgewählten Songs bearbeiten."
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Album cover"
+msgstr "Albumcover"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Lyrics"
+msgstr "Liedtext"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
 msgid "No embedded cover"
 msgstr "Kein eingebettetes Cover"
 

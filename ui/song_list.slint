@@ -293,13 +293,22 @@ export component SongEditPopup inherits Rectangle {
         width: 100%;
         height: 100%;
         padding: 16px;
-        spacing: 4px;
+        spacing: 8px;
 
-        Text {
-            text: @tr("Edit song metadata");
-            color: Theme.text;
-            font-size: 18px;
-            font-weight: 600;
+        VerticalLayout {
+            spacing: 2px;
+            Text {
+                text: @tr("Edit song metadata");
+                color: Theme.text;
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            Text {
+                text: @tr("Update the selected song's metadata.");
+                color: Theme.text-secondary;
+                font-size: 12px;
+            }
         }
 
         Text {
@@ -314,126 +323,186 @@ export component SongEditPopup inherits Rectangle {
             placeholder-text: @tr("Song title");
         }
 
-        Text {
-            text: @tr("Artist");
-            color: Theme.text-secondary;
-        }
-
-        LineEdit {
-            horizontal-stretch: 1;
-            text <=> root.edited-artist;
-            enabled: !root.saving;
-            placeholder-text: @tr("Artist");
-        }
-
-        Text {
-            text: @tr("Album");
-            color: Theme.text-secondary;
-        }
-
-        LineEdit {
-            horizontal-stretch: 1;
-            text <=> root.album;
-            enabled: !root.saving;
-            placeholder-text: @tr("Album");
-        }
-
         HorizontalLayout {
-            spacing: 10px;
-            Image {
-                width: 64px;
-                height: 64px;
-                source: root.cover-preview;
-                image-fit: contain;
-                visible: root.has-cover;
-            }
-
-            Rectangle {
-                width: 64px;
-                height: 64px;
-                background: Theme.panel;
-                border-color: Theme.border;
-                border-width: 1px;
-                border-radius: 4px;
-                visible: !root.has-cover;
+            spacing: 12px;
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 4px;
                 Text {
-                    x: 4px;
-                    y: 4px;
-                    width: parent.width - 8px;
-                    height: parent.height - 8px;
-                    text: @tr("No embedded cover");
+                    text: @tr("Artist");
                     color: Theme.text-secondary;
-                    font-size: 11px;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                    wrap: word-wrap;
+                }
+
+                LineEdit {
+                    horizontal-stretch: 1;
+                    text <=> root.edited-artist;
+                    enabled: !root.saving;
+                    placeholder-text: @tr("Artist");
                 }
             }
 
             VerticalLayout {
-                alignment: center;
+                horizontal-stretch: 1;
                 spacing: 4px;
-                Button {
-                    text: @tr("Select cover image");
-                    enabled: !root.saving;
-                    clicked => { root.select-cover(); }
-                }
-
                 Text {
-                    text: root.cover-name != "" ? root.cover-name : (root.has-cover ? @tr("Existing cover will be kept") : "");
+                    text: @tr("Album");
                     color: Theme.text-secondary;
-                    font-size: 11px;
-                    wrap: word-wrap;
+                }
+
+                LineEdit {
+                    horizontal-stretch: 1;
+                    text <=> root.album;
+                    enabled: !root.saving;
+                    placeholder-text: @tr("Album");
                 }
             }
         }
 
-        HorizontalLayout {
+        GridLayout {
             spacing: 10px;
-            Button {
-                text: @tr("Select LRC file");
-                enabled: !root.saving;
-                clicked => { root.select-lyrics(); }
-            }
+            Row {
+                Rectangle {
+                    width: 49%;
+                    height: 150px;
+                    background: Theme.panel;
+                    border-color: Theme.border;
+                    border-width: 1px;
+                    border-radius: 8px;
 
-            Text {
-                text: root.lyrics-name != "" ? root.lyrics-name : (root.has-lyrics ? @tr("Existing lyrics will be kept") : @tr("No embedded lyrics"));
-                color: Theme.text-secondary;
-                font-size: 11px;
-                vertical-alignment: center;
-                wrap: word-wrap;
+                    VerticalLayout {
+                        width: 100%;
+                        height: 100%;
+                        padding: 10px;
+                        spacing: 6px;
+                        Text {
+                            text: @tr("Album cover");
+                            color: Theme.text;
+                            font-weight: 600;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+                            if root.has-cover: Image {
+                                width: 64px;
+                                height: 64px;
+                                source: root.cover-preview;
+                                image-fit: contain;
+                            }
+                            if !root.has-cover: Rectangle {
+                                width: 64px;
+                                height: 64px;
+                                background: Theme.surface;
+                                border-color: Theme.border;
+                                border-width: 1px;
+                                border-radius: 4px;
+                                Text {
+                                    x: 4px;
+                                    y: 4px;
+                                    width: parent.width - 8px;
+                                    height: parent.height - 8px;
+                                    text: @tr("No embedded cover");
+                                    color: Theme.text-secondary;
+                                    font-size: 11px;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                    wrap: word-wrap;
+                                }
+                            }
+                            Text {
+                                horizontal-stretch: 1;
+                                text: root.cover-name != "" ? root.cover-name : (root.has-cover ? @tr("Existing cover will be kept") : "");
+                                color: Theme.text-secondary;
+                                font-size: 11px;
+                                vertical-alignment: center;
+                                wrap: word-wrap;
+                            }
+                        }
+
+                        Button {
+                            width: 100%;
+                            text: @tr("Select cover image");
+                            enabled: !root.saving;
+                            clicked => { root.select-cover(); }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    width: 49%;
+                    height: 150px;
+                    background: Theme.panel;
+                    border-color: Theme.border;
+                    border-width: 1px;
+                    border-radius: 8px;
+
+                    VerticalLayout {
+                        width: 100%;
+                        height: 100%;
+                        padding: 10px;
+                        spacing: 6px;
+                        Text {
+                            text: @tr("Lyrics");
+                            color: Theme.text;
+                            font-weight: 600;
+                        }
+
+                        Text {
+                            text: root.lyrics-name != "" ? root.lyrics-name : (root.has-lyrics ? @tr("Existing lyrics will be kept") : @tr("No embedded lyrics"));
+                            color: Theme.text-secondary;
+                            font-size: 11px;
+                            wrap: word-wrap;
+                        }
+
+                        Text {
+                            text: root.lyrics-preview;
+                            color: Theme.text-secondary;
+                            font-size: 11px;
+                            max-height: 40px;
+                            wrap: word-wrap;
+                            visible: root.lyrics-preview != "";
+                        }
+
+                        Rectangle {
+                            vertical-stretch: 1;
+                            background: Theme.panel;
+                        }
+
+                        Button {
+                            width: 100%;
+                            text: @tr("Select LRC file");
+                            enabled: !root.saving;
+                            clicked => { root.select-lyrics(); }
+                        }
+                    }
+                }
             }
         }
 
-        Text {
-            text: root.lyrics-preview;
-            color: Theme.text-secondary;
-            font-size: 11px;
-            max-height: 32px;
-            wrap: word-wrap;
-            visible: root.lyrics-preview != "";
-        }
-
-        Text {
+        if root.song-missing: Text {
             text: @tr("The selected song is no longer in the library.");
             color: #D13438;
             font-size: 12px;
-            visible: root.song-missing;
         }
-
-        Text {
+        if root.invalid-input: Text {
             text: @tr("Title and artist are required.");
             color: #D13438;
             font-size: 12px;
-            visible: root.invalid-input;
         }
-
-        Text {
+        if root.error-message != "": Text {
             text: root.error-message;
             color: #D13438;
             font-size: 12px;
-            visible: root.error-message != "";
             wrap: word-wrap;
+        }
+
+        Rectangle {
+            vertical-stretch: 1;
+            background: Theme.surface;
+        }
+
+        Rectangle {
+            height: 1px;
+            background: Theme.divider;
         }
 
         HorizontalLayout {

@@ -161,6 +161,21 @@ msgstr "Альбом"
 
 #: ui/song_list.slint
 msgctxt "SongEditPopup"
+msgid "Update the selected song's metadata."
+msgstr "Измените метаданные выбранной песни."
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Album cover"
+msgstr "Обложка альбома"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
+msgid "Lyrics"
+msgstr "Текст песни"
+
+#: ui/song_list.slint
+msgctxt "SongEditPopup"
 msgid "No embedded cover"
 msgstr "Обложка не встроена"
 

@@ -23,7 +23,7 @@ Keep the existing `SongEditPopup` in `ui/song_list.slint` and retain the applica
    - The lyrics card groups a short heading, the existing LRC picker button, filename/retention status, and the existing compact lyrics preview.
 5. **Validation and actions:** Keep all existing error and required-field messages. Separate the bottom action row with the Theme divider token, align Cancel and Save to the end, and keep the actions visible at the popup’s supported height.
 
-Use a popup width of 520 logical pixels and reduce its height from 510 to approximately 470–480 logical pixels after checking the rendered layout. Keep margins and gaps consistent; avoid introducing custom controls or new Slint files. Use only existing colors (`Theme.surface`, `Theme.panel`, `Theme.border`, `Theme.divider`, `Theme.text`, and `Theme.text-secondary`) so dark and light themes remain matched to the app.
+Use a popup width of 520 logical pixels. The first render at 480px left a large gap between the media cards and footer, so tune the final height to 450 logical pixels; verify the validation/error state still fits before keeping that size. Keep margins and gaps consistent; avoid introducing custom controls or new Slint files. Use only existing colors (`Theme.surface`, `Theme.panel`, `Theme.border`, `Theme.divider`, `Theme.text`, and `Theme.text-secondary`) so dark and light themes remain matched to the app.
 
 ## Behavior and Scope
 
