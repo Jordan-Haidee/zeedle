@@ -588,8 +588,9 @@ fn start_player_backend_thread(
                                         display.get_sort_ascending(),
                                     );
                                     let current_path = display.get_current_song().song_path;
-                                    if let Some(current) =
-                                        songs.iter().find(|item| item.song_path == current_path)
+                                    if path == current_path.as_str()
+                                        && let Some(current) =
+                                            songs.iter().find(|item| item.song_path == current_path)
                                     {
                                         display.set_current_song(current.clone());
                                         display.set_lyrics(
