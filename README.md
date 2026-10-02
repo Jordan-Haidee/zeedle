@@ -11,12 +11,14 @@
 
 Enjoy your music in less than 0.5s:
 - ⚡ Instant startup — your music begins the moment you click.
+- 💾 Low memory usage — only ~50MB of memory is required.
 - 🎶 Local focus — lightweight and distraction-free.
 - ✨ Minimal Dark UI — nothing but your music, beautifully clear.
 - 🦜 Multiple language support — English/Chinese/Spanish/French/German/Russian.
 - ⌨️ Hotkey support — total freedom, no mouse needed.
 - 🎵 Spectrum visualization — real-time audio spectrum display.
 - 📃 Lyric seek — snap to previous/next/any lyric line.
+- 🖊️ Song metadata editing — right-click a song to edit its metadata.
 
 <a href="README-zh.md">中文介绍</a> can be seen here.
 
@@ -24,7 +26,10 @@ Enjoy your music in less than 0.5s:
 
 ### Windows, macOS, and Linux
 
-Download prebuilt releases.
+Download prebuilt releases for your platform:
+- Windows: NSIS installer, MSI installer (x64 & ARM64)
+- macOS: DMG
+- Linux: deb, AppImage (amd64 & arm64)
 
 ### Build from source
 
@@ -43,7 +48,7 @@ On macOS, build the DMG package with:
 ./packager/pack-dmg.sh
 ```
 
-Tested in Ubuntu 24.04 LTS:
+Tested in Ubuntu 22.04 LTS:
 
 ```shell
 # deb package
@@ -71,6 +76,10 @@ Lyrics Display:
 Local search:
 
 ![p4](assets/p4.png)
+
+## Edit metadata
+
+![p5](assets/p5.png)
 
 
 ## Note
