@@ -9,6 +9,7 @@ import {
     SongListView,
     SongEditPopup,
     MessagePopup,
+    DeleteConfirmPopup,
 } from "song_list.slint";
 import { TitleBar } from "title_bar.slint";
 import { SettingsPanel } from "settings_panel.slint";
@@ -123,6 +124,7 @@ export component MainWindow inherits Window {
     in-out property <string> edit_lyrics_path: "";
     in-out property <string> edit_lyrics_preview: "";
     in-out property <string> operation_error_message: "";
+    in-out property <SongInfo> pending_delete_song: { id: -1, song_name: "", singer: "", duration: "", song_path: "" };
     public function set_light_theme(yes: bool) {
         DisplayGlobal.light_ui = yes;
         Theme.is-dark = !yes;
@@ -244,7 +246,10 @@ export component MainWindow inherits Window {
                                 root.edit_lyrics_preview = "";
                                 root.load_song_edit_metadata(info);
                             }
-                            delete-song(info) => { root.delete_song(info); }
+                            delete-song(info) => {
+                                root.pending_delete_song = info;
+                                delete-confirm-popup.show();
+                            }
                         }
 
                         ControlPanel {
@@ -317,7 +322,10 @@ export component MainWindow inherits Window {
                             root.edit_lyrics_preview = "";
                             root.load_song_edit_metadata(info);
                         }
-                        delete-song(info) => { root.delete_song(info); }
+                        delete-song(info) => {
+                            root.pending_delete_song = info;
+                            delete-confirm-popup.show();
+                        }
                     }
 
                     if root.current_page == 2: Rectangle {
@@ -534,6 +542,30 @@ export component MainWindow inherits Window {
                 MessagePopup {
                     message: root.operation_error_message;
                     dismissed => { operation-popup.close(); }
+                }
+            }
+        }
+
+        delete-confirm-popup-anchor := Rectangle {
+            x: (root.width - 400px) / 2;
+            y: (root.height - 200px) / 2;
+            width: 1px;
+            height: 1px;
+            delete-confirm-popup := PopupWindow {
+                width: 400px;
+                height: 200px;
+                close-policy: no-auto-close;
+                DeleteConfirmPopup {
+                    song-name: root.pending_delete_song.song-name;
+                    cancelled => {
+                        delete-confirm-popup.close();
+                        root.pending_delete_song = { id: -1, song_name: "", singer: "", duration: "", song_path: "" };
+                    }
+                    confirmed => {
+                        delete-confirm-popup.close();
+                        root.delete_song(root.pending_delete_song);
+                        root.pending_delete_song = { id: -1, song_name: "", singer: "", duration: "", song_path: "" };
+                    }
                 }
             }
         }

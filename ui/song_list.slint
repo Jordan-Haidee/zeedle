@@ -576,6 +576,66 @@ export component MessagePopup inherits Rectangle {
     }
 }
 
+export component DeleteConfirmPopup inherits Rectangle {
+    in property <string> song-name;
+    callback confirmed();
+    callback cancelled();
+    width: 100%;
+    height: 100%;
+    background: Theme.surface;
+    border-color: Theme.border;
+    border-width: 1px;
+    border-radius: 8px;
+
+    VerticalLayout {
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        spacing: 12px;
+
+        Text {
+            text: @tr("Delete song?");
+            color: Theme.text;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        Text {
+            text: root.song-name;
+            color: Theme.text-secondary;
+            font-size: 13px;
+            wrap: word-wrap;
+        }
+
+        Text {
+            text: @tr("This permanently deletes the audio file from disk.");
+            color: Theme.text-secondary;
+            font-size: 12px;
+            wrap: word-wrap;
+        }
+
+        Rectangle {
+            vertical-stretch: 1;
+            background: Theme.surface;
+        }
+
+        HorizontalLayout {
+            alignment: end;
+            spacing: 8px;
+
+            Button {
+                text: @tr("Cancel");
+                clicked => { root.cancelled(); }
+            }
+
+            Button {
+                text: @tr("Delete permanently");
+                clicked => { root.confirmed(); }
+            }
+        }
+    }
+}
+
 export component SongListView inherits Rectangle {
     in-out property <bool> ascending;
     in-out property <SortKey> sort-key;

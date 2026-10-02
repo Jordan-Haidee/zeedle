@@ -233,6 +233,26 @@ msgctxt "MessagePopup"
 msgid "Close"
 msgstr "关闭"
 
+#: ui/song_list.slint:597
+msgctxt "DeleteConfirmPopup"
+msgid "Delete song?"
+msgstr "删除歌曲？"
+
+#: ui/song_list.slint:611
+msgctxt "DeleteConfirmPopup"
+msgid "This permanently deletes the audio file from disk."
+msgstr "确认后将从磁盘永久删除该音频文件。"
+
+#: ui/song_list.slint:627
+msgctxt "DeleteConfirmPopup"
+msgid "Cancel"
+msgstr "取消"
+
+#: ui/song_list.slint:632
+msgctxt "DeleteConfirmPopup"
+msgid "Delete permanently"
+msgstr "永久删除"
+
 #~ msgctxt "SongEditPopup"
 #~ msgid "Update the selected song's metadata."
 #~ msgstr "更新所选歌曲的元信息。"

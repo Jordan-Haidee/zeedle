@@ -233,6 +233,26 @@ msgctxt "MessagePopup"
 msgid "Close"
 msgstr "Schließen"
 
+#: ui/song_list.slint:597
+msgctxt "DeleteConfirmPopup"
+msgid "Delete song?"
+msgstr "Song löschen?"
+
+#: ui/song_list.slint:611
+msgctxt "DeleteConfirmPopup"
+msgid "This permanently deletes the audio file from disk."
+msgstr "Die Audiodatei wird dauerhaft von der Festplatte gelöscht."
+
+#: ui/song_list.slint:627
+msgctxt "DeleteConfirmPopup"
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: ui/song_list.slint:632
+msgctxt "DeleteConfirmPopup"
+msgid "Delete permanently"
+msgstr "Dauerhaft löschen"
+
 #~ msgctxt "SongEditPopup"
 #~ msgid "Update the selected song's metadata."
 #~ msgstr "Metadaten des ausgewählten Songs bearbeiten."
