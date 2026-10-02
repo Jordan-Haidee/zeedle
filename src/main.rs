@@ -522,9 +522,7 @@ fn start_player_backend_thread(
                                     ui.set_edit_has_cover(has_cover);
                                     ui.set_edit_cover_path("".into());
                                     ui.set_edit_cover_name("".into());
-                                    ui.set_edit_lyrics_preview(
-                                        utils::lyrics_preview(&metadata.lyrics).into(),
-                                    );
+                                    ui.set_edit_lyrics_preview(metadata.lyrics.as_str().into());
                                     ui.set_edit_has_lyrics(!metadata.lyrics.trim().is_empty());
                                     ui.set_edit_lyrics_path("".into());
                                     ui.set_edit_lyrics_name("".into());
@@ -969,7 +967,7 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
             match utils::read_uploaded_lyrics(&path) {
                 Ok(lyrics) => {
                     if let Some(ui) = ui_weak.upgrade() {
-                        ui.set_edit_lyrics_preview(utils::lyrics_preview(&lyrics).into());
+                        ui.set_edit_lyrics_preview(lyrics.into());
                         ui.set_edit_has_lyrics(true);
                         ui.set_edit_lyrics_path(path.display().to_string().into());
                         ui.set_edit_lyrics_name(

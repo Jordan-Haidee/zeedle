@@ -37,11 +37,6 @@ pub struct SongEditMetadata {
     pub cover: Option<CoverPreview>,
 }
 
-/// Return a compact preview for displaying uploaded or embedded LRC contents.
-pub fn lyrics_preview(lyrics: &str) -> String {
-    lyrics.lines().take(3).collect::<Vec<_>>().join("\n")
-}
-
 /// Open an audio file and detect its type, returning a configured [`Probe`] ready to read.
 fn open_audio_probe(path: &Path) -> Result<Probe<BufReader<File>>, LoftyError> {
     Probe::open(path)?.guess_file_type().map_err(|e| e.into())
