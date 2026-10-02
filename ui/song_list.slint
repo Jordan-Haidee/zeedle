@@ -301,20 +301,11 @@ export component SongEditPopup inherits Rectangle {
         padding: 16px;
         spacing: 8px;
 
-        VerticalLayout {
-            spacing: 2px;
-            Text {
-                text: @tr("Edit song metadata");
-                color: Theme.text;
-                font-size: 18px;
-                font-weight: 600;
-            }
-
-            Text {
-                text: @tr("Update the selected song's metadata.");
-                color: Theme.text-secondary;
-                font-size: 12px;
-            }
+        Text {
+            text: @tr("Edit song metadata");
+            color: Theme.text;
+            font-size: 18px;
+            font-weight: 600;
         }
 
         Text {
@@ -369,7 +360,7 @@ export component SongEditPopup inherits Rectangle {
             Row {
                 Rectangle {
                     width: 49%;
-                    height: 170px;
+                    height: 200px;
                     background: Theme.panel;
                     border-color: Theme.border;
                     border-width: 1px;
@@ -389,14 +380,14 @@ export component SongEditPopup inherits Rectangle {
                         HorizontalLayout {
                             spacing: 8px;
                             if root.has-cover: Image {
-                                width: 64px;
-                                height: 64px;
+                                width: 100px;
+                                height: 100px;
                                 source: root.cover-preview;
                                 image-fit: contain;
                             }
                             if !root.has-cover: Rectangle {
-                                width: 64px;
-                                height: 64px;
+                                width: 100px;
+                                height: 100px;
                                 background: Theme.surface;
                                 border-color: Theme.border;
                                 border-width: 1px;
@@ -441,7 +432,7 @@ export component SongEditPopup inherits Rectangle {
 
                 Rectangle {
                     width: 49%;
-                    height: 170px;
+                    height: 200px;
                     background: Theme.panel;
                     border-color: Theme.border;
                     border-width: 1px;
@@ -463,7 +454,7 @@ export component SongEditPopup inherits Rectangle {
 
                         TextEdit {
                             width: 100%;
-                            height: 64px;
+                            height: 100px;
                             text: root.lyrics-preview;
                             read-only: true;
                             font-size: 11px;
