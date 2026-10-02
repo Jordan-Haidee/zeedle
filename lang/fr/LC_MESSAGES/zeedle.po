@@ -101,23 +101,23 @@ msgctxt "SearchPanel"
 msgid "Type to search songs"
 msgstr "Tapez pour rechercher"
 
-#: ui/song_list.slint:81
+#: ui/song_list.slint:87
 #, fuzzy
 msgctxt "SortBar"
 msgid "Title"
 msgstr "Titre: {}"
 
-#: ui/song_list.slint:91
+#: ui/song_list.slint:97
 msgctxt "SortBar"
 msgid "Artist"
 msgstr "Artiste"
 
-#: ui/song_list.slint:101
+#: ui/song_list.slint:107
 msgctxt "SortBar"
 msgid "Duration"
 msgstr "Durée"
 
-#: ui/song_list.slint:163
+#: ui/song_list.slint:235
 msgctxt "SongItem"
 msgid ""
 "Title: {}\n"
@@ -128,112 +128,112 @@ msgstr ""
 "Artiste : {}\n"
 "Durée : {}"
 
-#: ui/song_list.slint:126
+#: ui/song_list.slint:254
 msgctxt "SongItem"
 msgid "Edit metadata"
 msgstr "Modifier les métadonnées"
 
-#: ui/song_list.slint:130
+#: ui/song_list.slint:255
 msgctxt "SongItem"
 msgid "Delete song"
 msgstr "Supprimer le morceau"
 
-#: ui/song_list.slint:230
+#: ui/song_list.slint:307
 msgctxt "SongEditPopup"
 msgid "Edit song metadata"
 msgstr "Modifier les métadonnées du morceau"
 
-#: ui/song_list.slint:236 ui/song_list.slint:241
+#: ui/song_list.slint:321 ui/song_list.slint:329
 msgctxt "SongEditPopup"
 msgid "Song title"
 msgstr "Titre du morceau"
 
-#: ui/song_list.slint:243 ui/song_list.slint:248
+#: ui/song_list.slint:338 ui/song_list.slint:346
 msgctxt "SongEditPopup"
 msgid "Artist"
 msgstr "Artiste"
 
-#: ui/song_list.slint
+#: ui/song_list.slint:354 ui/song_list.slint:362
 msgctxt "SongEditPopup"
 msgid "Album"
 msgstr "Album"
 
-#: ui/song_list.slint
+#: ui/song_list.slint:314
 msgctxt "SongEditPopup"
 msgid "Update the selected song's metadata."
 msgstr "Modifiez les métadonnées du morceau sélectionné."
 
-#: ui/song_list.slint
+#: ui/song_list.slint:384
 msgctxt "SongEditPopup"
 msgid "Album cover"
 msgstr "Pochette d’album"
 
-#: ui/song_list.slint
+#: ui/song_list.slint:458
 msgctxt "SongEditPopup"
 msgid "Lyrics"
 msgstr "Paroles"
 
-#: ui/song_list.slint
+#: ui/song_list.slint:409
 msgctxt "SongEditPopup"
 msgid "No embedded cover"
 msgstr "Aucune pochette intégrée"
 
-#: ui/song_list.slint
+#: ui/song_list.slint:421
 msgctxt "SongEditPopup"
 msgid "Select cover image"
 msgstr "Choisir une image de pochette"
 
-#: ui/song_list.slint
+#: ui/song_list.slint:432
 msgctxt "SongEditPopup"
 msgid "Existing cover will be kept"
 msgstr "La pochette actuelle sera conservée"
 
-#: ui/song_list.slint
+#: ui/song_list.slint:475
 msgctxt "SongEditPopup"
 msgid "Select LRC file"
 msgstr "Choisir un fichier LRC"
 
-#: ui/song_list.slint
+#: ui/song_list.slint:486
 msgctxt "SongEditPopup"
 msgid "Existing lyrics will be kept"
 msgstr "Les paroles actuelles seront conservées"
 
-#: ui/song_list.slint
+#: ui/song_list.slint:486
 msgctxt "SongEditPopup"
 msgid "No embedded lyrics"
 msgstr "Aucune parole intégrée"
 
-#: ui/song_list.slint:257
+#: ui/song_list.slint:504
 msgctxt "SongEditPopup"
 msgid "Title and artist are required."
 msgstr "Le titre et l'artiste sont obligatoires."
 
-#: ui/song_list.slint:251
+#: ui/song_list.slint:499
 msgctxt "SongEditPopup"
 msgid "The selected song is no longer in the library."
 msgstr "Le morceau sélectionné ne figure plus dans la bibliothèque."
 
-#: ui/song_list.slint:273
+#: ui/song_list.slint:529
 msgctxt "SongEditPopup"
 msgid "Cancel"
 msgstr "Annuler"
 
-#: ui/song_list.slint:278
+#: ui/song_list.slint:535
 msgctxt "SongEditPopup"
 msgid "Saving..."
 msgstr "Enregistrement..."
 
-#: ui/song_list.slint:278
+#: ui/song_list.slint:535
 msgctxt "SongEditPopup"
 msgid "Save"
 msgstr "Enregistrer"
 
-#: ui/song_list.slint:321
+#: ui/song_list.slint:565
 msgctxt "MessagePopup"
 msgid "Operation failed"
 msgstr "Échec de l’opération"
 
-#: ui/song_list.slint:335
+#: ui/song_list.slint:581
 msgctxt "MessagePopup"
 msgid "Close"
 msgstr "Fermer"
