@@ -12,92 +12,92 @@ msgstr ""
 "Language: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ui/app.slint:96
+#: ui/sidebar.slint:140
 msgctxt "Sidebar"
 msgid "Gallery"
 msgstr ""
 
-#: ui/app.slint:282
+#: ui/sidebar.slint:160
 msgctxt "Sidebar"
 msgid "Lyrics"
 msgstr ""
 
-#: ui/app.slint:320
+#: ui/lyrics_panel.slint:79
 msgctxt "LyricsPanel"
 msgid "Artist: {}"
 msgstr ""
 
-#: ui/app.slint:330
+#: ui/lyrics_panel.slint:97
 msgctxt "LyricsPanel"
 msgid "Title: {}"
 msgstr ""
 
-#: ui/app.slint:353
+#: ui/sidebar.slint:179
 msgctxt "Sidebar"
 msgid "Settings"
 msgstr ""
 
-#: ui/settings_panel.slint:99
+#: ui/settings_panel.slint:71
 msgctxt "SettingsPanel"
 msgid "Playback"
 msgstr ""
 
-#: ui/settings_panel.slint:108
+#: ui/settings_panel.slint:87
 msgctxt "SettingsPanel"
 msgid "Music directory"
 msgstr ""
 
-#: ui/settings_panel.slint:120
+#: ui/settings_panel.slint:124
 msgctxt "SettingsPanel"
 msgid "Spectrum display"
 msgstr ""
 
-#: ui/settings_panel.slint:131
+#: ui/settings_panel.slint:145
 msgctxt "SettingsPanel"
 msgid "Appearance"
 msgstr ""
 
-#: ui/settings_panel.slint:148
+#: ui/settings_panel.slint:159
 msgctxt "SettingsPanel"
 msgid "Follow system theme"
 msgstr ""
 
-#: ui/settings_panel.slint:156
+#: ui/settings_panel.slint:170
 msgctxt "SettingsPanel"
 msgid "Language"
 msgstr ""
 
-#: ui/settings_panel.slint:?line
+#: ui/settings_panel.slint:114
 msgctxt "SettingsPanel"
 msgid "Browse..."
 msgstr ""
 
-#: ui/app.slint:?line
+#: ui/sidebar.slint:150
 msgctxt "Sidebar"
 msgid "Search"
 msgstr ""
 
-#: ui/app.slint:430
+#: ui/sidebar.slint:189
 msgctxt "Sidebar"
 msgid "About"
 msgstr ""
 
-#: ui/search_panel.slint:?line
+#: ui/search_panel.slint:66
 msgctxt "SearchPanel"
 msgid "Search songs or artists..."
 msgstr ""
 
-#: ui/search_panel.slint:?line
+#: ui/search_panel.slint:88
 msgctxt "SearchPanel"
 msgid "No results found"
 msgstr ""
 
-#: ui/search_panel.slint:?line
+#: ui/search_panel.slint:89
 msgctxt "SearchPanel"
 msgid "{} result(s) found"
 msgstr ""
 
-#: ui/search_panel.slint:?line
+#: ui/search_panel.slint:135
 msgctxt "SearchPanel"
 msgid "Type to search songs"
 msgstr ""
@@ -132,102 +132,97 @@ msgctxt "SongItem"
 msgid "Delete song"
 msgstr ""
 
-#: ui/song_list.slint:307
+#: ui/song_list.slint:305
 msgctxt "SongEditPopup"
 msgid "Edit song metadata"
 msgstr ""
 
-#: ui/song_list.slint:321 ui/song_list.slint:329
+#: ui/song_list.slint:312 ui/song_list.slint:320
 msgctxt "SongEditPopup"
 msgid "Song title"
 msgstr ""
 
-#: ui/song_list.slint:338 ui/song_list.slint:346
+#: ui/song_list.slint:329 ui/song_list.slint:337
 msgctxt "SongEditPopup"
 msgid "Artist"
 msgstr ""
 
-#: ui/song_list.slint:354 ui/song_list.slint:362
+#: ui/song_list.slint:345 ui/song_list.slint:353
 msgctxt "SongEditPopup"
 msgid "Album"
 msgstr ""
 
-#: ui/song_list.slint:314
-msgctxt "SongEditPopup"
-msgid "Update the selected song's metadata."
-msgstr ""
-
-#: ui/song_list.slint:384
+#: ui/song_list.slint:375
 msgctxt "SongEditPopup"
 msgid "Album cover"
 msgstr ""
 
-#: ui/song_list.slint:458
+#: ui/song_list.slint:449
 msgctxt "SongEditPopup"
 msgid "Lyrics"
 msgstr ""
 
-#: ui/song_list.slint:409
+#: ui/song_list.slint:400
 msgctxt "SongEditPopup"
 msgid "No embedded cover"
 msgstr ""
 
-#: ui/song_list.slint:421
+#: ui/song_list.slint:412
 msgctxt "SongEditPopup"
 msgid "Select cover image"
 msgstr ""
 
-#: ui/song_list.slint:432
+#: ui/song_list.slint:423
 msgctxt "SongEditPopup"
 msgid "Existing cover will be kept"
 msgstr ""
 
-#: ui/song_list.slint:475
+#: ui/song_list.slint:466
 msgctxt "SongEditPopup"
 msgid "Select LRC file"
 msgstr ""
 
-#: ui/song_list.slint:486
+#: ui/song_list.slint:477
 msgctxt "SongEditPopup"
 msgid "Existing lyrics will be kept"
 msgstr ""
 
-#: ui/song_list.slint:486
+#: ui/song_list.slint:477
 msgctxt "SongEditPopup"
 msgid "No embedded lyrics"
 msgstr ""
 
-#: ui/song_list.slint:504
+#: ui/song_list.slint:495
 msgctxt "SongEditPopup"
 msgid "Title and artist are required."
 msgstr ""
 
-#: ui/song_list.slint:499
+#: ui/song_list.slint:490
 msgctxt "SongEditPopup"
 msgid "The selected song is no longer in the library."
 msgstr ""
 
-#: ui/song_list.slint:529
+#: ui/song_list.slint:520
 msgctxt "SongEditPopup"
 msgid "Cancel"
 msgstr ""
 
-#: ui/song_list.slint:535
+#: ui/song_list.slint:526
 msgctxt "SongEditPopup"
 msgid "Saving..."
 msgstr ""
 
-#: ui/song_list.slint:535
+#: ui/song_list.slint:526
 msgctxt "SongEditPopup"
 msgid "Save"
 msgstr ""
 
-#: ui/song_list.slint:565
+#: ui/song_list.slint:556
 msgctxt "MessagePopup"
 msgid "Operation failed"
 msgstr ""
 
-#: ui/song_list.slint:581
+#: ui/song_list.slint:572
 msgctxt "MessagePopup"
 msgid "Close"
 msgstr ""
