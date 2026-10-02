@@ -1,6 +1,6 @@
 [package]
 name = "zeedle"
-version = "0.6.3"
+version = "0.6.4"
 edition = "2024"
 description = "Music at the speed of a blink, designed for pure simplicity\nBuilt by [Rodio](https://github.com/RustAudio/rodio) and [Slint UI](https://slint.dev)"
 repository = "https://github.com/Jordan-Haidee/Zeedle"
