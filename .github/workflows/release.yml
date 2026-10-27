@@ -86,6 +86,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends \
+            clang \
             libasound2-dev \
             libfontconfig1-dev \
             libfreetype6-dev \
@@ -100,14 +101,22 @@ jobs:
             pkg-config \
             xinput
 
-      - name: Build release executable
+      - name: Build Linux release executable with mold
+        if: runner.os == 'Linux'
+        env:
+          RUSTFLAGS: -C linker=clang -C link-arg=-fuse-ld=/usr/local/bin/mold
+        run: cargo build --release
+
+      - name: Build release executable on non-Linux
+        if: runner.os != 'Linux'
         run: cargo build --release
 
       - name: Verify Rust uses mold linker
         if: runner.os == 'Linux'
         run: |
           printf 'fn main() {}\n' > /tmp/mold-link-check.rs
-          rustc /tmp/mold-link-check.rs -o /tmp/mold-link-check
+          rustc -C linker=clang -C link-arg=-fuse-ld=/usr/local/bin/mold \
+            /tmp/mold-link-check.rs -o /tmp/mold-link-check
           readelf -p .comment /tmp/mold-link-check | grep -q mold
 
       - name: Stage Windows app-local runtime
@@ -162,6 +171,8 @@ jobs:
 
       - name: Build Linux installers
         if: runner.os == 'Linux'
+        env:
+          RUSTFLAGS: -C linker=clang -C link-arg=-fuse-ld=/usr/local/bin/mold
         run: |
           bash packager/pack-deb.sh
           bash packager/pack-appimage.sh

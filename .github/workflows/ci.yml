@@ -36,12 +36,13 @@ jobs:
       - name: Verify mold linker
         run: |
           mold --version
-          test "$(readlink -f /usr/bin/ld)" = "$(command -v mold)"
+          test -x /usr/local/bin/mold
 
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends \
+            clang \
             libasound2-dev \
             libfontconfig1-dev \
             libfreetype6-dev \
@@ -56,10 +57,13 @@ jobs:
             xinput
 
       - name: Build release executable
+        env:
+          RUSTFLAGS: -C linker=clang -C link-arg=-fuse-ld=/usr/local/bin/mold
         run: cargo build --locked --release
 
       - name: Verify Rust uses mold linker
         run: |
           printf 'fn main() {}\n' > /tmp/mold-link-check.rs
-          rustc /tmp/mold-link-check.rs -o /tmp/mold-link-check
+          rustc -C linker=clang -C link-arg=-fuse-ld=/usr/local/bin/mold \
+            /tmp/mold-link-check.rs -o /tmp/mold-link-check
           readelf -p .comment /tmp/mold-link-check | grep -q mold
