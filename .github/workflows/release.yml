@@ -51,6 +51,13 @@ jobs:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: Install mold linker
+        if: runner.os == 'Linux'
+        uses: rui314/setup-mold@v1
+        with:
+          mold-version: 3.0.0
+          make-default: true
+
       - name: Validate tag version
         shell: pwsh
         run: |
