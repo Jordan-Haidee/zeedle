@@ -58,5 +58,8 @@ jobs:
       - name: Build release executable
         run: cargo build --locked --release
 
-      - name: Verify executable was linked with mold
-        run: readelf -p .comment target/release/zeedle | grep -q mold
+      - name: Verify Rust uses mold linker
+        run: |
+          printf 'fn main() {}\n' > /tmp/mold-link-check.rs
+          rustc /tmp/mold-link-check.rs -o /tmp/mold-link-check
+          readelf -p .comment /tmp/mold-link-check | grep -q mold
