@@ -1,4 +1,5 @@
 import { Theme } from "theme.slint";
+import { IconDisplay, IconSet } from "@lucide";
 
 export component TitleBar inherits Rectangle {
     in-out property <bool> is_light_theme: false;
@@ -62,13 +63,13 @@ export component TitleBar inherits Rectangle {
             opacity: root.theme_toggle_enabled ? 1.0 : 0.4;
             background: (root.theme_toggle_enabled && theme-touch.has-hover) ? Theme.hover : transparent;
             animate background { duration: 100ms; }
-            Image {
-                source: root.is_light_theme ? @image-url("sun.svg") : @image-url("moon.svg");
-                colorize: (root.theme_toggle_enabled && theme-touch.has-hover) ? Theme.text : Theme.text-secondary;
-                width: 18px;
-                height: 18px;
+            IconDisplay {
                 x: (parent.width - self.width) / 2;
                 y: (parent.height - self.height) / 2;
+                icon: root.is_light_theme ? IconSet.Sun : IconSet.Moon;
+                size: 18px;
+                stroke: (root.theme_toggle_enabled && theme-touch.has-hover) ? Theme.text : Theme.text-secondary;
+                stroke-width: 1.8;
             }
 
             theme-touch := TouchArea {
@@ -134,17 +135,13 @@ export component TitleBar inherits Rectangle {
             height: 100%;
             background: close-touch.has-hover ? #e81123 : transparent;
             animate background { duration: 100ms; }
-            Path {
-                x: (parent.width - 12px) / 2;
-                y: (parent.height - 12px) / 2;
-                width: 12px;
-                height: 12px;
-                viewbox-width: 12;
-                viewbox-height: 12;
+            IconDisplay {
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                icon: IconSet.X;
+                size: 14px;
                 stroke: close-touch.has-hover ? white : Theme.text-secondary;
-                stroke-width: 1.5px;
-                stroke-line-cap: round;
-                commands: "M 1 1 L 11 11 M 11 1 L 1 11";
+                stroke-width: 1.5;
             }
 
             close-touch := TouchArea {

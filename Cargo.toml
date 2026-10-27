@@ -1,6 +1,6 @@
 [package]
 name = "zeedle"
-version = "0.6.4"
+version = "0.6.5"
 edition = "2024"
 description = "Music at the speed of a blink, designed for pure simplicity\nBuilt by [Rodio](https://github.com/RustAudio/rodio) and [Slint UI](https://slint.dev)"
 repository = "https://github.com/Jordan-Haidee/Zeedle"
@@ -33,6 +33,7 @@ toml = "0.9.5"
 open = "5.4.0"
 
 [build-dependencies]
+lucide-slint = "1.61.0"
 slint-build = { version = "=1.17.1" }
 
 [target.'cfg(windows)'.build-dependencies]

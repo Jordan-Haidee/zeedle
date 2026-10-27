@@ -1,28 +1,19 @@
 import { Theme } from "theme.slint";
 import { Slider } from "std-widgets.slint";
 import { SongInfo, PlayMode } from "types.slint";
+import { IconDisplay, IconSet } from "@lucide";
 
 export component SkipButton inherits Rectangle {
     callback clicked();
     in property <bool> forward: true;
-    border-radius: self.width / 2;
+    border-radius: 8px;
     clip: true;
-    border-width: 1px;
+    border-width: 0px;
     property <bool> hovered: touch.has-hover;
     property <bool> pressed: touch.pressed;
     property <color> icon-color: pressed ? Theme.accent : (hovered ? Theme.text : Theme.text-secondary);
-    background: pressed ? Theme.press : (hovered ? Theme.hover : Theme.surface);
-    border-color: hovered ? Theme.text : Theme.border;
-    drop-shadow-blur: hovered ? 8px : 4px;
+    background: pressed ? Theme.press : (hovered ? Theme.hover : transparent);
     animate background {
-        duration: 120ms;
-        easing: ease-out-quad;
-    }
-    animate border-color {
-        duration: 120ms;
-        easing: ease-out-quad;
-    }
-    animate drop-shadow-blur {
         duration: 120ms;
         easing: ease-out-quad;
     }
@@ -36,57 +27,28 @@ export component SkipButton inherits Rectangle {
         }
     }
 
-    Path {
-        x: parent.width * 0.12;
-        y: parent.height * 0.12;
-        width: parent.width * 0.76;
-        height: parent.height * 0.76;
-        viewbox-width: 24;
-        viewbox-height: 24;
-        fill: transparent;
-        commands: root.forward ? "M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z" : "M17.971 4.285A2 2 0 0 1 21 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432z";
+    IconDisplay {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        icon: root.forward ? IconSet.SkipForward : IconSet.SkipBack;
+        size: min(parent.width, parent.height) * 0.72;
         stroke: root.icon-color;
-        stroke-width: 2.3px;
-        stroke-line-cap: round;
-    }
-
-    Path {
-        x: parent.width * 0.12;
-        y: parent.height * 0.12;
-        width: parent.width * 0.76;
-        height: parent.height * 0.76;
-        viewbox-width: 24;
-        viewbox-height: 24;
-        fill: transparent;
-        commands: root.forward ? "M21 4v16" : "M3 20V4";
-        stroke: root.icon-color;
-        stroke-width: 2.3px;
-        stroke-line-cap: round;
+        stroke-width: 2.2;
+        absolute-stroke-width: true;
     }
 }
 
 export component PlayPauseButton inherits Rectangle {
     in-out property <bool> paused:true;
     callback toggled();
-    border-radius: self.width / 2;
+    border-radius: 9px;
     clip: true;
-    border-width: 1px;
+    border-width: 0px;
     property <bool> hovered: touch.has-hover;
     property <bool> pressed: touch.pressed;
-    property <bool> active: !root.paused;
-    property <color> icon-color: active ? Theme.accent : (pressed ? Theme.accent : (hovered ? Theme.text : Theme.text-secondary));
-    background: pressed ? Theme.press : (hovered ? Theme.hover : Theme.surface);
-    border-color: active ? Theme.accent : (hovered ? Theme.text : Theme.border);
-    drop-shadow-blur: active ? 10px : (hovered ? 8px : 4px);
+    property <color> icon-color: Theme.accent;
+    background: pressed ? Theme.press : (hovered ? Theme.hover : transparent);
     animate background {
-        duration: 120ms;
-        easing: ease-out-quad;
-    }
-    animate border-color {
-        duration: 120ms;
-        easing: ease-out-quad;
-    }
-    animate drop-shadow-blur {
         duration: 120ms;
         easing: ease-out-quad;
     }
@@ -100,32 +62,14 @@ export component PlayPauseButton inherits Rectangle {
         }
     }
 
-    if !root.paused: Path {
-        x: parent.width * 0.13;
-        y: parent.height * 0.13;
-        width: parent.width * 0.74;
-        height: parent.height * 0.74;
-        viewbox-width: 24;
-        viewbox-height: 24;
-        fill: transparent;
-        commands: "M16 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z M5 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z";
+    IconDisplay {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        icon: root.paused ? IconSet.Play : IconSet.Pause;
+        size: min(parent.width, parent.height) * 0.72;
         stroke: root.icon-color;
-        stroke-width: 2.3px;
-        stroke-line-cap: round;
-    }
-
-    if root.paused: Path {
-        x: parent.width * 0.13;
-        y: parent.height * 0.13;
-        width: parent.width * 0.74;
-        height: parent.height * 0.74;
-        viewbox-width: 24;
-        viewbox-height: 24;
-        fill: transparent;
-        commands: "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z";
-        stroke: root.icon-color;
-        stroke-width: 2.3px;
-        stroke-line-cap: round;
+        stroke-width: 2.2;
+        absolute-stroke-width: true;
     }
 }
 
@@ -141,89 +85,13 @@ export component PlayModeButton inherits Rectangle {
         }
     }
 
-    if !root.recursive: Path {
-        MoveTo {
-            x: 90;
-            y: 50;
-        }
-
-        ArcTo {
-            x: 50;
-            y: 10;
-            radius-x: 40;
-            radius-y: 40;
-            x-rotation: 0;
-            large-arc: true;
-            sweep: true;
-        }
-
-        LineTo {
-            x: 40;
-            y: 4;
-        }
-
-        MoveTo {
-            x: 50;
-            y: 10;
-        }
-
-        LineTo {
-            x: 42;
-            y: 18;
-        }
-
-        stroke-width: 1px;
-        stroke: selected ? Theme.accent : Theme.text;
-    }
-
-    if root.recursive: Path {
-        MoveTo {
-            x: 90;
-            y: 50;
-        }
-
-        ArcTo {
-            x: 50;
-            y: 10;
-            radius-x: 40;
-            radius-y: 40;
-            x-rotation: 0;
-            large-arc: true;
-            sweep: true;
-        }
-
-        LineTo {
-            x: 40;
-            y: 4;
-        }
-
-        MoveTo {
-            x: 50;
-            y: 10;
-        }
-
-        LineTo {
-            x: 42;
-            y: 18;
-        }
-
-        MoveTo {
-            x: 77;
-            y: 17;
-        }
-
-        LineTo {
-            x: 82;
-            y: 7;
-        }
-
-        LineTo {
-            x: 82;
-            y: 37;
-        }
-
-        stroke-width: 1px;
-        stroke: selected ? Theme.accent : Theme.text;
+    IconDisplay {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        icon: root.recursive ? IconSet.Repeat2 : IconSet.Repeat;
+        size: min(parent.width, parent.height) * 0.9;
+        stroke: root.selected ? Theme.accent : Theme.text;
+        stroke-width: 1.8;
     }
 }
 
@@ -246,83 +114,18 @@ export component RandomButton inherits Rectangle {
     callback clicked();
     in-out property <bool> selected;
     TouchArea {
+        width: 100%;
+        height: 100%;
         clicked => {
             root.clicked();
-        };
-        Path {
-            MoveTo {
-                x: 0;
-                y: 20;
-            }
-
-            LineTo {
-                x: 30;
-                y: 20;
-            }
-
-            LineTo {
-                x: 70;
-                y: 80;
-            }
-
-            LineTo {
-                x: 100;
-                y: 80;
-            }
-
-            LineTo {
-                x: 90;
-                y: 70;
-            }
-
-            MoveTo {
-                x: 100;
-                y: 80;
-            }
-
-            LineTo {
-                x: 90;
-                y: 90;
-            }
-
-            // 第二段
-            MoveTo {
-                x: 0;
-                y: 80;
-            }
-
-            LineTo {
-                x: 30;
-                y: 80;
-            }
-
-            LineTo {
-                x: 70;
-                y: 20;
-            }
-
-            LineTo {
-                x: 100;
-                y: 20;
-            }
-
-            LineTo {
-                x: 90;
-                y: 30;
-            }
-
-            MoveTo {
-                x: 100;
-                y: 20;
-            }
-
-            LineTo {
-                x: 90;
-                y: 10;
-            }
-
-            stroke: selected ? Theme.accent : Theme.text;
-            stroke-width: 1px;
+        }
+        IconDisplay {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            icon: IconSet.Shuffle;
+            size: min(parent.width, parent.height) * 1.1;
+            stroke: root.selected ? Theme.accent : Theme.text;
+            stroke-width: 1.8;
         }
     }
 }
@@ -351,75 +154,13 @@ export component MusicVolumeButton inherits Rectangle {
         }
         Rectangle {
             height: root.icon-height;
-            Path {
-                MoveTo {
-                    x: 0;
-                    y: 50;
-                }
-
-                LineTo {
-                    x: 0;
-                    y: 25;
-                }
-
-                LineTo {
-                    x: 25;
-                    y: 25;
-                }
-
-                LineTo {
-                    x: 50;
-                    y: 0;
-                }
-
-                LineTo {
-                    x: 50;
-                    y: 100;
-                }
-
-                LineTo {
-                    x: 25;
-                    y: 75;
-                }
-
-                LineTo {
-                    x: 0;
-                    y: 75;
-                }
-
-                LineTo {
-                    x: 0;
-                    y: 25;
-                }
-
-                MoveTo {
-                    x: 65;
-                    y: 25;
-                }
-
-                ArcTo {
-                    radius-x: 35;
-                    radius-y: 35;
-                    x: 65;
-                    y: 75;
-                    sweep: true;
-                }
-
-                MoveTo {
-                    x: 80;
-                    y: 0;
-                }
-
-                ArcTo {
-                    radius-x: 70;
-                    radius-y: 70;
-                    x: 80;
-                    y: 100;
-                    sweep: true;
-                }
-
-                stroke: selected ? Theme.accent : Theme.text;
-                stroke-width: 1px;
+            IconDisplay {
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                icon: IconSet.Volume2;
+                size: root.icon-height;
+                stroke: root.selected ? Theme.accent : Theme.text;
+                stroke-width: 1.8;
             }
         }
     }
@@ -535,8 +276,8 @@ export component ControlPanel inherits Rectangle {
                     forward: false;
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
-                    width: 28px;
-                    height: 28px;
+                    width: 36px;
+                    height: 36px;
                     clicked => {
                         root.play_prev();
                     }
@@ -548,8 +289,8 @@ export component ControlPanel inherits Rectangle {
                 PlayPauseButton {
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
-                    width: 28px;
-                    height: 28px;
+                    width: 36px;
+                    height: 36px;
                     paused: root.paused;
                     toggled => {
                         root.toggle_play();
@@ -563,8 +304,8 @@ export component ControlPanel inherits Rectangle {
                     forward: true;
                     x: parent.width / 2 - self.width / 2;
                     y: parent.height / 2 - self.height / 2;
-                    width: 28px;
-                    height: 28px;
+                    width: 36px;
+                    height: 36px;
                     clicked => {
                         root.play_next();
                     }

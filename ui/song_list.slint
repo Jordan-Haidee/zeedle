@@ -7,6 +7,7 @@ import {
     VerticalBox,
 } from "std-widgets.slint";
 import { TriggerSource, SongInfo, SortKey } from "types.slint";
+import { IconDisplay, IconSet } from "@lucide";
 
 component SortIcon inherits Rectangle {
     in-out property <bool> ascending: true;
@@ -14,15 +15,14 @@ component SortIcon inherits Rectangle {
     height: 15px;
     width: 15px;
     background: transparent;
-    if !ascending && display: Path {
-        commands: "M 5 1 L 5 9 L 7 7";
+    IconDisplay {
+        visible: root.display;
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        icon: root.ascending ? IconSet.ArrowUp : IconSet.ArrowDown;
+        size: min(parent.width, parent.height);
         stroke: Theme.text-tertiary;
-        stroke-width: 1px;
-    }
-    if ascending && display: Path {
-        commands: "M 5 9 L 5 1 L 3 3";
-        stroke: Theme.text-tertiary;
-        stroke-width: 1px;
+        stroke-width: 1.8;
     }
 }
 
