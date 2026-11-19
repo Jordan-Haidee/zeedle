@@ -247,3 +247,17 @@ msgctxt "DeleteConfirmPopup"
 msgid "Delete permanently"
 msgstr ""
 
+#: ui/app.slint:80
+msgctxt "AppTray"
+msgid "Show Window"
+msgstr ""
+
+#: ui/app.slint:84
+msgctxt "AppTray"
+msgid "Rescan Songs"
+msgstr ""
+
+#: ui/app.slint:88
+msgctxt "AppTray"
+msgid "Exit"
+msgstr ""

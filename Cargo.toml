@@ -24,6 +24,7 @@ single-instance = "0.3.3"
 slint = { version = "=1.19.0", default-features = false, features = [
     "backend-winit",
     "renderer-skia-software",
+    "system-tray",
     "accessibility",
     "compat-1-2",
     "std",

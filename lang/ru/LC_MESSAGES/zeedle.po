@@ -257,3 +257,18 @@ msgstr "Удалить навсегда"
 #~ msgctxt "SongEditPopup"
 #~ msgid "Update the selected song's metadata."
 #~ msgstr "Измените метаданные выбранной песни."
+
+#: ui/app.slint:80
+msgctxt "AppTray"
+msgid "Show Window"
+msgstr "Показать окно"
+
+#: ui/app.slint:84
+msgctxt "AppTray"
+msgid "Rescan Songs"
+msgstr "Повторно сканировать песни"
+
+#: ui/app.slint:88
+msgctxt "AppTray"
+msgid "Exit"
+msgstr "Выход"

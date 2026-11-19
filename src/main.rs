@@ -1067,7 +1067,6 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
         if let Some(ui) = ui_weak.upgrade() {
             save_ui_state(&ui);
             let _ = ui.window().hide();
-            slint::quit_event_loop().ok();
         }
     });
 
@@ -1206,6 +1205,33 @@ fn save_ui_state(ui: &MainWindow) {
     });
 }
 
+fn register_tray_callbacks(ui: &MainWindow, tray: &AppTray, tx: mpsc::Sender<PlayerCommand>) {
+    let ui_weak = ui.as_weak();
+    tray.on_show_window(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            ui.window().set_minimized(false);
+            if let Err(error) = ui.window().show() {
+                log::warn!("failed to show window from tray menu: {error}");
+            }
+        }
+    });
+
+    let ui_weak = ui.as_weak();
+    tray.on_rescan_songs(move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            let song_dir = ui.global::<DisplayGlobal>().get_song_dir();
+            log::info!("request to rescan songs from tray: {}", song_dir);
+            if let Err(error) = tx.send(PlayerCommand::RefreshSongList(song_dir.as_str().into())) {
+                log::error!("failed to send tray rescan command: {error}");
+            }
+        }
+    });
+
+    tray.on_exit_app(|| {
+        slint::quit_event_loop().ok();
+    });
+}
+
 fn build_theme_timer(ui_weak: slint::Weak<MainWindow>) -> slint::Timer {
     let timer = slint::Timer::default();
     timer.start(slint::TimerMode::Repeated, Duration::from_secs(1), move || {
@@ -1299,6 +1325,13 @@ fn main() {
     // 初始化 UI 状态
     let cfg = Config::load();
     let ui = MainWindow::new().expect("failed to create UI");
+    let tray = match AppTray::new() {
+        Ok(tray) => Some(tray),
+        Err(error) => {
+            log::warn!("system tray is unavailable: {error}");
+            None
+        }
+    };
     let start_state = set_start_ui_state(&ui, &cfg);
 
     // 初始化播放器状态
@@ -1333,6 +1366,9 @@ fn main() {
 
     // UI 回调函数定义
     register_ui_callbacks(&ui, tx.clone());
+    if let Some(tray) = tray.as_ref() {
+        register_tray_callbacks(&ui, tray, tx.clone());
+    }
 
     // UI 定时刷新进度条
     let _progress_timer = build_progress_timer(ui.as_weak(), player.clone());

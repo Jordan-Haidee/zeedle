@@ -256,3 +256,18 @@ msgstr "永久删除"
 #~ msgctxt "SongEditPopup"
 #~ msgid "Update the selected song's metadata."
 #~ msgstr "更新所选歌曲的元信息。"
+
+#: ui/app.slint:80
+msgctxt "AppTray"
+msgid "Show Window"
+msgstr "显示窗口"
+
+#: ui/app.slint:84
+msgctxt "AppTray"
+msgid "Rescan Songs"
+msgstr "重新扫描歌曲"
+
+#: ui/app.slint:88
+msgctxt "AppTray"
+msgid "Exit"
+msgstr "退出"

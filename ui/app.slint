@@ -67,6 +67,32 @@ export global DisplayGlobal {
     in-out property <length> gallery_viewport_y: 0px;
 }
 
+export component AppTray inherits SystemTrayIcon {
+    icon: @image-url("cover.svg");
+    tooltip: "Zeedle";
+
+    callback show-window();
+    callback rescan-songs();
+    callback exit-app();
+
+    Menu {
+        MenuItem {
+            title: @tr("Show Window");
+            activated => { root.show-window(); }
+        }
+
+        MenuItem {
+            title: @tr("Rescan Songs");
+            activated => { root.rescan-songs(); }
+        }
+
+        MenuItem {
+            title: @tr("Exit");
+            activated => { root.exit-app(); }
+        }
+    }
+}
+
 export component MainWindow inherits Window {
     default-font-family <=> DisplayGlobal.app-font-family;
     default-font-size: 14px;

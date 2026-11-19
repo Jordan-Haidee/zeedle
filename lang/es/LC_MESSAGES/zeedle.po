@@ -256,3 +256,18 @@ msgstr "Eliminar permanentemente"
 #~ msgctxt "SongEditPopup"
 #~ msgid "Update the selected song's metadata."
 #~ msgstr "Actualiza los metadatos de la canción seleccionada."
+
+#: ui/app.slint:80
+msgctxt "AppTray"
+msgid "Show Window"
+msgstr "Mostrar ventana"
+
+#: ui/app.slint:84
+msgctxt "AppTray"
+msgid "Rescan Songs"
+msgstr "Volver a escanear canciones"
+
+#: ui/app.slint:88
+msgctxt "AppTray"
+msgid "Exit"
+msgstr "Salir"
