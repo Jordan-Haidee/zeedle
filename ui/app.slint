@@ -75,6 +75,8 @@ export component AppTray inherits SystemTrayIcon {
     callback rescan-songs();
     callback exit-app();
 
+    clicked => { root.show-window(); }
+
     Menu {
         MenuItem {
             title: @tr("Show Window");
