@@ -315,22 +315,35 @@ pub fn sort_song_infos(songs: &mut [SongInfo], sort_key: SortKey, ascending: boo
 pub fn read_lyrics(path: impl AsRef<Path>) -> Vec<LyricItem> {
     let path = path.as_ref();
 
-    let probe = match open_audio_probe(path) {
-        Ok(p) => p,
-        Err(e) => {
-            log::warn!("{}: failed to open or detect file type ({})", path.display(), e);
-            return vec![];
+    match open_audio_probe(path) {
+        Ok(probe) => {
+            if let Ok(tagged) = probe.read()
+                && let Some(tag) = tagged.primary_tag()
+                && let Some(lyric_item) =
+                    tag.get(ItemKey::UnsyncLyrics).or_else(|| tag.get(ItemKey::Lyrics))
+                && let Some(lyrics) = lyric_item.value().text()
+            {
+                let parsed = parse_lyrics(lyrics);
+                if !parsed.is_empty() {
+                    return parsed;
+                }
+            }
         }
-    };
-    if let Ok(tagged) = probe.read()
-        && let Some(tag) = tagged.primary_tag()
-        && let Some(lyric_item) =
-            tag.get(ItemKey::UnsyncLyrics).or_else(|| tag.get(ItemKey::Lyrics))
-        && let Some(lyrics) = lyric_item.value().text()
-    {
-        return parse_lyrics(lyrics);
+        Err(error) => {
+            log::warn!("{}: failed to open or detect file type ({})", path.display(), error);
+        }
     }
-    Vec::new()
+
+    let lrc_path = path.with_extension("lrc");
+    match read_uploaded_lyrics(&lrc_path) {
+        Ok(lyrics) => parse_lyrics(&lyrics),
+        Err(error) => {
+            if lrc_path.exists() {
+                log::warn!("{}: failed to read sidecar lyrics ({})", lrc_path.display(), error);
+            }
+            Vec::new()
+        }
+    }
 }
 
 /// Parse time-coded LRC text into the timeline items used by the lyrics panel.
