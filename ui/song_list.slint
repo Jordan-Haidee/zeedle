@@ -664,7 +664,7 @@ export component SongListView inherits Rectangle {
         }
 
         ListView {
-            viewport-y <=> root.scroll-y;
+            content-y <=> root.scroll-y;
             for item in root.song-list: SongItem {
                 info: item;
                 playing: item.song-path == root.current-song.song-path;

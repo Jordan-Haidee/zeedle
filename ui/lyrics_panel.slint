@@ -43,6 +43,7 @@ export component LyricsPanel inherits Rectangle {
     callback jump-to(float);
     background: Theme.surface;
     HorizontalLayout {
+        x: 0px;
         width: 100%;
         height: 100%;
         VerticalLayout {
@@ -54,6 +55,7 @@ export component LyricsPanel inherits Rectangle {
                 height: self.width;
                 clip: true;
                 border-radius: 8px;
+                background: transparent;
                 drop-shadow-blur: 8px;
                 Image {
                     width: 100%;
@@ -63,36 +65,18 @@ export component LyricsPanel inherits Rectangle {
             }
 
             Text {
-                states [
-                    has-lyrics when lyrics.length != 0: {
-                        x: lyric-image.x;
-                    }
-                    no-lyrics when lyrics.length == 0: {
-                        horizontal-alignment: center;
-                    }
-                ]
-
                 width: 100%;
                 height: 25px;
-
+                horizontal-alignment: center;
                 vertical-alignment: bottom;
                 text: @tr("Artist: {}", current_song.singer);
                 overflow: elide;
             }
 
             Text {
-                states [
-                    has-lyrics when lyrics.length != 0: {
-                        x: lyric-image.x;
-                    }
-                    no-lyrics when lyrics.length == 0: {
-                        horizontal-alignment: center;
-                    }
-                ]
-
                 width: 100%;
                 height: 25px;
-
+                horizontal-alignment: center;
                 vertical-alignment: bottom;
                 text: @tr("Title: {}", current_song.song_name);
                 overflow: elide;
@@ -106,7 +90,7 @@ export component LyricsPanel inherits Rectangle {
                 height: 100%;
                 width: 100%;
                 mouse-drag-pan-enabled: false;
-                viewport-y <=> root.lyric_viewport_y;
+                content-y <=> root.lyric_viewport_y;
                 for item in root.lyrics: LyricLine {
                     time: item.time;
                     content: item.text;

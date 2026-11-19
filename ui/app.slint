@@ -175,7 +175,9 @@ export component MainWindow inherits Window {
         }
 
         HorizontalLayout {
+            x: 0px;
             y: title-bar.height;
+            width: 100%;
             height: root.height - title-bar.height;
             spacing: 0px;
 
@@ -294,6 +296,8 @@ export component MainWindow inherits Window {
                     }
 
                     if root.current_page == 1: SearchPanel {
+                        x: 0px;
+                        y: 0px;
                         width: 100%;
                         height: 100%;
                         search-query <=> DisplayGlobal.search_query;
