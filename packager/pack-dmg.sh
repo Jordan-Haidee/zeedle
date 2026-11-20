@@ -33,6 +33,7 @@ esac
 TEMP_CONFIG_BASE=""
 VERSIONED_CONFIG=""
 STAGING_DIR=""
+PACKAGER_LOG=""
 cleanup() {
     if [[ -n "$TEMP_CONFIG_BASE" ]]; then
         rm -f -- "$TEMP_CONFIG_BASE"
@@ -58,9 +59,41 @@ TEMP_CONFIG_BASE=""
 mkdir -p -- "$RELEASE_DIR"
 STAGING_DIR="$(mktemp -d "$RELEASE_DIR/.dmg-staging.XXXXXX")"
 OUTPUT_DMG="$RELEASE_DIR/Zeedle_${VERSION}_${PACKAGE_ARCH}.dmg"
+PACKAGER_LOG="$STAGING_DIR/cargo-packager.log"
 
 printf 'Building Zeedle %s macOS DMG (%s)...\n' "$VERSION" "$PACKAGE_ARCH"
-cargo packager --config "$VERSIONED_CONFIG" --out-dir "$STAGING_DIR" --formats dmg
+
+MAX_DMG_ATTEMPTS=5
+for attempt in $(seq 1 "$MAX_DMG_ATTEMPTS"); do
+    : > "$PACKAGER_LOG"
+    set +e
+    cargo packager --config "$VERSIONED_CONFIG" --out-dir "$STAGING_DIR" --formats dmg \
+        2>&1 | tee "$PACKAGER_LOG"
+    pipeline_status=("${PIPESTATUS[@]}")
+    set -e
+    packager_status="${pipeline_status[0]}"
+    tee_status="${pipeline_status[1]}"
+
+    if [[ "$tee_status" -ne 0 && "$packager_status" -eq 0 ]]; then
+        exit "$tee_status"
+    fi
+    if [[ "$packager_status" -eq 0 ]]; then
+        break
+    fi
+
+    # GitHub macOS runners can transiently have Spotlight/XProtect hold the
+    # temporary image while create-dmg invokes hdiutil.
+    if [[ "$attempt" -lt "$MAX_DMG_ATTEMPTS" ]] \
+        && grep -Fq 'hdiutil: create failed - Resource busy' "$PACKAGER_LOG"; then
+        printf 'DMG creation hit a transient hdiutil resource conflict; retrying (%s/%s)...\n' \
+            "$((attempt + 1))" "$MAX_DMG_ATTEMPTS" >&2
+        rm -f -- "$STAGING_DIR"/*.dmg
+        sleep "$((attempt * 5))"
+        continue
+    fi
+
+    exit "$packager_status"
+done
 
 shopt -s nullglob
 GENERATED_DMGS=("$STAGING_DIR"/*.dmg)
