@@ -21,6 +21,7 @@ component LangButton inherits Rectangle {
         padding-top: 4px;
         padding-bottom: 4px;
         alignment: center;
+
         Text {
             text: root.text;
             color: lang-code == current-lang ? Theme.surface : Theme.text;
@@ -37,10 +38,12 @@ export component SettingsPanel inherits Rectangle {
     in-out property <string> song_dir;
     in-out property <string> lang;
     in-out property <bool> follow_system_theme;
+    in-out property <bool> close_to_tray;
     in-out property <bool> show_spectrum;
     callback refresh_song_list(string);
     callback set_lang(string);
     callback set_follow_system_theme(bool);
+    callback set_close_to_tray(bool);
     callback set_show_spectrum(bool);
     callback select_song_dir();
     background: Theme.surface;
@@ -83,6 +86,7 @@ export component SettingsPanel inherits Rectangle {
                     // Music directory
                     VerticalLayout {
                         spacing: 6px;
+
                         Text {
                             text: @tr("Music directory");
                             font-size: 13px;
@@ -91,6 +95,7 @@ export component SettingsPanel inherits Rectangle {
 
                         HorizontalLayout {
                             spacing: 8px;
+
                             Rectangle {
                                 border-radius: 4px;
                                 border-width: 1px;
@@ -98,6 +103,7 @@ export component SettingsPanel inherits Rectangle {
                                 background: Theme.hover;
                                 horizontal-stretch: 1;
                                 clip: true;
+
                                 Text {
                                     x: 12px;
                                     width: parent.width - 24px;
@@ -125,6 +131,40 @@ export component SettingsPanel inherits Rectangle {
                         checked <=> root.show_spectrum;
                         toggled => {
                             root.set_show_spectrum(self.checked);
+                        }
+                    }
+                }
+            }
+
+            // --- Window Section ---
+            Rectangle {
+                background: Theme.panel;
+                border-radius: 8px;
+                border-width: 1px;
+                border-color: Theme.border;
+
+                VerticalLayout {
+                    padding: 16px;
+                    spacing: 12px;
+
+                    Text {
+                        text: @tr("Window");
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: Theme.text-tertiary;
+                        letter-spacing: 0.3px;
+                    }
+
+                    Rectangle {
+                        height: 1px;
+                        background: Theme.divider;
+                    }
+
+                    CheckBox {
+                        text: @tr("Keep in system tray when closing");
+                        checked <=> root.close_to_tray;
+                        toggled => {
+                            root.set_close_to_tray(self.checked);
                         }
                     }
                 }
@@ -166,6 +206,7 @@ export component SettingsPanel inherits Rectangle {
                     // Language
                     VerticalLayout {
                         spacing: 6px;
+
                         Text {
                             text: @tr("Language");
                             font-size: 13px;

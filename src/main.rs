@@ -65,6 +65,7 @@ fn apply_config_to_ui(ui: &MainWindow, cfg: &Config) {
     display.set_song_dir(cfg.song_dir.to_str().expect("failed to convert Path to String").into());
     display.set_about_info(utils::get_about_info());
     display.set_follow_system_theme(cfg.follow_system_theme);
+    display.set_close_to_tray(cfg.close_to_tray);
 
     let playback = ui.global::<PlaybackGlobal>();
     playback.set_paused(true);
@@ -764,7 +765,7 @@ fn start_player_backend_thread(
     });
 }
 
-fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
+fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>, tray_available: bool) {
     {
         let tx = tx.clone();
         ui.on_play(move |song_info: SongInfo, trigger: TriggerSource| {
@@ -1038,6 +1039,14 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
             }
         });
     }
+    {
+        let ui_weak = ui.as_weak();
+        ui.on_set_close_to_tray(move |close_to_tray| {
+            if let Some(ui) = ui_weak.upgrade() {
+                ui.global::<DisplayGlobal>().set_close_to_tray(close_to_tray);
+            }
+        });
+    }
 
     // window control callbacks
     let ui_weak = ui.as_weak();
@@ -1066,7 +1075,11 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>) {
     ui.on_window_close(move || {
         if let Some(ui) = ui_weak.upgrade() {
             save_ui_state(&ui);
-            let _ = ui.window().hide();
+            if tray_available && ui.global::<DisplayGlobal>().get_close_to_tray() {
+                let _ = ui.window().hide();
+            } else {
+                slint::quit_event_loop().ok();
+            }
         }
     });
 
@@ -1199,6 +1212,7 @@ fn save_ui_state(ui: &MainWindow) {
         follow_system_theme: display.get_follow_system_theme(),
         volume: playback.get_volume(),
         show_spectrum: playback.get_show_spectrum(),
+        close_to_tray: display.get_close_to_tray(),
         current_page: ui.get_current_page(),
         sidebar_expanded: ui.get_sidebar_expanded(),
         gallery_viewport_y: display.get_gallery_viewport_y(),
@@ -1365,7 +1379,7 @@ fn main() {
     );
 
     // UI 回调函数定义
-    register_ui_callbacks(&ui, tx.clone());
+    register_ui_callbacks(&ui, tx.clone(), tray.is_some());
     if let Some(tray) = tray.as_ref() {
         register_tray_callbacks(&ui, tray, tx.clone());
     }

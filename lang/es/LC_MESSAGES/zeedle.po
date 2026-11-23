@@ -50,6 +50,17 @@ msgstr "Directorio de música"
 msgctxt "SettingsPanel"
 msgid "Spectrum display"
 msgstr "Visualización del espectro"
+#: ui/settings_panel.slint
+msgctxt "SettingsPanel"
+msgid "Keep in system tray when closing"
+msgstr "Mantener en la bandeja del sistema al cerrar"
+
+#: ui/settings_panel.slint
+msgctxt "SettingsPanel"
+msgid "Window"
+msgstr "Ventana"
+
+
 
 #: ui/settings_panel.slint:145
 msgctxt "SettingsPanel"

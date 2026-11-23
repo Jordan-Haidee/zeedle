@@ -51,6 +51,17 @@ msgstr "Музыкальная папка"
 msgctxt "SettingsPanel"
 msgid "Spectrum display"
 msgstr "Показ спектра"
+#: ui/settings_panel.slint
+msgctxt "SettingsPanel"
+msgid "Keep in system tray when closing"
+msgstr "Оставлять в системном трее при закрытии"
+
+#: ui/settings_panel.slint
+msgctxt "SettingsPanel"
+msgid "Window"
+msgstr "Окно"
+
+
 
 #: ui/settings_panel.slint:145
 msgctxt "SettingsPanel"

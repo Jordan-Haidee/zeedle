@@ -146,6 +146,17 @@ msgstr ""
 msgctxt "SongEditPopup"
 msgid "Artist"
 msgstr ""
+#: ui/settings_panel.slint
+msgctxt "SettingsPanel"
+msgid "Keep in system tray when closing"
+msgstr ""
+
+#: ui/settings_panel.slint
+msgctxt "SettingsPanel"
+msgid "Window"
+msgstr ""
+
+
 
 #: ui/song_list.slint:345 ui/song_list.slint:353
 msgctxt "SongEditPopup"

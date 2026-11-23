@@ -60,6 +60,7 @@ export global DisplayGlobal {
     in-out property <string> lang;
     in-out property <bool> light_ui;
     in-out property <bool> follow_system_theme;
+    in-out property <bool> close_to_tray;
     in-out property <[SongInfo]> song_list;
     in-out property <[SongInfo]> search_results;
     in-out property <string> search_query;
@@ -120,6 +121,7 @@ export component MainWindow inherits Window {
     callback change_volume(float);
     callback set_show_spectrum(bool);
     callback set_follow_system_theme(bool);
+    callback set_close_to_tray(bool);
     callback select_song_dir();
     callback search_songs(string);
     callback delete_song(SongInfo);
@@ -236,6 +238,7 @@ export component MainWindow inherits Window {
                         height: 100%;
                         z: 5;
                         visible: PlaybackGlobal.show_spectrum;
+
                         SpectrumView {
                             width: parent.width;
                             height: 60px;
@@ -247,6 +250,7 @@ export component MainWindow inherits Window {
                     if root.current_page == 0: VerticalLayout {
                         width: 100%;
                         height: 100%;
+
                         SongListView {
                             ascending <=> DisplayGlobal.sort_ascending;
                             sort-key <=> DisplayGlobal.sort_key;
@@ -364,6 +368,7 @@ export component MainWindow inherits Window {
                         width: 100%;
                         height: 100%;
                         z: -5;
+
                         TouchArea {
                             double-clicked => {
                                 root.current_page = 0;
@@ -386,6 +391,7 @@ export component MainWindow inherits Window {
                         width: 100%;
                         height: 100%;
                         background: Theme.surface;
+
                         TouchArea {
                             clicked => {
                                 root.focus();
@@ -398,6 +404,7 @@ export component MainWindow inherits Window {
                             song_dir <=> DisplayGlobal.song_dir;
                             lang <=> DisplayGlobal.lang;
                             follow_system_theme <=> DisplayGlobal.follow_system_theme;
+                            close_to_tray <=> DisplayGlobal.close_to_tray;
                             show_spectrum <=> PlaybackGlobal.show_spectrum;
                             refresh_song_list(p) => {
                                 root.refresh_song_list(p);
@@ -407,6 +414,9 @@ export component MainWindow inherits Window {
                             }
                             set_follow_system_theme(yes) => {
                                 root.set_follow_system_theme(yes);
+                            }
+                            set_close_to_tray(yes) => {
+                                root.set_close_to_tray(yes);
                             }
                             set_show_spectrum(yes) => {
                                 root.set_show_spectrum(yes);
@@ -427,8 +437,10 @@ export component MainWindow inherits Window {
                             height: 100%;
                             alignment: center;
                             spacing: 10px;
+
                             HorizontalLayout {
                                 alignment: center;
+
                                 Image {
                                     source: @image-url("cover.svg");
                                     width: 120px;
@@ -517,10 +529,12 @@ export component MainWindow inherits Window {
             y: (root.height - 450px) / 2;
             width: 1px;
             height: 1px;
+
             edit-popup := PopupWindow {
                 width: 520px;
                 height: 450px;
                 close-policy: no-auto-close;
+
                 SongEditPopup {
                     song: root.editing_song;
                     saving: root.edit_popup_saving;
@@ -567,10 +581,12 @@ export component MainWindow inherits Window {
             y: (root.height - 190px) / 2;
             width: 1px;
             height: 1px;
+
             operation-popup := PopupWindow {
                 width: 380px;
                 height: 190px;
                 close-policy: close-on-click-outside;
+
                 MessagePopup {
                     message: root.operation_error_message;
                     dismissed => { operation-popup.close(); }
@@ -583,10 +599,12 @@ export component MainWindow inherits Window {
             y: (root.height - 200px) / 2;
             width: 1px;
             height: 1px;
+
             delete-confirm-popup := PopupWindow {
                 width: 400px;
                 height: 200px;
                 close-policy: no-auto-close;
+
                 DeleteConfirmPopup {
                     song-name: root.pending_delete_song.song-name;
                     cancelled => {

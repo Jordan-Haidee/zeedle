@@ -23,6 +23,9 @@ pub struct Config {
     pub volume: f32,
     #[serde(default)]
     pub show_spectrum: bool,
+    /// Whether closing the window should keep the app running in the tray
+    #[serde(default)]
+    pub close_to_tray: bool,
     /// Currently active sidebar page (0=Gallery, 1=Search, 2=Lyrics, 3=Settings, 4=About)
     #[serde(default)]
     pub current_page: i32,
@@ -47,6 +50,7 @@ impl Default for Config {
             follow_system_theme: true,
             volume: 1f32,
             show_spectrum: true,
+            close_to_tray: false,
             current_page: 0,
             sidebar_expanded: false,
             gallery_viewport_y: 0.0,

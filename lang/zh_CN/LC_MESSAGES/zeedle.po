@@ -51,6 +51,17 @@ msgstr "音乐文件夹"
 msgctxt "SettingsPanel"
 msgid "Spectrum display"
 msgstr "频谱显示"
+#: ui/settings_panel.slint
+msgctxt "SettingsPanel"
+msgid "Keep in system tray when closing"
+msgstr "关闭窗口时保留在系统托盘"
+
+#: ui/settings_panel.slint
+msgctxt "SettingsPanel"
+msgid "Window"
+msgstr "窗口"
+
+
 
 #: ui/settings_panel.slint:145
 msgctxt "SettingsPanel"
