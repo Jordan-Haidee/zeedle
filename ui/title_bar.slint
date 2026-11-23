@@ -33,6 +33,7 @@ export component TitleBar inherits Rectangle {
         // App title (left side)
         Rectangle {
             width: 130px;
+
             Image {
                 source: @image-url("cover.svg");
                 width: 18px;
@@ -63,6 +64,7 @@ export component TitleBar inherits Rectangle {
             opacity: root.theme_toggle_enabled ? 1.0 : 0.4;
             background: (root.theme_toggle_enabled && theme-touch.has-hover) ? Theme.hover : transparent;
             animate background { duration: 100ms; }
+
             IconDisplay {
                 x: (parent.width - self.width) / 2;
                 y: (parent.height - self.height) / 2;
@@ -92,13 +94,14 @@ export component TitleBar inherits Rectangle {
             height: 100%;
             background: min-touch.has-hover ? Theme.hover : transparent;
             animate background { duration: 100ms; }
-            Rectangle {
-                width: 12px;
-                height: 2px;
+
+            IconDisplay {
                 x: (parent.width - self.width) / 2;
                 y: (parent.height - self.height) / 2;
-                border-radius: 1px;
-                background: min-touch.has-hover ? Theme.text : Theme.text-secondary;
+                icon: IconSet.Minus;
+                size: 16px;
+                stroke: min-touch.has-hover ? Theme.text : Theme.text-secondary;
+                stroke-width: 2.2;
             }
 
             min-touch := TouchArea {
@@ -113,14 +116,14 @@ export component TitleBar inherits Rectangle {
             height: 100%;
             background: max-touch.has-hover ? Theme.hover : transparent;
             animate background { duration: 100ms; }
-            Rectangle {
-                width: 10px;
-                height: 10px;
+
+            IconDisplay {
                 x: (parent.width - self.width) / 2;
                 y: (parent.height - self.height) / 2;
-                border-width: 1.5px;
-                border-color: max-touch.has-hover ? Theme.text : Theme.text-secondary;
-                border-radius: 1px;
+                icon: IconSet.Square;
+                size: 16px;
+                stroke: max-touch.has-hover ? Theme.text : Theme.text-secondary;
+                stroke-width: 2.2;
             }
 
             max-touch := TouchArea {
@@ -135,13 +138,14 @@ export component TitleBar inherits Rectangle {
             height: 100%;
             background: close-touch.has-hover ? #e81123 : transparent;
             animate background { duration: 100ms; }
+
             IconDisplay {
                 x: (parent.width - self.width) / 2;
                 y: (parent.height - self.height) / 2;
                 icon: IconSet.X;
-                size: 14px;
+                size: 16px;
                 stroke: close-touch.has-hover ? white : Theme.text-secondary;
-                stroke-width: 1.5;
+                stroke-width: 2.2;
             }
 
             close-touch := TouchArea {
