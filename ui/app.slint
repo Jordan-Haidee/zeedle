@@ -133,7 +133,6 @@ export component MainWindow inherits Window {
     callback window_minimize();
     callback window_maximize();
     callback window_close();
-    callback window_drag_delta(float, float);
     pure callback open_url_in_browser(string);
     pure callback prev-lyric-time(float, [LyricItem]) -> float;
     pure callback next-lyric-time(float, [LyricItem]) -> float;
@@ -198,9 +197,6 @@ export component MainWindow inherits Window {
             toggle_theme => {
                 DisplayGlobal.follow_system_theme = false;
                 root.set_light_theme(!DisplayGlobal.light_ui);
-            }
-            drag_delta(dx, dy) => {
-                root.window_drag_delta(dx, dy);
             }
         }
 

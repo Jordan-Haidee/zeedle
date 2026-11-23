@@ -1056,20 +1056,12 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>, tray_
         }
     });
 
-    // Position cache for fallback drag — defined before maximize
-    // so the handler can reset it when window state changes.
-    let init_pos = Rc::new(Cell::new(None::<(i32, i32)>));
-
     let ui_weak = ui.as_weak();
-    let init_pos_max = init_pos.clone();
     ui.on_window_maximize(move || {
         if let Some(ui) = ui_weak.upgrade() {
             let window = ui.window();
             window.set_maximized(!window.is_maximized());
         }
-        // Reset position cache — window position changed, so the
-        // cached fallback origin from a previous gesture is stale.
-        init_pos_max.set(None);
     });
     let ui_weak = ui.as_weak();
     ui.on_window_close(move || {
@@ -1080,30 +1072,6 @@ fn register_ui_callbacks(ui: &MainWindow, tx: mpsc::Sender<PlayerCommand>, tray_
             } else {
                 slint::quit_event_loop().ok();
             }
-        }
-    });
-
-    // Window dragging — use native OS move via winit's drag_window()
-    let ui_weak = ui.as_weak();
-    ui.on_window_drag_delta(move |dx: f32, dy: f32| {
-        if let Some(app) = ui_weak.upgrade() {
-            // Try native OS drag (works on Wayland, X11, Windows when button is pressed)
-            let native_ok =
-                app.window().with_winit_window(|w| w.drag_window().is_ok()).unwrap_or(false);
-
-            if native_ok {
-                // OS window manager/compositor handles all movement
-                init_pos.set(None);
-                return;
-            }
-
-            // Fallback: manually position the window (non-winit backends)
-            let (ix, iy) = init_pos.get().unwrap_or_else(|| {
-                let pos = app.window().position();
-                init_pos.set(Some((pos.x, pos.y)));
-                (pos.x, pos.y)
-            });
-            app.window().set_position(slint::PhysicalPosition::new(ix + dx as i32, iy + dy as i32));
         }
     });
 
